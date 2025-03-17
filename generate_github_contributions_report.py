@@ -10,6 +10,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import Patch
+import traceback
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -308,9 +309,9 @@ def create_pie_chart(df, field, filename, percentage=-1):
 
         plt.legend(handles=patches, labels=[total_patch.get_label()] + labels, loc="best", bbox_to_anchor=(1, 0.75),
                    fontsize=10, title=field)
-
-        plt.tight_layout()  # Adjust layout to fit everything
-        plt.savefig(filename)
+        plt.margins(0, 0)
+        plt.axis('equal')
+        plt.savefig(filename, bbox_inches='tight', pad_inches=0)
         logger.info(f"Saved pie chart as {filename}")
         plt.close()
     except Exception as e:
@@ -345,40 +346,43 @@ def create_markdown_report(github_data_df, user_counts_df, project_counts_df, ou
 
             # Add current time
             current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            f.write(f"Report generated on: {current_time}\n\n")
+            f.write(f"Report auto-generated on: {current_time}\n\n")
 
             # Add summary table
             f.write("## Summary of Contributions by each user\n\n")
             f.write("| User | Commits | Pull Requests (Open) | Overall Contribution |\n")
             f.write("|------|---------|----------------------|----------------------|\n")
-            for _, row in user_counts_df.iterrows():
+            for _, row in user_counts_df.sort_values(by=['Overall Contribution'], ascending=False).iterrows():
                 f.write(
                     f"| {row['User']} | {row['Commits']} | {row['Pull Requests (Open)']} | {row['Overall Contribution']} |\n")
 
-            # Add pie chart image
+            # Add pie chart image for user wise contributions
             user_wise_contribution_fname = "user_wise_contribution.png"
             create_pie_chart(user_counts_df, 'User', os.path.join(output_folder, user_wise_contribution_fname),
                              percentage)
-            f.write(f"\n![Contributions Pie Chart]({user_wise_contribution_fname})\n")
+            f.write(f'\n<img src="{user_wise_contribution_fname}" alt="Contributions: User Wise" style="width:50%;">\n')
 
             # Add summary table for project wise
             f.write("\n## Summary of Contributions by each project\n\n")
             f.write("| Project Name | Commits | Pull Requests (Open) | Overall Contribution |\n")
             f.write("|--------------|---------|----------------------|----------------------|\n")
-            for _, row in project_counts_df.iterrows():
+            for _, row in project_counts_df.sort_values(by=['Overall Contribution'], ascending=False).iterrows():
                 f.write(
                     f"| {row['Project Name']} | {row['Commits']} | {row['Pull Requests (Open)']} | {row['Overall Contribution']} |\n")
 
+            # Add a heatmap image for project wise contributions
             project_wise_contribution_fname = "project_wise_contribution.png"
             create_pie_chart(project_counts_df, 'Project Name',
-                             os.path.join(output_folder, project_wise_contribution_fname), percentage)
-            f.write(f"\n![Contributions Pie Chart]({project_wise_contribution_fname})\n")
+                             os.path.join(output_folder, project_wise_contribution_fname))
+            f.write(
+                f'\n<img src="{project_wise_contribution_fname}" alt="Contributions: Project Wise" style="width:50%;">\n')
 
             # Add detailed contribution data for each user, use non_zero_df
             f.write("\n## Detailed Contributions\n\n")
             f.write("| Project Name | Repository | User | Commits | Pull Requests (Open) | Overall Contribution |\n")
             f.write("|--------------|------------|------|---------|----------------------|----------------------|\n")
-            for _, row in github_data_df.sort_values(by=['User']).iterrows():
+            for _, row in github_data_df.sort_values(by=['Overall Contribution', 'User'],
+                                                     ascending=[False, True]).iterrows():
                 f.write(
                     f"| {row['Project Name']} | {row['Repository']} | {row['User']} | {row['Commits']} | {row['Pull Requests (Open)']} | {row['Overall Contribution']} |\n")
 
@@ -442,4 +446,9 @@ def generate_github_contributions_report(github_conf_path="input/github.json", o
 
 
 if __name__ == "__main__":
-    generate_github_contributions_report()
+    try:
+        generate_github_contributions_report()
+    except Exception as e:
+        logger.error(f"Failed to complete job: {e}")
+        traceback.print_exc()
+        exit(-1)
