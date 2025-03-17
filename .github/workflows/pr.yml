@@ -1,0 +1,32 @@
+name: PR Test Workflow
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  pr-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run script
+        run: |
+          python generate_github_contributions_report.py
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HTTP_PROXY: ${{ secrets.HTTP_PROXY }}
+          HTTPS_PROXY: ${{ secrets.HTTPS_PROXY }}
+        continue-on-error: false

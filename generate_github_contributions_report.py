@@ -447,7 +447,10 @@ def generate_github_contributions_report(github_conf_path="input/github.json", o
 
 if __name__ == "__main__":
     try:
+        logger.info("Script started.")
         generate_github_contributions_report()
+        logger.info("Script completed successfully.")
+        exit(0)  # Ensure an exit code of 0 upon successful completion
     except Exception as e:
         logger.error(f"Failed to complete job: {e}")
         traceback.print_exc()
