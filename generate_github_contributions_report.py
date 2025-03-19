@@ -77,9 +77,9 @@ def get_all_pages(url, params, max_retries=3, backoff_factor=0.3):
     return results
 
 
-def get_contributors(repo, per_page=100):
+def get_top_contributors(repo, per_page=100):
     """
-    Retrieve contributors for a repository.
+    Retrieve top 500 contributors for a repository.
 
     Args:
         repo (str): The repository name.
@@ -187,19 +187,19 @@ def process_github_data(start_date, users, project_to_repo_dict):
             logger.info(f"Processing project: {project_name}")
             for repo in repo_list:
                 logger.info(f"Processing repository: {repo}")
-                # optimize code to fetch list of contributors for repo and create a subset of users who are contributors
-                # for this repo and in our list (this will reduce the number of API calls)
-                logger.info(f"Fetching contributors: {repo}")
-                contributors = get_contributors(repo)
-                contributors = [str(contributor["login"]).lower() for contributor in contributors]
-                contributors_in_users = [user for user in users if user in contributors]
 
-                # Skip processing, if we have no contributors to this repo
-                if not contributors_in_users:
-                    logger.info(f"Skipping processing for this repository as we have no contributors here: {users}, {contributors}, {contributors_in_users}")
-                    continue
+                logger.info(f"Fetching top 500 contributors: {repo}")
+                top_contributors = get_top_contributors(repo)
+                top_contributors_rank = {str(contributor["login"]).lower(): rank for rank, contributor in
+                                         enumerate(top_contributors, start=1)}
+                top_contributors_in_users = []
 
-                logger.info(f"Only users: {contributors_in_users} contribute to the repository: {repo}")
+                # Find if we have any user in the top contributor list and their rank optimally
+                for user in users:
+                    if user in top_contributors_rank:
+                        top_contributors_in_users.append((user, top_contributors_rank[user]))
+
+                logger.info(f"Users: {top_contributors_in_users} are in top 500 contributor list of the repository: {repo}")
                 logger.info(f"Fetching pull requests (open) for repository: {repo}")
                 prs = get_pull_requests(repo, state="open")
 
@@ -210,7 +210,7 @@ def process_github_data(start_date, users, project_to_repo_dict):
                     if pr["created_at"] >= start_date:
                         user_prs_dict[user_login].append(pr)
 
-                for user in contributors_in_users:
+                for user in users:
                     logger.info(f"Processing user: {user}")
                     commits = get_commits(user, repo, formatted_start_date)
                     commit_count = len(commits)
