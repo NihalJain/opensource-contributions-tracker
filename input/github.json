@@ -4,36 +4,36 @@
     "nihaljain"
   ],
   "project_to_repo_dict": {
-    "AMBARI": [
+    "Apache Ambari": [
       "apache/ambari",
       "apache/ambari-metrics"
     ],
-    "BIGTOP": [
+    "Apache Bigtop": [
       "apache/bigtop"
     ],
-    "HBASE": [
+    "Apache HBase": [
       "apache/hbase",
       "apache/hbase-connectors",
       "apache/hbase-thirdparty",
       "apache/hbase-operator-tools"
     ],
-    "HADOOP": [
+    "Apache Hadoop": [
       "apache/hadoop"
     ],
-    "PHOENIX": [
+    "Apache Phoenix": [
       "apache/phoenix",
       "apache/phoenix-omid",
       "apache/phoenix-queryserver",
       "apache/phoenix-thirdparty"
     ],
-    "PINOT": [
+    "Apache Pinot": [
       "pinot-contrib/pinot-docs",
       "apache/pinot"
     ],
-    "RANGER": [
+    "Apache Ranger": [
       "apache/ranger"
     ],
-    "ZOOKEEPER": [
+    "Apache Zookeeper": [
       "apache/zookeeper"
     ]
   }

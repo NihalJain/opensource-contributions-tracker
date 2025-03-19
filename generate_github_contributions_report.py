@@ -192,14 +192,15 @@ def process_github_data(start_date, users, project_to_repo_dict):
                 top_contributors = get_top_contributors(repo)
                 top_contributors_rank = {str(contributor["login"]).lower(): rank for rank, contributor in
                                          enumerate(top_contributors, start=1)}
-                top_contributors_in_users = []
+                top_contributors_in_users = {}
 
-                # Find if we have any user in the top contributor list and their rank optimally
+                # Check if any of the user is in the top contributor list and if present notedown their rank
                 for user in users:
                     if user in top_contributors_rank:
-                        top_contributors_in_users.append((user, top_contributors_rank[user]))
+                        top_contributors_in_users[user] = top_contributors_rank[user]
 
-                logger.info(f"Users: {top_contributors_in_users} are in top 500 contributor list of the repository: {repo}")
+                logger.info(
+                    f"Users: {top_contributors_in_users} are in top 500 contributor list of the repository: {repo}")
                 logger.info(f"Fetching pull requests (open) for repository: {repo}")
                 prs = get_pull_requests(repo, state="open")
 
@@ -222,6 +223,7 @@ def process_github_data(start_date, users, project_to_repo_dict):
                         "User": user,
                         "Commits": commit_count,
                         "Pull Requests (Open)": pr_count,
+                        "Rank": top_contributors_in_users.get(user, -1),
                         "Overall Contribution": commit_count + pr_count
                     })
     except Exception as e:
@@ -284,11 +286,12 @@ def group_contributions(filtered_df):
     return user_counts_df, project_counts_df
 
 
-def create_pie_chart(df, field, filename, percentage=-1):
+def create_pie_chart(title, df, field, filename, percentage=-1):
     """
     Create a pie chart for the given DataFrame and save it as an image file.
 
     Args:
+        title (str): The title of the pie chart.
         df (DataFrame): The DataFrame containing the data.
         field (str): The field to group by for the pie chart.
         filename (str): The filename to save the pie chart image.
@@ -329,7 +332,7 @@ def create_pie_chart(df, field, filename, percentage=-1):
         patches, _ = plt.pie(value_counts, colors=colors, shadow=False, wedgeprops=dict(width=0.8, edgecolor='w'))
 
         # Draw circle for the center of the plot to make the pie look like a donut
-        centre_circle = plt.Circle((0, 0), 0.20, fc='white')
+        centre_circle = plt.Circle((0, 0), 0.1, fc='white')
         fig = plt.gcf()
         fig.gca().add_artist(centre_circle)
 
@@ -339,7 +342,9 @@ def create_pie_chart(df, field, filename, percentage=-1):
         # Add the total_patch to the existing patches
         patches = [total_patch] + list(patches)
 
-        plt.legend(handles=patches, labels=[total_patch.get_label()] + labels, loc="best", bbox_to_anchor=(1, 0.75),
+        plt.title(title, fontsize=16)
+        plt.legend(handles=patches, labels=[total_patch.get_label()] + labels, loc="upper center",
+                   bbox_to_anchor=(1, 1.1),
                    fontsize=10, title=field)
         plt.margins(0, 0)
         plt.axis('equal')
@@ -351,50 +356,135 @@ def create_pie_chart(df, field, filename, percentage=-1):
         raise
 
 
-def create_markdown_report(github_data_df, user_counts_df, project_counts_df, output_filename, percentage=-1):
+def print_input_json_format():
     """
-    Create a markdown report of GitHub contributions and save it as a file.
+    Print the format of the input JSON file for OpenSource contributions tracking.
+
+    Returns:
+        None
+    """
+    input_json = {
+        "start_date": "YYYY-MM-DD",
+        "users": ["user1", "user2"],
+        "project_to_repo_dict": {
+            "Project 1": ["owner1/repo1", "owner1/repo2"],
+            "Project 2": ["owner2/repo3"]
+        }
+    }
+    logger.info("Format of the input JSON file for OpenSource contributions tracking:")
+    logger.info(json.dumps(input_json, indent=4))
+
+
+def process_data(github_data_df):
+    """
+    Process the data for contributions.
 
     Args:
         github_data_df (DataFrame): The DataFrame containing GitHub data.
-        user_counts_df (DataFrame): The DataFrame containing user contribution data.
-        project_counts_df (DataFrame): The DataFrame containing project contribution data.
-        output_filename (str): The filename to save the markdown report.
+    """
+    # Process the data
+    github_data_df = filter_contributions(github_data_df)
+    user_counts_df, project_counts_df = group_contributions(github_data_df)
+
+    return github_data_df, project_counts_df, user_counts_df
+
+
+def process_data_and_create_report(github_data_df, output_dir, report_filename, percentage, shouldDump=True):
+    """
+    Process data and create a markdown report of GitHub contributions and save it as a file.
+
+    Args:
+        github_data_df (DataFrame): The DataFrame containing GitHub data.
+        output_dir (str): The directory to save the output markdown report.
+        report_filename (str): The filename for the output markdown report.
+        shouldDump (bool): Whether to dump the contribution data to a file. Defaults to True.
         percentage (int): The percentage threshold for grouping smaller values into 'Other'. Defaults to -1 (no grouping).
 
     Raises:
         Exception: If an error occurs while creating the markdown report.
     """
     try:
-        # Ensure the output directory exists
-        output_folder = os.path.dirname(output_filename)
-        if not os.path.exists(output_folder):
-            os.makedirs(output_folder)
-            logger.info(f"Created output directory: {output_folder}")
+        github_data_df, project_counts_df, user_counts_df = process_data(github_data_df)
+        create_markdown_report(github_data_df, user_counts_df, project_counts_df, output_dir, report_filename,
+                               percentage)
 
-        with open(output_filename, 'w') as f:
-            # Add title
-            f.write("# OpenSource Contributions Report\n\n")
+        # Dump contribution data to an output file for offline processing
+        # NOTE: To reload run `github_data_df = pd.read_csv('output/github_contribution_data.csv')`
+        if shouldDump:
+            github_data_df.to_csv('output/github_contribution_data.csv', index=False)
+            logger.info("Dumped contribution data to 'output/github_contribution_data.csv'")
+    except Exception as e:
+        logger.error(f"An error occurred while creating the markdown report: {e}")
+        raise
 
-            # Add current time
-            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            f.write(f"Report auto-generated on: {current_time}\n\n")
 
-            # Add summary table
-            f.write("## Summary of Contributions by each user\n\n")
-            f.write("| User | Commits | Pull Requests (Open) | Overall Contribution |\n")
-            f.write("|------|---------|----------------------|----------------------|\n")
-            for _, row in user_counts_df.sort_values(by=['Overall Contribution'], ascending=False).iterrows():
-                f.write(
-                    f"| {row['User']} | {row['Commits']} | {row['Pull Requests (Open)']} | {row['Overall Contribution']} |\n")
+def create_markdown_report(github_data_df, user_counts_df, project_counts_df, output_dir, report_filename, percentage):
+    """
+    Create a markdown report of GitHub contributions and save it as a file.
 
-            # Add pie chart image for user wise contributions
-            user_wise_contribution_fname = "user_wise_contribution.png"
-            create_pie_chart(user_counts_df, 'User', os.path.join(output_folder, user_wise_contribution_fname),
-                             percentage)
-            f.write(f'\n<img src="{user_wise_contribution_fname}" alt="Contributions: User Wise" style="width:50%;">\n')
+    Args:
+        github_data_df (DataFrame): The DataFrame containing GitHub data.
+        user_counts_df (DataFrame): The DataFrame containing user-wise contributions.
+        project_counts_df (DataFrame): The DataFrame containing project-wise contributions.
+        output_dir (str): The folder to save the markdown report.
+        report_filename (str): The filename for the output markdown report.
+        percentage (int): The percentage threshold for grouping smaller values into 'Other'.
+    """
+    # Ensure the output directory exists
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+        logger.info(f"Created output directory: {output_dir}")
 
-            # Add summary table for project wise
+    with open(os.path.join(output_dir, report_filename), 'w') as f:
+        # Add title of the report
+        f.write("# OpenSource Contributions Report\n\n")
+
+        # Add current time
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        f.write(f"Report auto-generated on: {current_time}\n\n")
+
+        # Add Summary
+        number_of_users = len(user_counts_df)
+        number_of_projects = len(project_counts_df)
+        number_of_repos = len(github_data_df['Repository'].unique())
+        total_overall_contributions = github_data_df['Overall Contribution'].sum()
+        total_number_of_commits = github_data_df['Commits'].sum()
+        total_number_of_open_prs = github_data_df['Pull Requests (Open)'].sum()
+
+        # Add summary table
+        f.write("## Summary\n\n")
+        f.write("| Metric | Value |\n")
+        f.write("|--------|-------|\n")
+        f.write(f"| Total number of projects | {number_of_projects} |\n")
+        if number_of_users > 1:
+            f.write(f"| Total number of contributors | {number_of_users} |\n")
+        f.write(f"| Total number of repositories | {number_of_repos} |\n")
+        f.write(f"| Total number of contributions | {total_overall_contributions} |\n")
+        f.write(f"| Number of commits | {total_number_of_commits} |\n")
+        f.write(f"| Number of pull requests (Open) | {total_number_of_open_prs} |\n")
+
+        # Add a pie chart image for project wise contributions
+        project_wise_contribution_fname = "project_wise_contribution.png"
+        create_pie_chart("Contributions: Project wise", project_counts_df, 'Project Name',
+                         os.path.join(output_dir, project_wise_contribution_fname))
+
+        # Add pie chart image for user wise contributions
+        user_wise_contribution_fname = "user_wise_contribution.png"
+        create_pie_chart("Contributions: User wise", user_counts_df, 'User',
+                         os.path.join(output_dir, user_wise_contribution_fname),
+                         percentage)
+
+        f.write(
+            f'\n<div style="display: flex; justify-content: space-around;">\n'
+            f'  <img src="{project_wise_contribution_fname}" alt="Contributions: Project Wise" style="width:40%;">\n'
+            f'  <img src="{user_wise_contribution_fname}" alt="Contributions: User Wise" style="width:40%;">\n'
+            f'</div>\n'
+        )
+
+        if user_counts_df.empty:
+            f.write("No contributions found for the given users.\n")
+        else:
+            # Sort the project counts by 'Overall Contribution' in descending order and write to the markdown file
             f.write("\n## Summary of Contributions by each project\n\n")
             f.write("| Project Name | Commits | Pull Requests (Open) | Overall Contribution |\n")
             f.write("|--------------|---------|----------------------|----------------------|\n")
@@ -402,14 +492,16 @@ def create_markdown_report(github_data_df, user_counts_df, project_counts_df, ou
                 f.write(
                     f"| {row['Project Name']} | {row['Commits']} | {row['Pull Requests (Open)']} | {row['Overall Contribution']} |\n")
 
-            # Add a heatmap image for project wise contributions
-            project_wise_contribution_fname = "project_wise_contribution.png"
-            create_pie_chart(project_counts_df, 'Project Name',
-                             os.path.join(output_folder, project_wise_contribution_fname))
-            f.write(
-                f'\n<img src="{project_wise_contribution_fname}" alt="Contributions: Project Wise" style="width:50%;">\n')
+            # Sort the user counts by 'Overall Contribution' in descending order and write to the markdown file
+            f.write("## Summary of Contributions by each user\n\n")
+            f.write("| User | Commits | Pull Requests (Open) | Overall Contribution |\n")
+            f.write("|------|---------|----------------------|----------------------|\n")
+            for _, row in user_counts_df.sort_values(by=['Overall Contribution'], ascending=False).iterrows():
+                f.write(
+                    f"| {row['User']} | {row['Commits']} | {row['Pull Requests (Open)']} | {row['Overall Contribution']} |\n")
 
-            # Add detailed contribution data for each user, use non_zero_df
+            # Sort the detailed contributions by 'Overall Contribution' in descending order and 'User' in ascending order
+            # and write to the markdown file
             f.write("\n## Detailed Contributions\n\n")
             f.write("| Project Name | Repository | User | Commits | Pull Requests (Open) | Overall Contribution |\n")
             f.write("|--------------|------------|------|---------|----------------------|----------------------|\n")
@@ -417,15 +509,11 @@ def create_markdown_report(github_data_df, user_counts_df, project_counts_df, ou
                                                      ascending=[False, True]).iterrows():
                 f.write(
                     f"| {row['Project Name']} | {row['Repository']} | {row['User']} | {row['Commits']} | {row['Pull Requests (Open)']} | {row['Overall Contribution']} |\n")
-
-        logger.info(f"Markdown report created successfully: {output_filename}")
-    except Exception as e:
-        logger.error(f"An error occurred while creating the markdown report: {e}")
-        raise
+    logger.info(f"Markdown report created successfully: {report_filename}")
 
 
-def generate_github_contributions_report(github_conf_path="input/github.json", output_dir="output/",
-                                         report_fname="github_contributions_report.md"):
+def generate_report(github_conf_path="input/github.json", output_dir="output/",
+                    report_fname="github_contributions_report.md"):
     """
     Generate a GitHub contributions report by reading input data, processing it, and creating a markdown report.
 
@@ -452,29 +540,60 @@ def generate_github_contributions_report(github_conf_path="input/github.json", o
         users = github_conf_data.get('users', [])
         project_to_repo_dict = github_conf_data.get('project_to_repo_dict', {})
 
+        # Ensure input is valid
+        if not start_date:
+            print_input_json_format()
+            raise ValueError("Start date is required in the input data.")
+        if not users:
+            print_input_json_format()
+            raise ValueError("At least one user is required in the input data.")
+        if not project_to_repo_dict:
+            print_input_json_format()
+            raise ValueError("At least one project with repositories is required in the input data.")
+
+        # Lower case all the users
+        users = [str(user).lower().strip() for user in users]
+
         # Log the variables to verify
         logger.info(f"Start Date: {start_date}")
         logger.info(f"Users: {users}")
         logger.info(f"Project to Repo Dictionary: {project_to_repo_dict}")
 
-        # Process the data
+        # Create markdown report
         github_data = process_github_data(start_date, users, project_to_repo_dict)
         github_data_df = convert_to_dataframe(github_data)
-        github_data_df = filter_contributions(github_data_df)
-        user_counts_df, project_counts_df = group_contributions(github_data_df)
+        process_data_and_create_report(github_data_df, output_dir, report_fname, -1)
 
-        # Ensure the output directory exists
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
-            logger.info(f"Created output directory: {output_dir}")
+    except Exception as e:
+        logger.error(f"An error occurred: {e}")
+        raise
+
+
+def generate_report_with_local_data(github_data_csv_path="output/github_contribution_data.csv", output_dir="output/",
+                                    report_fname="github_contributions_report.md"):
+    """
+    Generate a GitHub contributions report by reading input data, processing it, and creating a markdown report.
+
+    This function reads the input data from a CSV file, processes the GitHub contributions,
+    and generates a markdown report with the contributions summary.
+
+    Args:
+        github_data_csv_path (str): The path to the GitHub input CSV file. Defaults to "output/github_contribution_data.csv".
+        output_dir (str): The directory to save the output markdown report. Defaults to "output/".
+        report_fname (str): The filename for the output markdown report. Defaults to "github_contributions_report.md".
+
+    Returns:
+        None
+
+    Raises:
+        Exception: If an error occurs during the process.
+    """
+    try:
+        # Read input for GitHub from CSV file
+        github_data_df = pd.read_csv(github_data_csv_path)
 
         # Create markdown report
-        create_markdown_report(github_data_df, user_counts_df, project_counts_df,
-                               os.path.join(output_dir, report_fname))
-
-        # Dump contribution data to an output file
-        with open("output/github_contribution_data.json", "w") as f:
-            json.dump(github_data, f, indent=4)
+        process_data_and_create_report(github_data_df, output_dir, report_fname, -1, shouldDump=False)
 
     except Exception as e:
         logger.error(f"An error occurred: {e}")
@@ -484,7 +603,8 @@ def generate_github_contributions_report(github_conf_path="input/github.json", o
 if __name__ == "__main__":
     try:
         logger.info("Script started.")
-        generate_github_contributions_report()
+        generate_report()
+        # generate_report_with_local_data()
         logger.info("Script completed successfully.")
         exit(0)  # Ensure an exit code of 0 upon successful completion
     except Exception as e:
