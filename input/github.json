@@ -1,30 +1,40 @@
 {
-    "start_date": "1970-01-01",
-    "users": [
-        "nihaljain"
+  "start_date": "1970-01-01",
+  "users": [
+    "nihaljain"
+  ],
+  "project_to_repo_dict": {
+    "AMBARI": [
+      "apache/ambari",
+      "apache/ambari-metrics"
     ],
-    "project_to_repo_dict": {
-        "HBASE": [
-            "apache/hbase",
-            "apache/hbase-connectors",
-            "apache/hbase-thirdparty",
-            "apache/hbase-operator-tools"
-        ],
-        "PHOENIX": [
-            "apache/phoenix",
-            "apache/phoenix-omid",
-            "apache/phoenix-queryserver",
-            "apache/phoenix-thirdparty"
-        ],
-        "HADOOP": [
-            "apache/hadoop"
-        ],
-        "ZOOKEEPER": [
-            "apache/zookeeper"
-        ],
-        "PINOT": [
-            "pinot-contrib/pinot-docs",
-            "apache/pinot"
-        ]
-    }
+    "BIGTOP": [
+      "apache/bigtop"
+    ],
+    "HBASE": [
+      "apache/hbase",
+      "apache/hbase-connectors",
+      "apache/hbase-thirdparty",
+      "apache/hbase-operator-tools"
+    ],
+    "HADOOP": [
+      "apache/hadoop"
+    ],
+    "PHOENIX": [
+      "apache/phoenix",
+      "apache/phoenix-omid",
+      "apache/phoenix-queryserver",
+      "apache/phoenix-thirdparty"
+    ],
+    "PINOT": [
+      "pinot-contrib/pinot-docs",
+      "apache/pinot"
+    ],
+    "RANGER": [
+      "apache/ranger"
+    ],
+    "ZOOKEEPER": [
+      "apache/zookeeper"
+    ]
+  }
 }
