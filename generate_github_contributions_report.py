@@ -1,16 +1,17 @@
-import time
-import requests
-from collections import defaultdict
+import json
 import logging
 import os
-import urllib3
-import json
+import time
+import traceback
+from collections import defaultdict
 from datetime import datetime
-import pandas as pd
+
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+import requests
+import urllib3
 from matplotlib.patches import Patch
-import traceback
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -38,7 +39,7 @@ HEADERS = {
 }
 
 
-def get_all_pages(url, params, max_retries=3, backoff_factor=0.3):
+def get_all_pages(url, params, max_retries=3, backoff_factor=0.3, with_pagination=True):
     """
     Retrieve all pages of results from a paginated GitHub API endpoint.
 
@@ -47,6 +48,7 @@ def get_all_pages(url, params, max_retries=3, backoff_factor=0.3):
         params (dict): The query parameters for the request.
         max_retries (int): The maximum number of retries for failed requests.
         backoff_factor (float): The factor for exponential backoff between retries.
+        with_pagination (bool): Whether to handle pagination. Defaults to True.
 
     Returns:
         list: A list of results from all pages.
@@ -54,7 +56,8 @@ def get_all_pages(url, params, max_retries=3, backoff_factor=0.3):
     results = []
     page = 1
     while True:
-        params['page'] = page
+        if with_pagination:
+            params['page'] = page
         for attempt in range(max_retries):
             try:
                 response = requests.get(url, headers=HEADERS, params=params, proxies=proxies, verify=False)
@@ -62,9 +65,14 @@ def get_all_pages(url, params, max_retries=3, backoff_factor=0.3):
                 data = response.json()
                 if not data:
                     return results
-                results.extend(data)
-                page += 1
-                break  # Exit retry loop if request is successful
+
+                if with_pagination:
+                    results.extend(data)
+                    page += 1
+                else:
+                    return data
+                # Exit retry loop if request is successful, in this attempt
+                break
             except requests.exceptions.RequestException as e:
                 logger.error(f"Request failed: {e}, attempt {attempt + 1} of {max_retries}")
                 if attempt < max_retries - 1:
@@ -137,6 +145,36 @@ def get_pull_requests(repo, state="open", per_page=100):
     return get_all_pages(pr_url, params)
 
 
+def get_user_info(user):
+    """
+    Retrieve user information for a GitHub user.
+
+    Args:
+        user (str): The GitHub username.
+
+    Returns:
+        Information about the user.
+    """
+    user_url = f"{GITHUB_API_URL}/users/{user}"
+    params = {}
+    return get_all_pages(user_url, params, with_pagination=False)
+
+
+def get_repo_info(repo):
+    """
+    Retrieve repository information for a GitHub repository.
+
+    Args:
+        user (str): The GitHub repository of form owner/repo.
+
+    Returns:
+        Information about the repository.
+    """
+    user_url = f"{GITHUB_API_URL}/repos/{repo}"
+    params = {}
+    return get_all_pages(user_url, params, with_pagination=False)
+
+
 def read_github_input_file(file_path):
     """
     Read GitHub input data from a JSON file.
@@ -170,7 +208,7 @@ def process_github_data(start_date, users, project_to_repo_dict):
     Args:
         start_date (str): The start date for retrieving data in "YYYY-MM-DD" format.
         users (list): A list of GitHub usernames.
-        project_to_repo_dict (dict): A dictionary mapping project names to repository lists.
+        project_to_repo_dict (dict): A dictionary mapping project keys to repository lists.
 
     Returns:
         list: A list of dictionaries containing GitHub data.
@@ -182,9 +220,29 @@ def process_github_data(start_date, users, project_to_repo_dict):
     github_data = []
 
     try:
+        logger.info("Processing user data...")
+        user_info_dict = {}
+        for user in users:
+            logger.info(f"Processing user: {user}")
+            user_info = get_user_info(user)
+            user_info_dict[user] = {"name": user_info.get('name', user), "avatar_url": user_info.get('avatar_url'),
+                                    "url": user_info.get('html_url')}
+
+        logger.info("Processing project data...")
+        repo_info_dict = {}
+        for project_key, repo_list in project_to_repo_dict.items():
+            logger.info(f"Processing project: {project_key}")
+            for repo in repo_list:
+                logger.info(f"Processing repository: {repo}")
+                repo_info = get_repo_info(repo)
+                repo_info_dict[repo] = {"name": repo_info.get('full_name', user),
+                                        "description": repo_info.get('description'), "url": repo_info.get('html_url'),
+                                        "avatar_url": repo_info.get('owner', {}).get('avatar_url')}
+
         # Populate the data list with dictionaries
-        for project_name, repo_list in project_to_repo_dict.items():
-            logger.info(f"Processing project: {project_name}")
+        logger.info("Fetching contribution data...")
+        for project_key, repo_list in project_to_repo_dict.items():
+            logger.info(f"Processing project: {project_key}")
             for repo in repo_list:
                 logger.info(f"Processing repository: {repo}")
 
@@ -217,15 +275,23 @@ def process_github_data(start_date, users, project_to_repo_dict):
                     commit_count = len(commits)
                     pr_count = len(user_prs_dict[user])
 
-                    github_data.append({
-                        "Project Name": project_name,
-                        "Repository": repo,
-                        "User": user,
-                        "Commits": commit_count,
-                        "Pull Requests (Open)": pr_count,
-                        "Rank": top_contributors_in_users.get(user, -1),
-                        "Overall Contribution": commit_count + pr_count
-                    })
+                    user_info = user_info_dict[user]
+                    repo_info = repo_info_dict[repo]
+
+                    github_data.append(
+                        {
+                            "Project Key": project_key,
+                            "Repository": repo,
+                            "Repository URL": repo_info['url'],
+                            "Repository Description": repo_info['description'],
+                            "Repository Avatar": repo_info['avatar_url'],
+                            "User": user_info['name'] if user_info['name'] else user,
+                            "User Avatar": user_info['avatar_url'],
+                            "User URL": user_info['url'],
+                            "Commits": commit_count,
+                            "Pull Requests (Open)": pr_count,
+                            "Rank": top_contributors_in_users.get(user, -1),
+                            "Overall Contribution": commit_count + pr_count})
     except Exception as e:
         logger.error(f"An error occurred: {e}")
         raise
@@ -265,25 +331,43 @@ def filter_contributions(github_data_df):
 
 def group_contributions(filtered_df):
     """
-    Group contributions by 'User' and 'Project Name'.
+    Group contributions by 'User' and 'Project Key'.
 
     Args:
         filtered_df (DataFrame): The filtered DataFrame with non-zero contributions.
 
     Returns:
-        tuple: Two DataFrames, one grouped by 'User' and the other by 'Project Name'.
+        tuple: Two DataFrames, one grouped by 'User' and the other by 'Project Key'.
     """
-    user_counts_df = filtered_df.groupby('User')[['Commits', 'Pull Requests (Open)']].sum().reset_index()
-    user_counts_df['Overall Contribution'] = user_counts_df['Commits'] + user_counts_df['Pull Requests (Open)']
-    user_counts_df = user_counts_df[user_counts_df['Overall Contribution'] > 0]
+    project_df = filtered_df.groupby('Project Key')[['Commits', 'Pull Requests (Open)']].sum().reset_index()
+    project_df['Repositories'] = filtered_df.groupby('Project Key').apply(
+        lambda x: list(zip(x['Repository'], x['Repository URL'], x['Repository Avatar']))).reset_index(drop=True).apply(
+        lambda x: list(set(x)))
+    project_df['Repositories'] = project_df['Repositories'].apply(lambda x: sorted(x, key=lambda y: y[0]))
+    project_df['Repository Count'] = filtered_df.groupby('Project Key')['Repository'].nunique().reset_index()[
+        'Repository']
+    project_df['Users'] = filtered_df.groupby('Project Key').apply(
+        lambda x: list(zip(x['User'], x['User URL'], x['User Avatar']))).reset_index(drop=True).apply(
+        lambda x: list(set(x)))
+    project_df['Users'] = project_df['Users'].apply(lambda x: sorted(x, key=lambda y: y[0]))
+    project_df['Overall Contribution'] = project_df['Commits'] + project_df['Pull Requests (Open)']
+    project_df = project_df[project_df['Overall Contribution'] > 0]
+    logger.info("Grouped by 'Project Key' and calculated overall contributions")
+
+    users_df = filtered_df.groupby('User')[['Commits', 'Pull Requests (Open)']].sum().reset_index()
+    users_df['Repositories'] = filtered_df.groupby('User').apply(
+        lambda x: list(zip(x['Repository'], x['Repository URL'], x['Repository Avatar']))).reset_index(drop=True).apply(
+        lambda x: list(set(x)))
+    users_df['Repositories'] = users_df['Repositories'].apply(lambda x: sorted(x, key=lambda y: y[0]))
+    users_df['Repository Count'] = filtered_df.groupby('User')['Repository'].nunique().reset_index()['Repository']
+    users_df['User URL'] = users_df['User'].apply(lambda x: filtered_df[filtered_df['User'] == x]['User URL'].iloc[0])
+    users_df['User Avatar'] = users_df['User'].apply(
+        lambda x: filtered_df[filtered_df['User'] == x]['User Avatar'].iloc[0])
+    users_df['Overall Contribution'] = users_df['Commits'] + users_df['Pull Requests (Open)']
+    users_df = users_df[users_df['Overall Contribution'] > 0]
     logger.info("Grouped by 'User' and calculated overall contributions")
 
-    project_counts_df = filtered_df.groupby('Project Name')[['Commits', 'Pull Requests (Open)']].sum().reset_index()
-    project_counts_df['Overall Contribution'] = project_counts_df['Commits'] + project_counts_df['Pull Requests (Open)']
-    project_counts_df = project_counts_df[project_counts_df['Overall Contribution'] > 0]
-    logger.info("Grouped by 'Project Name' and calculated overall contributions")
-
-    return user_counts_df, project_counts_df
+    return project_df, users_df
 
 
 def create_pie_chart(title, df, field, filename, percentage=-1):
@@ -326,10 +410,10 @@ def create_pie_chart(title, df, field, filename, percentage=-1):
         labels = [f"{index} - {value} ({value * 100 / total:.2f}%)" for index, value in value_counts.items()]
 
         # Plot donut chart
-        plt.figure(figsize=(10, 10))  # Adjusted figure size
-        colors = plt.cm.Paired(np.linspace(0., 1., len(value_counts)))
-        explode = [0.1 if i == 'Other' else 0 for i in value_counts.index]
-        patches, _ = plt.pie(value_counts, colors=colors, shadow=False, wedgeprops=dict(width=0.8, edgecolor='w'))
+        plt.figure(figsize=(10, 10))
+        colors = plt.cm.coolwarm(np.linspace(0, 1, len(labels)))
+        patches, texts, autotexts = plt.pie(value_counts, colors=colors, shadow=True,
+                                            wedgeprops=dict(width=0.6, edgecolor='w'), autopct='%1.2f%%')
 
         # Draw circle for the center of the plot to make the pie look like a donut
         centre_circle = plt.Circle((0, 0), 0.1, fc='white')
@@ -342,13 +426,18 @@ def create_pie_chart(title, df, field, filename, percentage=-1):
         # Add the total_patch to the existing patches
         patches = [total_patch] + list(patches)
 
-        plt.title(title, fontsize=16)
-        plt.legend(handles=patches, labels=[total_patch.get_label()] + labels, loc="upper center",
-                   bbox_to_anchor=(1, 1.1),
-                   fontsize=10, title=field)
+        plt.title(title, fontsize=24)
+        plt.legend(
+            handles=patches,
+            labels=[total_patch.get_label()] + labels,
+            loc="upper center",
+            bbox_to_anchor=(1, 1.1),
+            fontsize=10,
+            title=field
+        )
         plt.margins(0, 0)
         plt.axis('equal')
-        plt.savefig(filename, bbox_inches='tight', pad_inches=0)
+        plt.savefig(filename, bbox_inches='tight', pad_inches=0.5)
         logger.info(f"Saved pie chart as {filename}")
         plt.close()
     except Exception as e:
@@ -381,12 +470,15 @@ def process_data(github_data_df):
 
     Args:
         github_data_df (DataFrame): The DataFrame containing GitHub data.
-    """
-    # Process the data
-    github_data_df = filter_contributions(github_data_df)
-    user_counts_df, project_counts_df = group_contributions(github_data_df)
 
-    return github_data_df, project_counts_df, user_counts_df
+    Returns:
+        github_data_df (DataFrame): The processed DataFrame containing GitHub data.
+        projects_df (DataFrame): The DataFrame containing project-wise contributions.
+        users_df (DataFrame): The DataFrame containing user-wise contributions.
+    """
+    github_data_df = filter_contributions(github_data_df)
+    projects_df, users_df = group_contributions(github_data_df)
+    return github_data_df, projects_df, users_df
 
 
 def process_data_and_create_report(github_data_df, output_dir, report_filename, percentage, shouldDump=True):
@@ -398,37 +490,38 @@ def process_data_and_create_report(github_data_df, output_dir, report_filename, 
         output_dir (str): The directory to save the output markdown report.
         report_filename (str): The filename for the output markdown report.
         shouldDump (bool): Whether to dump the contribution data to a file. Defaults to True.
-        percentage (int): The percentage threshold for grouping smaller values into 'Other'. Defaults to -1 (no grouping).
+        percentage (int): The percentage threshold for grouping smaller values into 'Other'. This value represents the
+            percentage of the maximum contribution. Defaults to -1 (no grouping).
 
     Raises:
         Exception: If an error occurs while creating the markdown report.
     """
     try:
-        github_data_df, project_counts_df, user_counts_df = process_data(github_data_df)
-        create_markdown_report(github_data_df, user_counts_df, project_counts_df, output_dir, report_filename,
-                               percentage)
+        github_data_df, projects_df, users_df = process_data(github_data_df)
+        create_markdown_report(github_data_df, users_df, projects_df, output_dir, report_filename, percentage)
 
         # Dump contribution data to an output file for offline processing
-        # NOTE: To reload run `github_data_df = pd.read_csv('output/github_contribution_data.csv')`
+        # NOTE: To reload run `github_data_df = pd.read_csv(output_dir + 'github_contribution_data.csv')`
         if shouldDump:
-            github_data_df.to_csv('output/github_contribution_data.csv', index=False)
-            logger.info("Dumped contribution data to 'output/github_contribution_data.csv'")
+            github_data_df.to_csv(output_dir + 'github_contribution_data.csv', index=False)
+            logger.info(f"Dumped contribution data to {output_dir}'github_contribution_data.csv'")
     except Exception as e:
         logger.error(f"An error occurred while creating the markdown report: {e}")
         raise
 
 
-def create_markdown_report(github_data_df, user_counts_df, project_counts_df, output_dir, report_filename, percentage):
+def create_markdown_report(github_data_df, users_df, projects_df, output_dir, report_filename, percentage):
     """
     Create a markdown report of GitHub contributions and save it as a file.
 
     Args:
         github_data_df (DataFrame): The DataFrame containing GitHub data.
-        user_counts_df (DataFrame): The DataFrame containing user-wise contributions.
-        project_counts_df (DataFrame): The DataFrame containing project-wise contributions.
+        users_df (DataFrame): The DataFrame containing user-wise contributions.
+        projects_df (DataFrame): The DataFrame containing project-wise contributions.
         output_dir (str): The folder to save the markdown report.
         report_filename (str): The filename for the output markdown report.
-        percentage (int): The percentage threshold for grouping smaller values into 'Other'.
+        percentage (int): The percentage threshold for grouping smaller values into 'Other'. This value represents the
+            percentage of the maximum contribution. Defaults to -1 (no grouping).
     """
     # Ensure the output directory exists
     if not os.path.exists(output_dir):
@@ -444,15 +537,15 @@ def create_markdown_report(github_data_df, user_counts_df, project_counts_df, ou
         f.write(f"Report auto-generated on: {current_time}\n\n")
 
         # Add Summary
-        number_of_users = len(user_counts_df)
-        number_of_projects = len(project_counts_df)
+        number_of_users = len(users_df)
+        number_of_projects = len(projects_df)
         number_of_repos = len(github_data_df['Repository'].unique())
         total_overall_contributions = github_data_df['Overall Contribution'].sum()
         total_number_of_commits = github_data_df['Commits'].sum()
         total_number_of_open_prs = github_data_df['Pull Requests (Open)'].sum()
 
         # Add summary table
-        f.write("## Summary\n\n")
+        f.write("## Overall Summary\n\n")
         f.write("| Metric | Value |\n")
         f.write("|--------|-------|\n")
         f.write(f"| Total number of projects | {number_of_projects} |\n")
@@ -465,55 +558,64 @@ def create_markdown_report(github_data_df, user_counts_df, project_counts_df, ou
 
         # Add a pie chart image for project wise contributions
         project_wise_contribution_fname = "project_wise_contribution.png"
-        create_pie_chart("Contributions: Project wise", project_counts_df, 'Project Name',
+        create_pie_chart("Project wise Contributions", projects_df, 'Project Key',
                          os.path.join(output_dir, project_wise_contribution_fname))
 
         # Add pie chart image for user wise contributions
         user_wise_contribution_fname = "user_wise_contribution.png"
-        create_pie_chart("Contributions: User wise", user_counts_df, 'User',
-                         os.path.join(output_dir, user_wise_contribution_fname),
-                         percentage)
+        create_pie_chart("User wise Contributions", users_df, 'User',
+                         os.path.join(output_dir, user_wise_contribution_fname), percentage)
 
-        f.write(
-            f'\n<div style="display: flex; justify-content: space-around;">\n'
-            f'  <img src="{project_wise_contribution_fname}" alt="Contributions: Project Wise" style="width:40%;">\n'
-            f'  <img src="{user_wise_contribution_fname}" alt="Contributions: User Wise" style="width:40%;">\n'
-            f'</div>\n'
-        )
+        f.write(f'\n<div style="display: flex; justify-content: space-around;">\n'
+                f'  <img src="{project_wise_contribution_fname}" alt="Project wise Contributions" style="width:45%;">\n'
+                f'  <img src="{user_wise_contribution_fname}" alt="User wise Contributions" style="width:45%;">\n'
+                f'</div>\n')
 
-        if user_counts_df.empty:
+        if users_df.empty:
             f.write("No contributions found for the given users.\n")
         else:
             # Sort the project counts by 'Overall Contribution' in descending order and write to the markdown file
             f.write("\n## Summary of Contributions by each project\n\n")
-            f.write("| Project Name | Commits | Pull Requests (Open) | Overall Contribution |\n")
-            f.write("|--------------|---------|----------------------|----------------------|\n")
-            for _, row in project_counts_df.sort_values(by=['Overall Contribution'], ascending=False).iterrows():
-                f.write(
-                    f"| {row['Project Name']} | {row['Commits']} | {row['Pull Requests (Open)']} | {row['Overall Contribution']} |\n")
+            f.write("| Project Key | Repositories | Users | Commits | Pull Requests (Open) | Overall Contribution |\n")
+            f.write("|--------------|--------------|-------|---------|----------------------|----------------------|\n")
+            for _, row in projects_df.sort_values(by=['Overall Contribution'], ascending=False).iterrows():
+                repo_list = '<br>'.join(
+                    [f"<img src='{avatar}' width='12' height='12'> [{repo}]({url})" for repo, url, avatar in
+                     row['Repositories']])
+                user_list = '<br>'.join(
+                    [f"<img src='{avatar}' width='12' height='12'> [{user}]({url})" for user, url, avatar in
+                     row['Users']])
+                f.write(f"| {row['Project Key']} | {repo_list} | {user_list} | {row['Commits']} "
+                        + f"| {row['Pull Requests (Open)']} | {row['Overall Contribution']} |\n")
 
             # Sort the user counts by 'Overall Contribution' in descending order and write to the markdown file
-            f.write("## Summary of Contributions by each user\n\n")
-            f.write("| User | Commits | Pull Requests (Open) | Overall Contribution |\n")
-            f.write("|------|---------|----------------------|----------------------|\n")
-            for _, row in user_counts_df.sort_values(by=['Overall Contribution'], ascending=False).iterrows():
-                f.write(
-                    f"| {row['User']} | {row['Commits']} | {row['Pull Requests (Open)']} | {row['Overall Contribution']} |\n")
+            f.write("\n## Summary of Contributions by each user\n\n")
+            f.write("| User | Repositories | Commits | Pull Requests (Open) | Overall Contribution |\n")
+            f.write("|------|--------------|---------|----------------------|----------------------|\n")
+            for _, row in users_df.sort_values(by=['Overall Contribution'], ascending=False).iterrows():
+                user_avatar = f"<img src='{row['User Avatar']}' width='12' height='12'>"
+                repo_list = '<br>'.join(
+                    [f"<img src='{avatar}' width='12' height='12'> [{repo}]({url})" for repo, url, avatar in
+                     row['Repositories']])
+                f.write(f"| {user_avatar} [{row['User']}]({row['User URL']}) | {repo_list} | {row['Commits']} "
+                        + f"| {row['Pull Requests (Open)']} | {row['Overall Contribution']} |\n")
 
             # Sort the detailed contributions by 'Overall Contribution' in descending order and 'User' in ascending order
             # and write to the markdown file
             f.write("\n## Detailed Contributions\n\n")
-            f.write("| Project Name | Repository | User | Commits | Pull Requests (Open) | Overall Contribution |\n")
+            f.write("| Project Key | Repository | User | Commits | Pull Requests (Open) | Overall Contribution |\n")
             f.write("|--------------|------------|------|---------|----------------------|----------------------|\n")
-            for _, row in github_data_df.sort_values(by=['Overall Contribution', 'User'],
-                                                     ascending=[False, True]).iterrows():
-                f.write(
-                    f"| {row['Project Name']} | {row['Repository']} | {row['User']} | {row['Commits']} | {row['Pull Requests (Open)']} | {row['Overall Contribution']} |\n")
+            for _, row in github_data_df.sort_values(by=['User'], ascending=[True]).iterrows():
+                repo_avatar = f"<img src='{row['Repository Avatar']}' width='12' height='12'>"
+                user_avatar = f"<img src='{row['User Avatar']}' width='12' height='12'>"
+                f.write(f"| {row['Project Key']} | {repo_avatar} [{row['Repository']}]({row['Repository URL']})"
+                        + f" | {user_avatar} [{row['User']}]({row['User URL']}) | {row['Commits']} |"
+                        + f" {row['Pull Requests (Open)']} | {row['Overall Contribution']} |\n")
     logger.info(f"Markdown report created successfully: {report_filename}")
 
 
 def generate_report(github_conf_path="input/github.json", output_dir="output/",
-                    report_fname="github_contributions_report.md"):
+                    report_fname="github_contributions_report.md", percentage=-1):
     """
     Generate a GitHub contributions report by reading input data, processing it, and creating a markdown report.
 
@@ -524,6 +626,8 @@ def generate_report(github_conf_path="input/github.json", output_dir="output/",
         github_conf_path (str): The path to the GitHub input JSON file. Defaults to "input/github.json".
         output_dir (str): The directory to save the output markdown report. Defaults to "output/".
         report_fname (str): The filename for the output markdown report. Defaults to "github_contributions_report.md".
+        percentage (int): The percentage threshold for grouping smaller values into 'Other'. This value represents the
+            percentage of the maximum contribution. Defaults to -1 (no grouping).
 
     Returns:
         None
@@ -562,7 +666,7 @@ def generate_report(github_conf_path="input/github.json", output_dir="output/",
         # Create markdown report
         github_data = process_github_data(start_date, users, project_to_repo_dict)
         github_data_df = convert_to_dataframe(github_data)
-        process_data_and_create_report(github_data_df, output_dir, report_fname, -1)
+        process_data_and_create_report(github_data_df, output_dir, report_fname, percentage)
 
     except Exception as e:
         logger.error(f"An error occurred: {e}")
@@ -570,7 +674,7 @@ def generate_report(github_conf_path="input/github.json", output_dir="output/",
 
 
 def generate_report_with_local_data(github_data_csv_path="output/github_contribution_data.csv", output_dir="output/",
-                                    report_fname="github_contributions_report.md"):
+                                    report_fname="github_contributions_report.md", percentage=-1):
     """
     Generate a GitHub contributions report by reading input data, processing it, and creating a markdown report.
 
@@ -581,6 +685,8 @@ def generate_report_with_local_data(github_data_csv_path="output/github_contribu
         github_data_csv_path (str): The path to the GitHub input CSV file. Defaults to "output/github_contribution_data.csv".
         output_dir (str): The directory to save the output markdown report. Defaults to "output/".
         report_fname (str): The filename for the output markdown report. Defaults to "github_contributions_report.md".
+        percentage (int): The percentage threshold for grouping smaller values into 'Other'. This value represents the
+            percentage of the maximum contribution. Defaults to -1 (no grouping).
 
     Returns:
         None
@@ -593,7 +699,7 @@ def generate_report_with_local_data(github_data_csv_path="output/github_contribu
         github_data_df = pd.read_csv(github_data_csv_path)
 
         # Create markdown report
-        process_data_and_create_report(github_data_df, output_dir, report_fname, -1, shouldDump=False)
+        process_data_and_create_report(github_data_df, output_dir, report_fname, percentage, shouldDump=False)
 
     except Exception as e:
         logger.error(f"An error occurred: {e}")
@@ -603,10 +709,16 @@ def generate_report_with_local_data(github_data_csv_path="output/github_contribu
 if __name__ == "__main__":
     try:
         logger.info("Script started.")
+        # You can customize the input JSON file path, output directory, and report filename as follows:
+        # generate_report(github_conf_path="input/github.json", output_dir="output/", report_fname="github_contributions_report.md")
         generate_report()
-        # generate_report_with_local_data()
+        # In order to generate the report with local data, in case you have the data
+        # Comment the above code line i.e. generate_report()
+        # Next, uncomment the below code line
+        #generate_report_with_local_data()
         logger.info("Script completed successfully.")
-        exit(0)  # Ensure an exit code of 0 upon successful completion
+        # Ensure an exit code of 0 upon successful completion, required by test workflow
+        exit(0)
     except Exception as e:
         logger.error(f"Failed to complete job: {e}")
         traceback.print_exc()

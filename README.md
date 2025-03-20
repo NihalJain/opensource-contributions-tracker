@@ -9,7 +9,14 @@ impact on the open-source community.
 
 The tool is designed to track and report contributions to open-source projects on GitHub for one user or a group of
 users. It generates detailed reports on commits and pull requests made by users across various repositories and
-projects.
+projects. It also displays summary tables and pie charts to visualize the contributions. It groups the contributions by
+users and projects, making it easy to identify the most active contributors and the most popular projects. Also provides
+insights into the overall contribution metrics like the total number of projects, repositories, and contributions.
+
+
+## How it works?
+
+The tool works in four main steps:
 
 - **Data Retrieval**: Fetches commits and pull requests from GitHub repositories.
 - **Data Processing**: Aggregates and processes the data to provide meaningful insights.
@@ -27,6 +34,8 @@ projects.
       tracked.
     - Save the changes to the file.
 3. **Commit and Push the changes**.
+    - NOTE: If you are running the tool locally, you can skip this step. Also without committing the changes, the
+      workflow will not be triggered in forked repositories.
 4. **Review the report**
     - The tool will automatically generate a report and add it to the `output` directory in file
       `github_contributions_report.md` at the scheduled time.
