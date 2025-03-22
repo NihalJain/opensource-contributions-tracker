@@ -91,7 +91,7 @@ To run the project locally, follow the steps below:
 
 1. **Generate the report**:
     ```sh
-    python generate_github_contributions_report.py
+    python generate_report.py
     ```
 
 2. **View the report**:
