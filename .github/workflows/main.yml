@@ -27,7 +27,7 @@ jobs:
 
       - name: Run script
         run: |
-          python generate_github_contributions_report.py
+          python generate_report.py
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HTTP_PROXY: ${{ secrets.HTTP_PROXY }}
