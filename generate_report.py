@@ -543,7 +543,7 @@ def process_data_and_create_report(github_data_df, output_dir, report_filename, 
         # NOTE: To reload run `github_data_df = pd.read_csv(output_dir + 'github_contribution_data.csv')`
         if shouldDump:
             github_data_df.to_csv(output_dir + 'github_contribution_data.csv', index=False)
-            logger.info(f"Dumped contribution data to {output_dir}'github_contribution_data.csv'")
+            logger.info(f"Dumped contribution data to '{output_dir}github_contribution_data.csv'")
     except Exception as e:
         logger.error(f"An error occurred while creating the markdown report: {e}")
         raise
