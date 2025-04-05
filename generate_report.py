@@ -67,7 +67,19 @@ def get_all_pages(url, params, max_retries=3, backoff_factor=0.3, with_paginatio
                     return results
 
                 if with_pagination:
-                    results.extend(data)
+                    if url == f"{GITHUB_API_URL}/search/issues":
+                        # For search API, check if there are more pages
+                        total_count = data.get('total_count', 0)
+                        items = data.get('items', [])
+                        results.extend(items)
+                        # Check if there are more pages based on the total_count and current page
+                        if len(items) > 0 and total_count > page * params.get('per_page', params['per_page']):
+                            page += 1
+                            continue
+                        else:
+                            return results
+                    else:
+                        results.extend(data)
                     page += 1
                 else:
                     return data
@@ -84,6 +96,31 @@ def get_all_pages(url, params, max_retries=3, backoff_factor=0.3, with_paginatio
             time.sleep(1)
     return results
 
+
+def get_repositories_contributed_to(username, per_page=100):
+    """
+    Retrieve all repositories a user has contributed to via pull requests.
+
+    Args:
+        username (str): The GitHub username.
+        per_page (int): The number of results per page.
+
+    Returns:
+        list: A list of repository names the user has contributed to.
+    """
+    params = {
+        "q": f"type:pr author:{username}",
+        "per_page": per_page
+    }
+    url = f"{GITHUB_API_URL}/search/issues"
+    response_data = get_all_pages(url, params)
+
+    repositories = set()
+    for pr in response_data:
+        repo_full_name = pr['repository_url'].split('/')[-2] + '/' + pr['repository_url'].split('/')[-1]
+        repositories.add(repo_full_name)
+
+    return list(repositories)
 
 def get_top_contributors(repo, per_page=100):
     """
@@ -643,6 +680,15 @@ def generate_report(github_conf_path="input/github.json", output_dir="output/",
         start_date = github_conf_data.get('start_date')
         users = github_conf_data.get('users', [])
         project_to_repo_dict = github_conf_data.get('project_to_repo_dict', {})
+
+        # if project to repo dict is empty, use get_repositories_contributed_to to get the repositories
+        if not project_to_repo_dict:
+            project_to_repo_dict = {}
+            for user in users:
+                # for each project create one entry
+                repo_list = get_repositories_contributed_to(user)
+                for repo in repo_list:
+                    project_to_repo_dict[repo] = [repo]
 
         # Ensure input is valid
         if not start_date:
