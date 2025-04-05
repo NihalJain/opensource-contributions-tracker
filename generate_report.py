@@ -13,6 +13,8 @@ import requests
 import urllib3
 from matplotlib.patches import Patch
 
+MAX_SEARCH_RESULT_SIZE = 1000
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -72,7 +74,9 @@ def get_all_pages(url, params, max_retries=3, backoff_factor=0.3, with_paginatio
                         items = data.get('items', [])
                         results.extend(items)
                         # Check if there are more pages based on the total_count and current page
-                        if len(items) > 0 and total_count > page * params.get('per_page', params['per_page']):
+                        # NOTE: In search "Only the first 1000 search results are available"
+                        total_until_now = page * params.get('per_page', params['per_page'])
+                        if len(items) > 0 and total_count > total_until_now and total_until_now < MAX_SEARCH_RESULT_SIZE:
                             page += 1
                             continue
                         else:

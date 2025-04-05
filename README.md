@@ -32,7 +32,7 @@ The tool works in four main steps:
     - Map the project names to their corresponding GitHub repositories under `project_to_repo_dict` which needs to be
       tracked.
         - NOTE: This field is optional. If not provided, the tool will automatically generate the project
-          list based on your PR history.
+          list based on your PR history. Disclaimer: will only fetch last 1000 contributions!
     - Save the changes to the file.
 3. **Commit and Push the changes**.
     - NOTE: If you are running the tool locally, you can skip this step. Also without committing the changes, the
@@ -95,7 +95,7 @@ To run the project locally, follow the steps below:
         - `users` is a list of GitHub usernames,
         - and `project_to_repo_dict` maps project names to their corresponding GitHub repositories.
     - NOTE: The `project_to_repo_dict` is optional. If not provided, the tool will automatically generate the project
-      list based on your PR history.
+      list based on your PR history. Disclaimer: will only fetch last 1000 contributions!
 
 ### Usage
 
