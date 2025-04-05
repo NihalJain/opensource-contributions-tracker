@@ -31,7 +31,7 @@ The tool works in four main steps:
     - Set the `start_date` to the date from which you want to start tracking contributions.
     - Add the list of GitHub usernames under `users`.
     - Map the project names to their corresponding GitHub repositories under `project_to_repo_dict` which needs to be
-      tracked.
+      tracked. (Keep this empty, it will generate project list automatically based on your PR history)
     - Save the changes to the file.
 3. **Commit and Push the changes**.
     - NOTE: If you are running the tool locally, you can skip this step. Also without committing the changes, the
@@ -85,7 +85,9 @@ To run the project locally, follow the steps below:
     - where
         - `start_date` is the date from which to start tracking contributions
         - `users` is a list of GitHub usernames,
-        - and `project_to_repo_dict` maps project names to their corresponding GitHub repositories.
+        - and `project_to_repo_dict` maps project names to their corresponding GitHub repositories. 
+    - NOTE: The `project_to_repo_dict` is optional. If not provided, the tool will automatically generate the project list based on
+      your PR history.
 
 ### Usage
 

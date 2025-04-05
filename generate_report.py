@@ -24,19 +24,13 @@ urllib3.disable_warnings(category=urllib3.exceptions.InsecureRequestWarning)
 GITHUB_API_URL = "https://api.github.com"
 
 # Proxies configuration
-proxies = {
-    "http": os.getenv("HTTP_PROXY"),
-    "https": os.getenv("HTTPS_PROXY")
-}
+proxies = {"http": os.getenv("HTTP_PROXY"), "https": os.getenv("HTTPS_PROXY")}
 
 # GitHub token for authentication
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 
 # Headers for authentication
-HEADERS = {
-    "Authorization": f"token {GITHUB_TOKEN}",
-    "Accept": "application/vnd.github.v3+json"
-}
+HEADERS = {"Authorization": f"token {GITHUB_TOKEN}", "Accept": "application/vnd.github.v3+json"}
 
 
 def get_all_pages(url, params, max_retries=3, backoff_factor=0.3, with_pagination=True):
@@ -108,10 +102,7 @@ def get_repositories_contributed_to(username, per_page=100):
     Returns:
         list: A list of repository names the user has contributed to.
     """
-    params = {
-        "q": f"type:pr author:{username}",
-        "per_page": per_page
-    }
+    params = {"q": f"type:pr author:{username}", "per_page": per_page}
     url = f"{GITHUB_API_URL}/search/issues"
     response_data = get_all_pages(url, params)
 
@@ -121,6 +112,7 @@ def get_repositories_contributed_to(username, per_page=100):
         repositories.add(repo_full_name)
 
     return list(repositories)
+
 
 def get_top_contributors(repo, per_page=100):
     """
@@ -133,9 +125,7 @@ def get_top_contributors(repo, per_page=100):
     Returns:
         list: A list of contributors.
     """
-    params = {
-        "per_page": per_page
-    }
+    params = {"per_page": per_page}
     contributors_url = f"{GITHUB_API_URL}/repos/{repo}/contributors"
     return get_all_pages(contributors_url, params)
 
@@ -154,11 +144,7 @@ def get_commits(user, repo, since_date, per_page=100):
         list: A list of commits.
     """
     commits_url = f"{GITHUB_API_URL}/repos/{repo}/commits"
-    params = {
-        "author": user,
-        "since": since_date,
-        "per_page": per_page
-    }
+    params = {"author": user, "since": since_date, "per_page": per_page}
     return get_all_pages(commits_url, params)
 
 
@@ -175,10 +161,7 @@ def get_pull_requests(repo, state="open", per_page=100):
         list: A list of pull requests.
     """
     pr_url = f"{GITHUB_API_URL}/repos/{repo}/pulls"
-    params = {
-        "state": state,
-        "per_page": per_page
-    }
+    params = {"state": state, "per_page": per_page}
     return get_all_pages(pr_url, params)
 
 
@@ -316,17 +299,12 @@ def process_github_data(start_date, users, project_to_repo_dict):
                     repo_info = repo_info_dict[repo]
 
                     github_data.append(
-                        {
-                            "Project Key": project_key,
-                            "Repository": repo,
-                            "Repository URL": repo_info['url'],
+                        {"Project Key": project_key, "Repository": repo, "Repository URL": repo_info['url'],
                             "Repository Description": repo_info['description'],
                             "Repository Avatar": repo_info['avatar_url'],
                             "User": user_info['name'] if user_info['name'] else user,
-                            "User Avatar": user_info['avatar_url'],
-                            "User URL": user_info['url'],
-                            "Commits": commit_count,
-                            "Pull Requests (Open)": pr_count,
+                            "User Avatar": user_info['avatar_url'], "User URL": user_info['url'],
+                            "Commits": commit_count, "Pull Requests (Open)": pr_count,
                             "Rank": top_contributors_in_users.get(user, -1),
                             "Overall Contribution": commit_count + pr_count})
     except Exception as e:
@@ -464,14 +442,8 @@ def create_pie_chart(title, df, field, filename, percentage=-1):
         patches = [total_patch] + list(patches)
 
         plt.title(title, fontsize=24)
-        plt.legend(
-            handles=patches,
-            labels=[total_patch.get_label()] + labels,
-            loc="upper center",
-            bbox_to_anchor=(1, 1.1),
-            fontsize=10,
-            title=field
-        )
+        plt.legend(handles=patches, labels=[total_patch.get_label()] + labels, loc="upper center",
+            bbox_to_anchor=(1, 1.1), fontsize=10, title=field)
         plt.margins(0, 0)
         plt.axis('equal')
         plt.savefig(filename, bbox_inches='tight', pad_inches=0.5)
@@ -489,16 +461,12 @@ def print_input_json_format():
     Returns:
         None
     """
-    input_json = {
-        "start_date": "YYYY-MM-DD",
-        "users": ["user1", "user2"],
-        "project_to_repo_dict": {
-            "Project 1": ["owner1/repo1", "owner1/repo2"],
-            "Project 2": ["owner2/repo3"]
-        }
-    }
+    input_json = {"start_date": "YYYY-MM-DD", "users": ["user1", "user2"],
+        "project_to_repo_dict": {"Project 1": ["owner1/repo1", "owner1/repo2"], "Project 2": ["owner2/repo3"]}}
     logger.info("Format of the input JSON file for OpenSource contributions tracking:")
     logger.info(json.dumps(input_json, indent=4))
+    logger.info("NOTE: The 'project_to_repo_dict' key is optional."
+                "If not provided, the script will use the 'users' key to get the repositories.")
 
 
 def process_data(github_data_df):
@@ -622,8 +590,8 @@ def create_markdown_report(github_data_df, users_df, projects_df, output_dir, re
                 user_list = '<br>'.join(
                     [f"<img src='{avatar}' width='12' height='12'> [{user}]({url})" for user, url, avatar in
                      row['Users']])
-                f.write(f"| {row['Project Key']} | {repo_list} | {user_list} | {row['Commits']} "
-                        + f"| {row['Pull Requests (Open)']} | {row['Overall Contribution']} |\n")
+                f.write(
+                    f"| {row['Project Key']} | {repo_list} | {user_list} | {row['Commits']} " + f"| {row['Pull Requests (Open)']} | {row['Overall Contribution']} |\n")
 
             # Sort the user counts by 'Overall Contribution' in descending order and write to the markdown file
             f.write("\n## Summary of Contributions by each user\n\n")
@@ -634,8 +602,8 @@ def create_markdown_report(github_data_df, users_df, projects_df, output_dir, re
                 repo_list = '<br>'.join(
                     [f"<img src='{avatar}' width='12' height='12'> [{repo}]({url})" for repo, url, avatar in
                      row['Repositories']])
-                f.write(f"| {user_avatar} [{row['User']}]({row['User URL']}) | {repo_list} | {row['Commits']} "
-                        + f"| {row['Pull Requests (Open)']} | {row['Overall Contribution']} |\n")
+                f.write(
+                    f"| {user_avatar} [{row['User']}]({row['User URL']}) | {repo_list} | {row['Commits']} " + f"| {row['Pull Requests (Open)']} | {row['Overall Contribution']} |\n")
 
             # Sort the detailed contributions by 'Overall Contribution' in descending order and 'User' in ascending order
             # and write to the markdown file
@@ -645,9 +613,8 @@ def create_markdown_report(github_data_df, users_df, projects_df, output_dir, re
             for _, row in github_data_df.sort_values(by=['User'], ascending=[True]).iterrows():
                 repo_avatar = f"<img src='{row['Repository Avatar']}' width='12' height='12'>"
                 user_avatar = f"<img src='{row['User Avatar']}' width='12' height='12'>"
-                f.write(f"| {row['Project Key']} | {repo_avatar} [{row['Repository']}]({row['Repository URL']})"
-                        + f" | {user_avatar} [{row['User']}]({row['User URL']}) | {row['Commits']} |"
-                        + f" {row['Pull Requests (Open)']} | {row['Overall Contribution']} |\n")
+                f.write(
+                    f"| {row['Project Key']} | {repo_avatar} [{row['Repository']}]({row['Repository URL']})" + f" | {user_avatar} [{row['User']}]({row['User URL']}) | {row['Commits']} |" + f" {row['Pull Requests (Open)']} | {row['Overall Contribution']} |\n")
     logger.info(f"Markdown report created successfully: {report_filename}")
 
 
@@ -761,7 +728,7 @@ if __name__ == "__main__":
         # In order to generate the report with local data, in case you have the data
         # Comment the above code line i.e. generate_report()
         # Next, uncomment the below code line
-        #generate_report_with_local_data()
+        # generate_report_with_local_data()
         logger.info("Script completed successfully.")
         # Ensure an exit code of 0 upon successful completion, required by test workflow
         exit(0)
