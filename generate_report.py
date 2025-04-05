@@ -100,16 +100,16 @@ def get_all_pages(url, params, max_retries=3, backoff_factor=0.3, with_paginatio
     return results
 
 
-def get_repositories_contributed_to(username, per_page=100):
+def get_repositories_contributed_to(username: str, per_page: int = 100) -> list[str]:
     """
     Retrieve all repositories a user has contributed to via pull requests.
 
     Args:
-        username (str): The GitHub username.
-        per_page (int): The number of results per page.
+        username: The GitHub username.
+        per_page: The number of results per page.
 
     Returns:
-        list: A list of repository names the user has contributed to.
+        A sorted list of repository names the user has contributed to.
     """
     params = {
         "q": f"type:pr author:{username}",
@@ -120,11 +120,11 @@ def get_repositories_contributed_to(username, per_page=100):
 
     repositories = set()
     for pr in response_data:
-        repo_full_name = pr['repository_url'].split('/')[-2] + '/' + pr['repository_url'].split('/')[-1]
+        parts = pr['repository_url'].split('/')
+        repo_full_name = f'{parts[-2]}/{parts[-1]}'
         repositories.add(repo_full_name)
 
-    return list(repositories)
-
+    return sorted(repositories, key=str.lower)
 
 def get_top_contributors(repo, per_page=100):
     """
