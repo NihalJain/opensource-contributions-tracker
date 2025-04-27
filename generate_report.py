@@ -301,11 +301,25 @@ def process_github_data(start_date, users, project_to_repo_dict):
                 logger.info(
                     f"Users: {top_contributors_in_users} are in top 500 contributor list of the repository: {repo}")
                 logger.info(f"Fetching pull requests (open) for repository: {repo}")
-                prs = get_pull_requests(repo, state="open")
+                prs_open = get_pull_requests(repo, state="open")
+                prs_closed = get_pull_requests(repo, state="closed")
+
+                logger.info(f"Fetching issues (open) for repository: {repo}")
+                issues_open = get_issues(repo, state="open")
+                issues_closed = get_issues(repo, state="closed")
+
+                logger.info(f"Fetching code reviews for repository: {repo}")
+                code_reviews = get_code_reviews(repo)
+
+                logger.info(f"Fetching lines of code added/removed for repository: {repo}")
+                lines_of_code = get_lines_of_code(repo)
+
+                logger.info(f"Fetching documentation contributions for repository: {repo}")
+                documentation_contributions = get_documentation_contributions(repo)
 
                 # Create a dictionary to map users to their pull requests
                 user_prs_dict = defaultdict(list)
-                for pr in prs:
+                for pr in prs_open:
                     user_login = str(pr["user"]["login"]).lower().strip()
                     if pr["created_at"] >= start_date:
                         user_prs_dict[user_login].append(pr)
@@ -314,7 +328,14 @@ def process_github_data(start_date, users, project_to_repo_dict):
                     logger.info(f"Processing user: {user}")
                     commits = get_commits(user, repo, formatted_start_date)
                     commit_count = len(commits)
-                    pr_count = len(user_prs_dict[user])
+                    pr_open_count = len(user_prs_dict[user])
+                    pr_closed_count = len([pr for pr in prs_closed if pr["user"]["login"].lower().strip() == user])
+                    issue_open_count = len([issue for issue in issues_open if issue["user"]["login"].lower().strip() == user])
+                    issue_closed_count = len([issue for issue in issues_closed if issue["user"]["login"].lower().strip() == user])
+                    code_review_count = len([review for review in code_reviews if review["user"]["login"].lower().strip() == user])
+                    lines_added = sum([line["additions"] for line in lines_of_code if line["author"]["login"].lower().strip() == user])
+                    lines_removed = sum([line["deletions"] for line in lines_of_code if line["author"]["login"].lower().strip() == user])
+                    documentation_count = len([doc for doc in documentation_contributions if doc["user"]["login"].lower().strip() == user])
 
                     user_info = user_info_dict[user]
                     repo_info = repo_info_dict[repo]
@@ -330,9 +351,16 @@ def process_github_data(start_date, users, project_to_repo_dict):
                             "User Avatar": user_info['avatar_url'],
                             "User URL": user_info['url'],
                             "Commits": commit_count,
-                            "Pull Requests (Open)": pr_count,
+                            "Pull Requests (Open)": pr_open_count,
+                            "Pull Requests (Closed)": pr_closed_count,
+                            "Issues (Open)": issue_open_count,
+                            "Issues (Closed)": issue_closed_count,
+                            "Code Reviews": code_review_count,
+                            "Lines of Code Added": lines_added,
+                            "Lines of Code Removed": lines_removed,
+                            "Documentation Contributions": documentation_count,
                             "Rank": top_contributors_in_users.get(user, -1),
-                            "Overall Contribution": commit_count + pr_count
+                            "Overall Contribution": commit_count + pr_open_count + pr_closed_count + issue_open_count + issue_closed_count + code_review_count + lines_added + lines_removed + documentation_count
                         }
                     )
     except Exception as e:
@@ -367,7 +395,7 @@ def filter_contributions(github_data_df):
     Returns:
         DataFrame: A filtered DataFrame with non-zero contributions.
     """
-    filtered_df = github_data_df[(github_data_df['Commits'] > 0) | (github_data_df['Pull Requests (Open)'] > 0)]
+    filtered_df = github_data_df[(github_data_df['Commits'] > 0) | (github_data_df['Pull Requests (Open)'] > 0) | (github_data_df['Pull Requests (Closed)'] > 0) | (github_data_df['Issues (Open)'] > 0) | (github_data_df['Issues (Closed)'] > 0) | (github_data_df['Code Reviews'] > 0) | (github_data_df['Lines of Code Added'] > 0) | (github_data_df['Lines of Code Removed'] > 0) | (github_data_df['Documentation Contributions'] > 0)]
     logger.info("Filtered out entries with zero contributions")
     return filtered_df
 
@@ -382,7 +410,7 @@ def group_contributions(filtered_df):
     Returns:
         tuple: Two DataFrames, one grouped by 'User' and the other by 'Project Key'.
     """
-    project_df = filtered_df.groupby('Project Key')[['Commits', 'Pull Requests (Open)']].sum().reset_index()
+    project_df = filtered_df.groupby('Project Key')[['Commits', 'Pull Requests (Open)', 'Pull Requests (Closed)', 'Issues (Open)', 'Issues (Closed)', 'Code Reviews', 'Lines of Code Added', 'Lines of Code Removed', 'Documentation Contributions']].sum().reset_index()
     project_df['Repositories'] = filtered_df.groupby('Project Key').apply(
         lambda x: list(zip(x['Repository'], x['Repository URL'], x['Repository Avatar']))).reset_index(drop=True).apply(
         lambda x: list(set(x)))
@@ -393,11 +421,11 @@ def group_contributions(filtered_df):
         lambda x: list(zip(x['User'], x['User URL'], x['User Avatar']))).reset_index(drop=True).apply(
         lambda x: list(set(x)))
     project_df['Users'] = project_df['Users'].apply(lambda x: sorted(x, key=lambda y: y[0]))
-    project_df['Overall Contribution'] = project_df['Commits'] + project_df['Pull Requests (Open)']
+    project_df['Overall Contribution'] = project_df['Commits'] + project_df['Pull Requests (Open)'] + project_df['Pull Requests (Closed)'] + project_df['Issues (Open)'] + project_df['Issues (Closed)'] + project_df['Code Reviews'] + project_df['Lines of Code Added'] + project_df['Lines of Code Removed'] + project_df['Documentation Contributions']
     project_df = project_df[project_df['Overall Contribution'] > 0]
     logger.info("Grouped by 'Project Key' and calculated overall contributions")
 
-    users_df = filtered_df.groupby('User')[['Commits', 'Pull Requests (Open)']].sum().reset_index()
+    users_df = filtered_df.groupby('User')[['Commits', 'Pull Requests (Open)', 'Pull Requests (Closed)', 'Issues (Open)', 'Issues (Closed)', 'Code Reviews', 'Lines of Code Added', 'Lines of Code Removed', 'Documentation Contributions']].sum().reset_index()
     users_df['Repositories'] = filtered_df.groupby('User').apply(
         lambda x: list(zip(x['Repository'], x['Repository URL'], x['Repository Avatar']))).reset_index(drop=True).apply(
         lambda x: list(set(x)))
@@ -406,7 +434,7 @@ def group_contributions(filtered_df):
     users_df['User URL'] = users_df['User'].apply(lambda x: filtered_df[filtered_df['User'] == x]['User URL'].iloc[0])
     users_df['User Avatar'] = users_df['User'].apply(
         lambda x: filtered_df[filtered_df['User'] == x]['User Avatar'].iloc[0])
-    users_df['Overall Contribution'] = users_df['Commits'] + users_df['Pull Requests (Open)']
+    users_df['Overall Contribution'] = users_df['Commits'] + users_df['Pull Requests (Open)'] + users_df['Pull Requests (Closed)'] + users_df['Issues (Open)'] + users_df['Issues (Closed)'] + users_df['Code Reviews'] + users_df['Lines of Code Added'] + users_df['Lines of Code Removed'] + users_df['Documentation Contributions']
     users_df = users_df[users_df['Overall Contribution'] > 0]
     logger.info("Grouped by 'User' and calculated overall contributions")
 
@@ -429,11 +457,11 @@ def create_pie_chart(title, df, field, filename, percentage=-1):
     """
     try:
         # Group by the field and sum the 'Commits' and 'Pull Requests (Open)'
-        df_copy = df.groupby(field)[['Commits', 'Pull Requests (Open)']].sum().reset_index()
+        df_copy = df.groupby(field)[['Commits', 'Pull Requests (Open)', 'Pull Requests (Closed)', 'Issues (Open)', 'Issues (Closed)', 'Code Reviews', 'Lines of Code Added', 'Lines of Code Removed', 'Documentation Contributions']].sum().reset_index()
         logger.info(f"Grouped data by {field}")
 
-        # Add a new field 'Overall Contribution' which is the sum of 'Commits' and 'Pull Requests (Open)'
-        df_copy['Overall Contribution'] = df_copy['Commits'] + df_copy['Pull Requests (Open)']
+        # Add a new field 'Overall Contribution' which is the sum of 'Commits', 'Pull Requests (Open)', 'Pull Requests (Closed)', 'Issues (Open)', 'Issues (Closed)', 'Code Reviews', 'Lines of Code Added', 'Lines of Code Removed', and 'Documentation Contributions'
+        df_copy['Overall Contribution'] = df_copy['Commits'] + df_copy['Pull Requests (Open)'] + df_copy['Pull Requests (Closed)'] + df_copy['Issues (Open)'] + df_copy['Issues (Closed)'] + df_copy['Code Reviews'] + df_copy['Lines of Code Added'] + df_copy['Lines of Code Removed'] + df_copy['Documentation Contributions']
         logger.info("Calculated 'Overall Contribution'")
 
         # Find values with count less than a given percentage of the maximum count
@@ -582,6 +610,13 @@ def create_markdown_report(github_data_df, users_df, projects_df, output_dir, re
         total_overall_contributions = github_data_df['Overall Contribution'].sum()
         total_number_of_commits = github_data_df['Commits'].sum()
         total_number_of_open_prs = github_data_df['Pull Requests (Open)'].sum()
+        total_number_of_closed_prs = github_data_df['Pull Requests (Closed)'].sum()
+        total_number_of_open_issues = github_data_df['Issues (Open)'].sum()
+        total_number_of_closed_issues = github_data_df['Issues (Closed)'].sum()
+        total_number_of_code_reviews = github_data_df['Code Reviews'].sum()
+        total_lines_of_code_added = github_data_df['Lines of Code Added'].sum()
+        total_lines_of_code_removed = github_data_df['Lines of Code Removed'].sum()
+        total_documentation_contributions = github_data_df['Documentation Contributions'].sum()
 
         # Add summary table
         f.write("## Overall Summary\n\n")
@@ -594,6 +629,13 @@ def create_markdown_report(github_data_df, users_df, projects_df, output_dir, re
         f.write(f"| Total number of contributions | {total_overall_contributions} |\n")
         f.write(f"| Number of commits | {total_number_of_commits} |\n")
         f.write(f"| Number of pull requests (Open) | {total_number_of_open_prs} |\n")
+        f.write(f"| Number of pull requests (Closed) | {total_number_of_closed_prs} |\n")
+        f.write(f"| Number of issues (Open) | {total_number_of_open_issues} |\n")
+        f.write(f"| Number of issues (Closed) | {total_number_of_closed_issues} |\n")
+        f.write(f"| Number of code reviews | {total_number_of_code_reviews} |\n")
+        f.write(f"| Lines of code added | {total_lines_of_code_added} |\n")
+        f.write(f"| Lines of code removed | {total_lines_of_code_removed} |\n")
+        f.write(f"| Documentation contributions | {total_documentation_contributions} |\n")
 
         # Add a pie chart image for project wise contributions
         project_wise_contribution_fname = "project_wise_contribution.png"
@@ -615,8 +657,8 @@ def create_markdown_report(github_data_df, users_df, projects_df, output_dir, re
         else:
             # Sort the project counts by 'Overall Contribution' in descending order and write to the markdown file
             f.write("\n## Summary of Contributions by each project\n\n")
-            f.write("| Project Key | Repositories | Users | Commits | Pull Requests (Open) | Overall Contribution |\n")
-            f.write("|--------------|--------------|-------|---------|----------------------|----------------------|\n")
+            f.write("| Project Key | Repositories | Users | Commits | Pull Requests (Open) | Pull Requests (Closed) | Issues (Open) | Issues (Closed) | Code Reviews | Lines of Code Added | Lines of Code Removed | Documentation Contributions | Overall Contribution |\n")
+            f.write("|--------------|--------------|-------|---------|----------------------|----------------------|----------------|----------------|--------------|---------------------|---------------------|--------------------------|----------------------|\n")
             for _, row in projects_df.sort_values(by=['Overall Contribution'], ascending=False).iterrows():
                 repo_list = '<br>'.join(
                     [f"<img src='{avatar}' width='12' height='12'> [{repo}]({url})" for repo, url, avatar in
@@ -625,30 +667,30 @@ def create_markdown_report(github_data_df, users_df, projects_df, output_dir, re
                     [f"<img src='{avatar}' width='12' height='12'> [{user}]({url})" for user, url, avatar in
                      row['Users']])
                 f.write(
-                    f"| {row['Project Key']} | {repo_list} | {user_list} | {row['Commits']} " + f"| {row['Pull Requests (Open)']} | {row['Overall Contribution']} |\n")
+                    f"| {row['Project Key']} | {repo_list} | {user_list} | {row['Commits']} " + f"| {row['Pull Requests (Open)']} | {row['Pull Requests (Closed)']} | {row['Issues (Open)']} | {row['Issues (Closed)']} | {row['Code Reviews']} | {row['Lines of Code Added']} | {row['Lines of Code Removed']} | {row['Documentation Contributions']} | {row['Overall Contribution']} |\n")
 
             # Sort the user counts by 'Overall Contribution' in descending order and write to the markdown file
             f.write("\n## Summary of Contributions by each user\n\n")
-            f.write("| User | Repositories | Commits | Pull Requests (Open) | Overall Contribution |\n")
-            f.write("|------|--------------|---------|----------------------|----------------------|\n")
+            f.write("| User | Repositories | Commits | Pull Requests (Open) | Pull Requests (Closed) | Issues (Open) | Issues (Closed) | Code Reviews | Lines of Code Added | Lines of Code Removed | Documentation Contributions | Overall Contribution |\n")
+            f.write("|------|--------------|---------|----------------------|----------------------|----------------|----------------|--------------|---------------------|---------------------|--------------------------|----------------------|\n")
             for _, row in users_df.sort_values(by=['Overall Contribution'], ascending=False).iterrows():
                 user_avatar = f"<img src='{row['User Avatar']}' width='12' height='12'>"
                 repo_list = '<br>'.join(
                     [f"<img src='{avatar}' width='12' height='12'> [{repo}]({url})" for repo, url, avatar in
                      row['Repositories']])
                 f.write(
-                    f"| {user_avatar} [{row['User']}]({row['User URL']}) | {repo_list} | {row['Commits']} " + f"| {row['Pull Requests (Open)']} | {row['Overall Contribution']} |\n")
+                    f"| {user_avatar} [{row['User']}]({row['User URL']}) | {repo_list} | {row['Commits']} " + f"| {row['Pull Requests (Open)']} | {row['Pull Requests (Closed)']} | {row['Issues (Open)']} | {row['Issues (Closed)']} | {row['Code Reviews']} | {row['Lines of Code Added']} | {row['Lines of Code Removed']} | {row['Documentation Contributions']} | {row['Overall Contribution']} |\n")
 
             # Sort the detailed contributions by 'Overall Contribution' in descending order and 'User' in ascending order
             # and write to the markdown file
             f.write("\n## Detailed Contributions\n\n")
-            f.write("| Project Key | Repository | User | Commits | Pull Requests (Open) | Overall Contribution |\n")
-            f.write("|--------------|------------|------|---------|----------------------|----------------------|\n")
+            f.write("| Project Key | Repository | User | Commits | Pull Requests (Open) | Pull Requests (Closed) | Issues (Open) | Issues (Closed) | Code Reviews | Lines of Code Added | Lines of Code Removed | Documentation Contributions | Overall Contribution |\n")
+            f.write("|--------------|------------|------|---------|----------------------|----------------------|----------------|----------------|--------------|---------------------|---------------------|--------------------------|----------------------|\n")
             for _, row in github_data_df.sort_values(by=['User'], ascending=[True]).iterrows():
                 repo_avatar = f"<img src='{row['Repository Avatar']}' width='12' height='12'>"
                 user_avatar = f"<img src='{row['User Avatar']}' width='12' height='12'>"
                 f.write(
-                    f"| {row['Project Key']} | {repo_avatar} [{row['Repository']}]({row['Repository URL']})" + f" | {user_avatar} [{row['User']}]({row['User URL']}) | {row['Commits']} |" + f" {row['Pull Requests (Open)']} | {row['Overall Contribution']} |\n")
+                    f"| {row['Project Key']} | {repo_avatar} [{row['Repository']}]({row['Repository URL']})" + f" | {user_avatar} [{row['User']}]({row['User URL']}) | {row['Commits']} |" + f" {row['Pull Requests (Open)']} | {row['Pull Requests (Closed)']} | {row['Issues (Open)']} | {row['Issues (Closed)']} | {row['Code Reviews']} | {row['Lines of Code Added']} | {row['Lines of Code Removed']} | {row['Documentation Contributions']} | {row['Overall Contribution']} |\n")
     logger.info(f"Markdown report created successfully: {report_filename}")
 
 
