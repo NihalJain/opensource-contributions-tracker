@@ -8,7 +8,7 @@ impact on the open-source community.
 ## Features
 
 The tool is designed to track and report contributions to open-source projects on GitHub for one user or a group of
-users. It generates detailed reports on commits, open and closed pull requests, opened and closed issues, code reviews performed, lines of code added and removed, and documentation contributions made by users across various repositories and
+users. It generates detailed reports on commits, open and closed pull requests, opened and closed issues, code reviews performed, lines of code added and removed made by users across various repositories and
 projects. It also displays summary tables and pie charts to visualize the contributions. It groups the contributions by
 users and projects, making it easy to identify the most active contributors and the most popular projects. Also provides
 insights into the overall contribution metrics like the total number of projects, repositories, and contributions.
@@ -17,7 +17,7 @@ insights into the overall contribution metrics like the total number of projects
 
 The tool works in four main steps:
 
-- **Data Retrieval**: Fetches commits, open and closed pull requests, opened and closed issues, code reviews performed, lines of code added and removed, and documentation contributions from GitHub repositories.
+- **Data Retrieval**: Fetches commits, open and closed pull requests, opened and closed issues, code reviews performed, lines of code added and removed from GitHub repositories.
 - **Data Processing**: Aggregates and processes the data to provide meaningful insights.
 - **Report Generation**: Creates markdown reports with summary tables and pie charts.
 - **Automated Execution**: Can be scheduled to run periodically using GitHub Actions.
