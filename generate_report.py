@@ -391,12 +391,12 @@ def process_github_data(start_date, users, project_to_repo_dict):
                     commits = get_commits(user, repo, formatted_start_date)
                     commit_count = len(commits)
                     pr_open_count = len(user_prs_dict[user])
-                    pr_closed_count = len([pr for pr in prs_closed if pr["user"]["login"].lower().strip() == user])
-                    issue_open_count = len([issue for issue in issues_open if issue["user"]["login"].lower().strip() == user])
-                    issue_closed_count = len([issue for issue in issues_closed if issue["user"]["login"].lower().strip() == user])
-                    code_review_count = len([review for review in code_reviews if review["user"]["login"].lower().strip() == user])
-                    lines_added = sum([line["additions"] for line in lines_of_code if line["author"]["login"].lower().strip() == user])
-                    lines_removed = sum([line["deletions"] for line in lines_of_code if line["author"]["login"].lower().strip() == user])
+                    pr_closed_count = len([pr for pr in prs_closed if pr["user"] and pr["user"]["login"] and pr["user"]["login"].lower().strip() == user])
+                    issue_open_count = len([issue for issue in issues_open if issue["user"] and issue["user"]["login"] and issue["user"]["login"].lower().strip() == user])
+                    issue_closed_count = len([issue for issue in issues_closed if issue["user"] and issue["user"]["login"] and issue["user"]["login"].lower().strip() == user])
+                    code_review_count = len([review for review in code_reviews if review["user"] and review["user"]["login"] and review["user"]["login"].lower().strip() == user])
+                    lines_added = sum([line["additions"] for line in lines_of_code if line["author"] and line["author"]["login"] and line["author"]["login"].lower().strip() == user])
+                    lines_removed = sum([line["deletions"] for line in lines_of_code if line["author"] and line["author"]["login"] and line["author"]["login"].lower().strip() == user])
 
                     user_info = user_info_dict[user]
                     repo_info = repo_info_dict[repo]
