@@ -116,30 +116,28 @@ The input file is `input/github.json`. The only required fields are `start_date`
 | `end_date` | No | Tomorrow | End of the reporting period (`YYYY-MM-DD`, inclusive) |
 | `users` | Yes | — | List of GitHub usernames to track |
 | `project_to_repo_dict` | No | Auto-detected | Maps project display names to lists of `owner/repo` strings. If omitted, repositories are discovered from each user's PR history (capped at 1 000 results by the GitHub Search API) |
-        | `contribution_config` | No | All enabled | Per-metric configuration object. Omitting it or any key within it uses the defaults shown below |
-        | &nbsp;&nbsp;`commits` | No | — | Config for merged commits |
-        | &nbsp;&nbsp;&nbsp;&nbsp;`enabled` | No | `true` | Collect and display this metric |
-        | &nbsp;&nbsp;&nbsp;&nbsp;`count_towards_score` | No | `true` | Add to the Overall Contribution score |
-        | &nbsp;&nbsp;`open_prs` | No | — | Config for open pull requests |
-        | &nbsp;&nbsp;&nbsp;&nbsp;`enabled` | No | `true` | Collect and display |
-        | &nbsp;&nbsp;&nbsp;&nbsp;`count_towards_score` | No | `true` | Add to score |
-        | &nbsp;&nbsp;`closed_prs` | No | — | Config for closed pull requests |
-        | &nbsp;&nbsp;&nbsp;&nbsp;`enabled` | No | `true` | Collect and display |
-        | &nbsp;&nbsp;&nbsp;&nbsp;`count_towards_score` | No | `true` | Add to score |
-        | &nbsp;&nbsp;`open_issues` | No | — | Config for open issues |
-        | &nbsp;&nbsp;&nbsp;&nbsp;`enabled` | No | `true` | Collect and display |
-        | &nbsp;&nbsp;&nbsp;&nbsp;`count_towards_score` | No | `true` | Add to score |
-        | &nbsp;&nbsp;`closed_issues` | No | — | Config for closed issues |
-        | &nbsp;&nbsp;&nbsp;&nbsp;`enabled` | No | `true` | Collect and display |
-        | &nbsp;&nbsp;&nbsp;&nbsp;`count_towards_score` | No | `true` | Add to score |
-        | &nbsp;&nbsp;`code_reviews` | No | — | Config for PRs formally reviewed |
-        | &nbsp;&nbsp;&nbsp;&nbsp;`enabled` | No | `true` | Collect and display |
-        | &nbsp;&nbsp;&nbsp;&nbsp;`count_towards_score` | No | `true` | Add to score |
-        | &nbsp;&nbsp;`line_stats` | No | — | Config for lines added/removed. Expensive: one extra API call per commit and per open PR |
-        | &nbsp;&nbsp;&nbsp;&nbsp;`enabled` | No | `true` | Fetch and display line stats. Set to `false` to skip (recommended for large datasets) |
-        | &nbsp;&nbsp;&nbsp;&nbsp;`refactor_threshold` | No | Disabled | Float (0–1). Commits/PRs where net-change ratio is below this are excluded from line counts |
-python generate_report.py
-```
+| `contribution_config` | No | All enabled | Per-metric configuration object. Omitting it or any key within it uses the defaults shown below |
+| &nbsp;&nbsp;`commits` | No | — | Config for merged commits |
+| &nbsp;&nbsp;&nbsp;&nbsp;`enabled` | No | `true` | Collect and display this metric |
+| &nbsp;&nbsp;&nbsp;&nbsp;`count_towards_score` | No | `true` | Add to the Overall Contribution score |
+| &nbsp;&nbsp;`open_prs` | No | — | Config for open pull requests |
+| &nbsp;&nbsp;&nbsp;&nbsp;`enabled` | No | `true` | Collect and display |
+| &nbsp;&nbsp;&nbsp;&nbsp;`count_towards_score` | No | `true` | Add to score |
+| &nbsp;&nbsp;`closed_prs` | No | — | Config for closed pull requests |
+| &nbsp;&nbsp;&nbsp;&nbsp;`enabled` | No | `true` | Collect and display |
+| &nbsp;&nbsp;&nbsp;&nbsp;`count_towards_score` | No | `true` | Add to score |
+| &nbsp;&nbsp;`open_issues` | No | — | Config for open issues |
+| &nbsp;&nbsp;&nbsp;&nbsp;`enabled` | No | `true` | Collect and display |
+| &nbsp;&nbsp;&nbsp;&nbsp;`count_towards_score` | No | `true` | Add to score |
+| &nbsp;&nbsp;`closed_issues` | No | — | Config for closed issues |
+| &nbsp;&nbsp;&nbsp;&nbsp;`enabled` | No | `true` | Collect and display |
+| &nbsp;&nbsp;&nbsp;&nbsp;`count_towards_score` | No | `true` | Add to score |
+| &nbsp;&nbsp;`code_reviews` | No | — | Config for PRs formally reviewed |
+| &nbsp;&nbsp;&nbsp;&nbsp;`enabled` | No | `true` | Collect and display |
+| &nbsp;&nbsp;&nbsp;&nbsp;`count_towards_score` | No | `true` | Add to score |
+| &nbsp;&nbsp;`line_stats` | No | — | Config for lines added/removed. Expensive: one extra API call per commit and per open PR |
+| &nbsp;&nbsp;&nbsp;&nbsp;`enabled` | No | `false` | Fetch and display line stats. Set to `false` to skip (recommended for large datasets) |
+| &nbsp;&nbsp;&nbsp;&nbsp;`refactor_threshold` | No | Disabled | Float (0–1). Commits/PRs where net-change ratio is below this are excluded from line counts |
 
 **Output files** written to `output/`:
 
