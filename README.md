@@ -1,55 +1,57 @@
 # OpenSource Contributions Tracker
 
-OpenSource Contributions Tracker is a powerful and easy-to-use tool designed to help developers and organizations keep
-track of their open-source contributions. Whether you're contributing to multiple projects or managing a team of
-contributors, this tool provides a centralized place to monitor your progress, celebrate milestones, and showcase your
-impact on the open-source community.
+A tool that fetches contribution data from the GitHub API and produces a rich markdown report for one user or a whole
+team. Designed for developers and organizations who want a centralized, automated view of their open-source activity.
 
 ## Features
 
-The tool is designed to track and report contributions to open-source projects on GitHub for one user or a group of
-users. It generates detailed reports on commits and pull requests made by users across various repositories and
-projects. It also displays summary tables and pie charts to visualize the contributions. It groups the contributions by
-users and projects, making it easy to identify the most active contributors and the most popular projects. Also provides
-insights into the overall contribution metrics like the total number of projects, repositories, and contributions.
+Tracks the following metrics across all configured repositories for each user, within a configurable date range:
 
-## How it works?
+| Metric | Description |
+|--------|-------------|
+| **Commits** | Commits merged into the default branch |
+| **Pull Requests (Open / Closed)** | PRs authored by each user |
+| **Issues (Open / Closed)** | Issues opened by each user |
+| **Code Reviews** | Unique PRs formally reviewed (`reviewed-by:`) |
+| **Lines Added / Removed** | Line-level changes for merged commits and open PRs, with optional refactor filtering |
 
-The tool works in four main steps:
+The report includes:
+- Overall summary table with totals for every metric
+- Per-project and per-user contribution breakdowns with pie charts
+- Detailed row-level table (project / repository / user / rank / all metrics)
+- Activity detail section listing every individual PR and issue with status, dates, and labels
 
-- **Data Retrieval**: Fetches commits and pull requests from GitHub repositories.
-- **Data Processing**: Aggregates and processes the data to provide meaningful insights.
-- **Report Generation**: Creates markdown reports with summary tables and pie charts.
-- **Automated Execution**: Can be scheduled to run periodically using GitHub Actions.
+You control which metrics count toward the **Overall Contribution** score via `contribution_config`.
 
-## How to use?
+## How it works
 
-1. **Fork the repository**.
-2. **Update the input data file**
-    - Modify the `input/github.json` file to include the list of users and projects you want to track.
-    - Set the `start_date` to the date from which you want to start tracking contributions.
-    - Add the list of GitHub usernames under `users`.
-    - Map the project names to their corresponding GitHub repositories under `project_to_repo_dict` which needs to be
-      tracked.
-        - NOTE: This field is optional. If not provided, the tool will automatically generate the project
-          list based on your PR history. Disclaimer: will only fetch last 1000 contributions!
-    - Save the changes to the file.
-3. **Commit and Push the changes**.
-    - NOTE: If you are running the tool locally, you can skip this step. Also without committing the changes, the
-      workflow will not be triggered in forked repositories.
-4. **Review the report**
-    - The tool will automatically generate a report and add it to the `output` directory in file
-      `github_contributions_report.md` at the scheduled time.
-    - You can view the report to see the summary of contributions by each user and project, along with detailed
-      contributions.
+1. **Data retrieval** — fetches commits, PRs, issues, code reviews, and (optionally) per-commit/per-PR line stats from the GitHub REST API, handling pagination and rate-limit headers automatically.
+2. **Data processing** — aggregates raw counts per user per repository, applies the `contribution_config` scoring weights, and optionally filters large refactor commits/PRs via `refactor_threshold`.
+3. **Report generation** — writes `output/github_contributions_report.md` (markdown), `output/github_contribution_data.csv` (raw data), and two PNG pie charts.
+4. **Automated execution** — a GitHub Actions workflow runs the report on a schedule and commits the output. See [GitHub Actions](#github-actions-automated-workflow).
+
+## Quick start (fork & go)
+
+1. **Fork this repository.**
+2. **Edit `input/github.json`** — set `start_date`, add your GitHub usernames, and map projects to repositories. See [Configuration](#configuration) for all options.
+3. **Push the changes** — the GitHub Actions workflow will run automatically on the next scheduled cycle, or you can [trigger it manually](#steps-to-trigger-the-workflow-manually).
+4. **View the report** — open `output/github_contributions_report.md` in the repository.
+
+> **Local run**: skip steps 3–4 and run `python generate_report.py` after completing the [Local Setup](#local-setup).
 
 ## Demo
 
-A sample report generated by the tool can be found [here](output/github_contributions_report.md).
+A live sample report is available at [output/github_contributions_report.md](output/github_contributions_report.md).
+It shows the full report structure: summary table, pie charts, per-project and per-user breakdowns, and the activity
+detail section with individual PRs and issues.
 
 ## Local Setup
 
-To run the project locally, follow the steps below:
+### Prerequisites
+
+- Python 3.10+
+- A GitHub personal access token with at least `public_repo` scope (add `repo` scope for private repositories).
+  Set it as the `GITHUB_TOKEN` environment variable.
 
 ### Installation
 
@@ -64,100 +66,124 @@ To run the project locally, follow the steps below:
     pip install -r requirements.txt
     ```
 
-### Configuration
-
-1. **Set up environment variables**:
-    - `GITHUB_TOKEN`: Your GitHub personal access token.
-    - `HTTP_PROXY` and `HTTPS_PROXY`: (Optional) Proxy settings if required.
-
-2. **Input Data File**:
-    - The input data file should be a JSON file located at `input/github.json`.
-    - This file should contain the following structure:
-        ```json
-        {
-            "start_date": "YYYY-MM-DD",
-            "users": ["user1", "user2"],
-            "project_to_repo_dict": {
-                "Project1": ["repo1", "repo2"],
-                "Project2": ["repo3"]
-            }
-        }
-        ```
-    - Or, if you are an individual you can use the following structure as well:
-       ```json
-       {
-       "start_date": "YYYY-MM-DD",
-       "users": ["user1"]
-       }
-       ```
-    - where
-        - `start_date` is the date from which to start tracking contributions
-        - `users` is a list of GitHub usernames,
-        - and `project_to_repo_dict` maps project names to their corresponding GitHub repositories.
-    - NOTE: The `project_to_repo_dict` is optional. If not provided, the tool will automatically generate the project
-      list based on your PR history. Disclaimer: will only fetch last 1000 contributions!
-
-### Usage
-
-1. **Generate the report**:
+3. **Set environment variables**:
     ```sh
-    python generate_report.py
+    export GITHUB_TOKEN=your_personal_access_token
+    # Optional — only needed if behind a corporate proxy:
+    export HTTP_PROXY=http://proxy.example.com:8080
+    export HTTPS_PROXY=http://proxy.example.com:8080
     ```
 
-2. **View the report**:
-    - The report will be generated in the `output` directory as `github_contributions_report.md`.
+### Configuration
 
-## Github Actions (Automated workflow)
+The input file is `input/github.json`. The only required fields are `start_date` and `users`.
 
-- **GitHub Actions**:
-    - The project includes a GitHub Actions workflow to automate the report generation.
-    - The workflow is defined in `.github/workflows/main.yml`.
-    - No need to manually trigger the report generation; it will run automatically based on the schedule defined in the
-      workflow. By default, it is scheduled to run every 24 hours. This can be modified as per your requirements.
-    - You can check the status of the workflow in the "Actions" tab of the GitHub repository.
-    - You can also manually trigger the workflow, if needed. (See below!)
+**Minimal structure (single contributor, all repositories auto-detected):**
+```json
+{
+    "start_date": "YYYY-MM-DD",
+    "users": ["user1"]
+}
+```
 
-- **Updating the Workflow**:
-    - If you need to update the workflow, you can modify the `.github/workflows/main.yml` file as per your requirements.
-    - The changes will be reflected in the workflow execution. Or you can run the workflow manually to test the changes.
+**Full structure:**
+```json
+{
+    "start_date": "YYYY-MM-DD",
+    "end_date": "YYYY-MM-DD",
+    "contribution_config": {
+        "commits":       { "enabled": true,  "count_towards_score": true  },
+        "open_prs":      { "enabled": true,  "count_towards_score": true  },
+        "closed_prs":    { "enabled": true,  "count_towards_score": false },
+        "open_issues":   { "enabled": true,  "count_towards_score": true  },
+        "closed_issues": { "enabled": true,  "count_towards_score": true  },
+        "code_reviews":  { "enabled": true,  "count_towards_score": true  },
+        "line_stats":    { "enabled": false, "refactor_threshold": 0.1   }
+    },
+    "users": ["user1", "user2"],
+    "project_to_repo_dict": {
+        "Project1": ["owner/repo1", "owner/repo2"],
+        "Project2": ["owner/repo3"]
+    }
+}
+```
 
-- **Update the github.json file**:
-    - In order to update the user/repo list configuration, you can modify the `input/github.json` file as per your
-      requirements.
-    - See the "Configuration" section above for more details.
-    - The changes will be reflected in the report generated by the workflow.
+**Field reference:**
+
+| Field | Required | Default | Description |
+|-------|----------|---------|-------------|
+| `start_date` | Yes | — | Start of the reporting period (`YYYY-MM-DD`) |
+| `end_date` | No | Tomorrow | End of the reporting period (`YYYY-MM-DD`, inclusive) |
+| `users` | Yes | — | List of GitHub usernames to track |
+| `project_to_repo_dict` | No | Auto-detected | Maps project display names to lists of `owner/repo` strings. If omitted, repositories are discovered from each user's PR history (capped at 1 000 results by the GitHub Search API) |
+        | `contribution_config` | No | All enabled | Per-metric configuration object. Omitting it or any key within it uses the defaults shown below |
+        | &nbsp;&nbsp;`commits` | No | — | Config for merged commits |
+        | &nbsp;&nbsp;&nbsp;&nbsp;`enabled` | No | `true` | Collect and display this metric |
+        | &nbsp;&nbsp;&nbsp;&nbsp;`count_towards_score` | No | `true` | Add to the Overall Contribution score |
+        | &nbsp;&nbsp;`open_prs` | No | — | Config for open pull requests |
+        | &nbsp;&nbsp;&nbsp;&nbsp;`enabled` | No | `true` | Collect and display |
+        | &nbsp;&nbsp;&nbsp;&nbsp;`count_towards_score` | No | `true` | Add to score |
+        | &nbsp;&nbsp;`closed_prs` | No | — | Config for closed pull requests |
+        | &nbsp;&nbsp;&nbsp;&nbsp;`enabled` | No | `true` | Collect and display |
+        | &nbsp;&nbsp;&nbsp;&nbsp;`count_towards_score` | No | `true` | Add to score |
+        | &nbsp;&nbsp;`open_issues` | No | — | Config for open issues |
+        | &nbsp;&nbsp;&nbsp;&nbsp;`enabled` | No | `true` | Collect and display |
+        | &nbsp;&nbsp;&nbsp;&nbsp;`count_towards_score` | No | `true` | Add to score |
+        | &nbsp;&nbsp;`closed_issues` | No | — | Config for closed issues |
+        | &nbsp;&nbsp;&nbsp;&nbsp;`enabled` | No | `true` | Collect and display |
+        | &nbsp;&nbsp;&nbsp;&nbsp;`count_towards_score` | No | `true` | Add to score |
+        | &nbsp;&nbsp;`code_reviews` | No | — | Config for PRs formally reviewed |
+        | &nbsp;&nbsp;&nbsp;&nbsp;`enabled` | No | `true` | Collect and display |
+        | &nbsp;&nbsp;&nbsp;&nbsp;`count_towards_score` | No | `true` | Add to score |
+        | &nbsp;&nbsp;`line_stats` | No | — | Config for lines added/removed. Expensive: one extra API call per commit and per open PR |
+        | &nbsp;&nbsp;&nbsp;&nbsp;`enabled` | No | `true` | Fetch and display line stats. Set to `false` to skip (recommended for large datasets) |
+        | &nbsp;&nbsp;&nbsp;&nbsp;`refactor_threshold` | No | Disabled | Float (0–1). Commits/PRs where net-change ratio is below this are excluded from line counts |
+python generate_report.py
+```
+
+**Output files** written to `output/`:
+
+| File | Description |
+|------|-------------|
+| `github_contributions_report.md` | Full markdown report |
+| `github_contribution_data.csv` | Raw per-user-per-repo numeric data |
+| `github_activity_data.json` | Cached PR and issue objects used for the Activity Details section |
+| `project_wise_contribution.png` | Pie chart of contributions by project |
+| `user_wise_contribution.png` | Pie chart of contributions by user |
+
+**Re-generate the report from cached data** (no API calls) — both output files must exist:
+```sh
+# In generate_report.py, comment out generate_report() and uncomment:
+generate_report_with_local_data()
+```
+
+## GitHub Actions (Automated workflow)
+
+The repository includes a GitHub Actions workflow at `.github/workflows/main.yml` that:
+- Runs automatically on a schedule (default: every 24 hours — adjust the `cron` expression to suit your needs).
+- Commits the generated report and CSV back to the repository.
+
+To update the configuration, edit `input/github.json` and push — the next workflow run picks up the changes automatically.
 
 ### Steps to trigger the workflow manually
 
-1. Go to the "Actions" tab of the GitHub repository.
-2. Click on the workflow you want to run i.e. "Open Source Contribution Tracker Job".
-3. Click on the "Run workflow" button on the right side.
-4. Select the branch (default is main) and click on the "Run workflow" button.
-5. The workflow will be triggered manually. You can check the status of the workflow in the "Actions" tab.
-6. Once the workflow is completed, you can check the generated report in the "output" directory. The report will be
-   saved as `github_contributions_report.md`.
+1. Go to the **Actions** tab of your forked repository.
+2. Select the **Open Source Contribution Tracker Job** workflow.
+3. Click **Run workflow**, choose the branch, and confirm.
+4. Once the run completes, the updated report is committed to the `output/` directory.
 
 ## Contributing
 
-1. **Fork the repository**.
-2. **Create a new branch**:
+1. Fork the repository and create a feature branch:
     ```sh
-    git checkout -b feature-branch
+    git checkout -b feature/my-improvement
     ```
-3. **Make your changes**.
-4. **Stage your changes**:
+2. Make your changes and verify the script runs correctly:
     ```sh
-    git add .
+    export GITHUB_TOKEN=your_token
+    python generate_report.py
     ```
-5. **Commit your changes**:
-    ```sh
-    git commit -m "Description of changes"
-    ```
-6. **Push to the branch**:
-    ```sh
-    git push origin feature-branch
-    ```
-7. **Create a pull request**.
+3. Commit, push, and open a pull request against `main`.
 
 ## License
 
@@ -165,5 +191,5 @@ This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE
 
 ## Contact
 
-For any questions or suggestions, please open an issue or contact the repository
-owner [Nihal Jain](https://www.linkedin.com/in/nihaljain/)
+For questions or suggestions, please [open an issue](https://github.com/NihalJain/opensource-contributions-tracker/issues)
+or reach out to the repository owner [Nihal Jain](https://www.linkedin.com/in/nihaljain/).

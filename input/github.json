@@ -1,16 +1,39 @@
 {
   "start_date": "1970-01-01",
+  "contribution_config": {
+    "commits": {
+      "enabled": true,
+      "count_towards_score": true
+    },
+    "open_prs": {
+      "enabled": true,
+      "count_towards_score": true
+    },
+    "closed_prs": {
+      "enabled": true,
+      "count_towards_score": false
+    },
+    "open_issues": {
+      "enabled": true,
+      "count_towards_score": true
+    },
+    "closed_issues": {
+      "enabled": true,
+      "count_towards_score": true
+    },
+    "code_reviews": {
+      "enabled": true,
+      "count_towards_score": true
+    },
+    "line_stats": {
+      "enabled": false,
+      "refactor_threshold": 0.1
+    }
+  },
   "users": [
     "nihaljain"
   ],
   "project_to_repo_dict": {
-    "Apache Ambari": [
-      "apache/ambari",
-      "apache/ambari-metrics"
-    ],
-    "Apache Bigtop": [
-      "apache/bigtop"
-    ],
     "Apache HBase": [
       "apache/hbase",
       "apache/hbase-connectors",
