@@ -1,6 +1,6 @@
 # OpenSource Contributions Report
 
-*Report auto-generated on: 2026-03-20 02:28:09 for period 1970-01-01 to 2026-03-21*
+*Report auto-generated on: 2026-03-21 02:22:39 for period 1970-01-01 to 2026-03-22*
 
 ## Overall Summary
 
@@ -52,7 +52,7 @@
 | Apache Phoenix | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-omid](https://github.com/apache/phoenix-omid) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 10 | 10 | 0 | 9 | 0 | 0 | 3 | 13 |
 | Apache Phoenix | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-queryserver](https://github.com/apache/phoenix-queryserver) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 4 | 5 | 0 | 5 | 0 | 0 | 5 | 10 |
 | Apache Phoenix | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-thirdparty](https://github.com/apache/phoenix-thirdparty) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 4 | 1 | 0 | 1 | 0 | 0 | 1 | 2 |
-| Apache Pinot | <img src='https://avatars.githubusercontent.com/u/62676312?v=4' width='12' height='12'> [pinot-contrib/pinot-docs](https://github.com/pinot-contrib/pinot-docs) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 63 | 2 | 0 | 2 | 0 | 0 | 2 | 4 |
+| Apache Pinot | <img src='https://avatars.githubusercontent.com/u/62676312?v=4' width='12' height='12'> [pinot-contrib/pinot-docs](https://github.com/pinot-contrib/pinot-docs) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 62 | 2 | 0 | 2 | 0 | 0 | 2 | 4 |
 | Apache Pinot | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/pinot](https://github.com/apache/pinot) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 175 | 3 | 2 | 3 | 6 | 2 | 3 | 16 |
 | Apache Zookeeper | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/zookeeper](https://github.com/apache/zookeeper) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 75 | 2 | 0 | 2 | 0 | 0 | 0 | 2 |
 
@@ -383,11 +383,11 @@
 
 | # | Title | Status | Created | Updated | Labels |
 |---|-------|--------|---------|---------|--------|
-| [#14593](https://github.com/apache/pinot/pull/14593) | [Doc] User API: Add hint for options available for 'components' field in SwaggerUI | ✅ Merged | 2024-12-04 | 2024-12-09 | bugfix |
-| [#15861](https://github.com/apache/pinot/pull/15861) | Refactor authorization code to reduce duplication and inconsistency | 🔄 Open | 2025-05-21 | 2025-06-02 | refactor, security |
+| [#14593](https://github.com/apache/pinot/pull/14593) | [Doc] User API: Add hint for options available for 'components' field in SwaggerUI | ✅ Merged | 2024-12-04 | 2026-03-20 | bug |
+| [#15861](https://github.com/apache/pinot/pull/15861) | Refactor authorization code to reduce duplication and inconsistency | 🔄 Open | 2025-05-21 | 2026-03-20 | cleanup, refactor, security, auth |
 | [#15876](https://github.com/apache/pinot/pull/15876) | Add sanity checks to ensure write permissions for instance data and s… | ✅ Merged | 2025-05-22 | 2025-07-22 | user-experience |
 | [#16468](https://github.com/apache/pinot/pull/16468) | Replace all usages of commons-collections with commons-collections4 | ✅ Merged | 2025-07-30 | 2025-07-30 | dependencies |
-| [#17295](https://github.com/apache/pinot/pull/17295) | Add Row-Level Security (RLS) Support for ZooKeeper-Based Authentication (#17220) | 🔄 Open | 2025-12-01 | 2026-01-07 | query, security |
+| [#17295](https://github.com/apache/pinot/pull/17295) | Add Row-Level Security (RLS) Support for ZooKeeper-Based Authentication (#17220) | 🔄 Open | 2025-12-01 | 2026-03-20 | query, security, rest-api, auth |
 
 **Issues**
 
@@ -400,7 +400,7 @@
 | [#15918](https://github.com/apache/pinot/issues/15918) | Enhance REST API to support fetching resources for all databases | 🔓 Open | 2025-05-28 | 2025-06-02 | rest-api, feature request |
 | [#16463](https://github.com/apache/pinot/issues/16463) | Replace all usages of commons-collections with commons-collections4 | 🔒 Closed | 2025-07-30 | 2025-07-30 |  |
 | [#17220](https://github.com/apache/pinot/issues/17220) | Add Row-Level Security (RLS) Support for ZooKeeper-Based Authentication | 🔓 Open | 2025-11-18 | 2025-11-24 | security, feature request |
-| [#17307](https://github.com/apache/pinot/issues/17307) | Add method getPermissions in UserConfig and deprecate getPermissios | 🔒 Closed | 2025-12-03 | 2026-01-21 | bug, Configuration |
+| [#17307](https://github.com/apache/pinot/issues/17307) | Add method getPermissions in UserConfig and deprecate getPermissios | 🔒 Closed | 2025-12-03 | 2026-01-21 | bug, configuration |
 
 ##### [pinot-contrib/pinot-docs](https://github.com/pinot-contrib/pinot-docs)
 
