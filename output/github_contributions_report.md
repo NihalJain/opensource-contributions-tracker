@@ -1,6 +1,6 @@
 # OpenSource Contributions Report
 
-*Report auto-generated on: 2026-03-21 02:22:39 for period 1970-01-01 to 2026-03-22*
+*Report auto-generated on: 2026-03-22 02:36:42 for period 1970-01-01 to 2026-03-23*
 
 ## Overall Summary
 
@@ -53,7 +53,7 @@
 | Apache Phoenix | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-queryserver](https://github.com/apache/phoenix-queryserver) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 4 | 5 | 0 | 5 | 0 | 0 | 5 | 10 |
 | Apache Phoenix | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-thirdparty](https://github.com/apache/phoenix-thirdparty) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 4 | 1 | 0 | 1 | 0 | 0 | 1 | 2 |
 | Apache Pinot | <img src='https://avatars.githubusercontent.com/u/62676312?v=4' width='12' height='12'> [pinot-contrib/pinot-docs](https://github.com/pinot-contrib/pinot-docs) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 62 | 2 | 0 | 2 | 0 | 0 | 2 | 4 |
-| Apache Pinot | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/pinot](https://github.com/apache/pinot) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 175 | 3 | 2 | 3 | 6 | 2 | 3 | 16 |
+| Apache Pinot | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/pinot](https://github.com/apache/pinot) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 167 | 3 | 2 | 3 | 6 | 2 | 3 | 16 |
 | Apache Zookeeper | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/zookeeper](https://github.com/apache/zookeeper) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 75 | 2 | 0 | 2 | 0 | 0 | 0 | 2 |
 
 ## Activity Details
