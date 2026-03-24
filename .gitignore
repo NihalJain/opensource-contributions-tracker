@@ -175,3 +175,8 @@ cython_debug/
 
 # IntelliJ IDEA
 .idea
+
+# Dashboard
+dashboard/app/node_modules/
+dashboard/app/dist/
+dashboard/worker/node_modules/
