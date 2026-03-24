@@ -49,8 +49,12 @@ export function applyFilters(events: ActivityEvent[], filters: Filters): Activit
       if (filters.merged === 'unmerged' && e.merged) return false;
     }
     if (filters.labels.length && !filters.labels.some(l => e.labels.includes(l))) return false;
-    if (filters.dateFrom && e.created_at < filters.dateFrom) return false;
-    if (filters.dateTo && e.created_at > filters.dateTo + 'T23:59:59Z') return false;
+    if (filters.dateFrom && new Date(e.created_at) < new Date(filters.dateFrom)) return false;
+    if (filters.dateTo) {
+      const toEnd = new Date(filters.dateTo);
+      toEnd.setUTCHours(23, 59, 59, 999);
+      if (new Date(e.created_at) > toEnd) return false;
+    }
     return true;
   });
 }
