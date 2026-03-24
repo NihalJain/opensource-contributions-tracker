@@ -8,8 +8,12 @@ const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Headers': 'Content-Type',
 };
 
+interface Env {
+  ASSETS: Fetcher;
+}
+
 export default {
-  async fetch(request: Request): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 
     if (request.method === 'OPTIONS') {
@@ -48,12 +52,12 @@ export default {
       const response = new Response(body, { status: 200, headers: responseHeaders });
 
       if (!bypassCache) {
-        await cache.put(CACHE_KEY, response.clone());
+        ctx.waitUntil(cache.put(CACHE_KEY, response.clone()));
       }
 
       return response;
     }
 
-    return new Response('Not Found', { status: 404, headers: CORS_HEADERS });
+    return env.ASSETS.fetch(request);
   },
 };
