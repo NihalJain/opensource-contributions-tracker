@@ -23,7 +23,7 @@ export default {
       if (!bypassCache) {
         const cached = await cache.match(CACHE_KEY);
         if (cached) {
-          const response = new Response(cached.body, cached);
+          const response = new Response(cached.clone().body, cached);
           response.headers.set('X-Cache', 'HIT');
           return response;
         }
