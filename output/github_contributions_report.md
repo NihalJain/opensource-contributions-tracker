@@ -1,6 +1,6 @@
 # OpenSource Contributions Report
 
-*Report auto-generated on: 2026-03-24 02:29:01 for period 1970-01-01 to 2026-03-25*
+*Report auto-generated on: 2026-03-25 02:34:20 for period 1970-01-01 to 2026-03-26*
 
 ## Overall Summary
 
@@ -396,7 +396,7 @@
 | [#14594](https://github.com/apache/pinot/issues/14594) | User API: API fails if we skip component field, which is not marked as required  | 🔓 Open | 2024-12-04 | 2024-12-12 | bug, rest-api |
 | [#14595](https://github.com/apache/pinot/issues/14595) | [Bug] Authorization is broken for endpoints which access any resource other than a table | 🔓 Open | 2024-12-04 | 2024-12-17 | bug, security |
 | [#14932](https://github.com/apache/pinot/issues/14932) | Refactor authorization code to reduce duplication and inconsistency in behaviour | 🔓 Open | 2025-01-28 | 2025-02-02 | refactor, security |
-| [#15877](https://github.com/apache/pinot/issues/15877) | Allow non-admin users to access Pinot UI | 🔓 Open | 2025-05-22 | 2025-05-23 | user-experience, ui |
+| [#15877](https://github.com/apache/pinot/issues/15877) | Allow non-admin users to access Pinot UI | 🔓 Open | 2025-05-22 | 2026-03-25 | user-experience, ui, stale |
 | [#15918](https://github.com/apache/pinot/issues/15918) | Enhance REST API to support fetching resources for all databases | 🔓 Open | 2025-05-28 | 2026-03-24 | rest-api, feature, stale |
 | [#16463](https://github.com/apache/pinot/issues/16463) | Replace all usages of commons-collections with commons-collections4 | 🔒 Closed | 2025-07-30 | 2025-07-30 |  |
 | [#17220](https://github.com/apache/pinot/issues/17220) | Add Row-Level Security (RLS) Support for ZooKeeper-Based Authentication | 🔓 Open | 2025-11-18 | 2025-11-24 | security, feature |
