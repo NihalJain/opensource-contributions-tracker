@@ -1,6 +1,6 @@
 # OpenSource Contributions Report
 
-*Report auto-generated on: 2026-03-30 02:49:58 for period 1970-01-01 to 2026-03-31*
+*Report auto-generated on: 2026-03-31 02:43:15 for period 1970-01-01 to 2026-04-01*
 
 ## Overall Summary
 
@@ -8,12 +8,12 @@
 |--------|-------|
 | Total number of projects | 5 |
 | Total number of repositories | 12 |
-| Total number of contributions | 526 |
-| Number of commits to master* | 165 |
+| Total number of contributions | 529 |
+| Number of commits to master* | 167 |
 | Number of pull requests (Open)* | 10 |
-| Number of pull requests (Closed) | 245 |
+| Number of pull requests (Closed) | 247 |
 | Number of issues (Open)* | 6 |
-| Number of issues (Closed)* | 2 |
+| Number of issues (Closed)* | 3 |
 | Total unique PRs reviewed* | 343 |
 
 **Note:** Fields marked with * contribute to the total contribution count.
@@ -29,7 +29,7 @@
 |--------------|--------------|-------|---------|----------------------|----------------------|----------------|----------------|--------------|----------------------|
 | Apache HBase | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase](https://github.com/apache/hbase)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-connectors](https://github.com/apache/hbase-connectors)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-operator-tools](https://github.com/apache/hbase-operator-tools)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-thirdparty](https://github.com/apache/hbase-thirdparty) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 129 | 8 | 194 | 0 | 0 | 298 | 435 |
 | Apache Phoenix | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix](https://github.com/apache/phoenix)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-omid](https://github.com/apache/phoenix-omid)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-queryserver](https://github.com/apache/phoenix-queryserver)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-thirdparty](https://github.com/apache/phoenix-thirdparty) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 28 | 0 | 42 | 0 | 0 | 38 | 66 |
-| Apache Pinot | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/pinot](https://github.com/apache/pinot)<br><img src='https://avatars.githubusercontent.com/u/62676312?v=4' width='12' height='12'> [pinot-contrib/pinot-docs](https://github.com/pinot-contrib/pinot-docs) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 5 | 2 | 5 | 6 | 2 | 5 | 20 |
+| Apache Pinot | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/pinot](https://github.com/apache/pinot)<br><img src='https://avatars.githubusercontent.com/u/62676312?v=4' width='12' height='12'> [pinot-contrib/pinot-docs](https://github.com/pinot-contrib/pinot-docs) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 7 | 2 | 7 | 6 | 3 | 5 | 23 |
 | Apache Hadoop | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hadoop](https://github.com/apache/hadoop) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 1 | 0 | 2 | 0 | 0 | 2 | 3 |
 | Apache Zookeeper | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/zookeeper](https://github.com/apache/zookeeper) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 2 | 0 | 2 | 0 | 0 | 0 | 2 |
 
@@ -37,7 +37,7 @@
 
 | User | Repositories | Commits | Pull Requests (Open) | Pull Requests (Closed) | Issues (Open) | Issues (Closed) | Code Reviews | Overall Contribution |
 |------|--------------|---------|----------------------|----------------------|----------------|----------------|--------------|----------------------|
-| <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hadoop](https://github.com/apache/hadoop)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase](https://github.com/apache/hbase)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-connectors](https://github.com/apache/hbase-connectors)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-operator-tools](https://github.com/apache/hbase-operator-tools)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-thirdparty](https://github.com/apache/hbase-thirdparty)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix](https://github.com/apache/phoenix)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-omid](https://github.com/apache/phoenix-omid)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-queryserver](https://github.com/apache/phoenix-queryserver)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-thirdparty](https://github.com/apache/phoenix-thirdparty)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/pinot](https://github.com/apache/pinot)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/zookeeper](https://github.com/apache/zookeeper)<br><img src='https://avatars.githubusercontent.com/u/62676312?v=4' width='12' height='12'> [pinot-contrib/pinot-docs](https://github.com/pinot-contrib/pinot-docs) | 165 | 10 | 245 | 6 | 2 | 343 | 526 |
+| <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hadoop](https://github.com/apache/hadoop)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase](https://github.com/apache/hbase)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-connectors](https://github.com/apache/hbase-connectors)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-operator-tools](https://github.com/apache/hbase-operator-tools)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-thirdparty](https://github.com/apache/hbase-thirdparty)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix](https://github.com/apache/phoenix)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-omid](https://github.com/apache/phoenix-omid)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-queryserver](https://github.com/apache/phoenix-queryserver)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-thirdparty](https://github.com/apache/phoenix-thirdparty)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/pinot](https://github.com/apache/pinot)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/zookeeper](https://github.com/apache/zookeeper)<br><img src='https://avatars.githubusercontent.com/u/62676312?v=4' width='12' height='12'> [pinot-contrib/pinot-docs](https://github.com/pinot-contrib/pinot-docs) | 167 | 10 | 247 | 6 | 3 | 343 | 529 |
 
 ## Detailed Contributions
 
@@ -53,8 +53,8 @@
 | Apache Phoenix | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-queryserver](https://github.com/apache/phoenix-queryserver) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 4 | 5 | 0 | 5 | 0 | 0 | 5 | 10 |
 | Apache Phoenix | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-thirdparty](https://github.com/apache/phoenix-thirdparty) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 4 | 1 | 0 | 1 | 0 | 0 | 1 | 2 |
 | Apache Pinot | <img src='https://avatars.githubusercontent.com/u/62676312?v=4' width='12' height='12'> [pinot-contrib/pinot-docs](https://github.com/pinot-contrib/pinot-docs) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 62 | 2 | 0 | 2 | 0 | 0 | 2 | 4 |
-| Apache Pinot | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/pinot](https://github.com/apache/pinot) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 176 | 3 | 2 | 3 | 6 | 2 | 3 | 16 |
-| Apache Zookeeper | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/zookeeper](https://github.com/apache/zookeeper) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 76 | 2 | 0 | 2 | 0 | 0 | 0 | 2 |
+| Apache Pinot | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/pinot](https://github.com/apache/pinot) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 138 | 5 | 2 | 5 | 6 | 3 | 3 | 19 |
+| Apache Zookeeper | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/zookeeper](https://github.com/apache/zookeeper) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 70 | 2 | 0 | 2 | 0 | 0 | 0 | 2 |
 
 ## Activity Details
 
@@ -388,6 +388,8 @@
 | [#15876](https://github.com/apache/pinot/pull/15876) | Add sanity checks to ensure write permissions for instance data and s… | ✅ Merged | 2025-05-22 | 2025-07-22 | user-experience |
 | [#16468](https://github.com/apache/pinot/pull/16468) | Replace all usages of commons-collections with commons-collections4 | ✅ Merged | 2025-07-30 | 2025-07-30 | dependencies |
 | [#17295](https://github.com/apache/pinot/pull/17295) | Add Row-Level Security (RLS) Support for ZooKeeper-Based Authentication (#17220) | 🔄 Open | 2025-12-01 | 2026-03-20 | query, security, rest-api, auth |
+| [#18029](https://github.com/apache/pinot/pull/18029) | Unify `headers.*` property handling across HTTP and gRPC JDBC drivers… | ✅ Merged | 2026-03-30 | 2026-03-30 | bug, pinot-client, GRPC |
+| [#18032](https://github.com/apache/pinot/pull/18032) | Parameterize node and npm download URLs in pinot-controller build | ✅ Merged | 2026-03-30 | 2026-03-31 |  |
 
 **Issues**
 
@@ -401,6 +403,7 @@
 | [#16463](https://github.com/apache/pinot/issues/16463) | Replace all usages of commons-collections with commons-collections4 | 🔒 Closed | 2025-07-30 | 2025-07-30 |  |
 | [#17220](https://github.com/apache/pinot/issues/17220) | Add Row-Level Security (RLS) Support for ZooKeeper-Based Authentication | 🔓 Open | 2025-11-18 | 2025-11-24 | security, feature |
 | [#17307](https://github.com/apache/pinot/issues/17307) | Add method getPermissions in UserConfig and deprecate getPermissios | 🔒 Closed | 2025-12-03 | 2026-01-21 | bug, configuration |
+| [#18028](https://github.com/apache/pinot/issues/18028) | [JDBC] gRPC JDBC driver ignores headers.* prefixed properties (e.g., headers.Authorization) | 🔒 Closed | 2026-03-30 | 2026-03-30 | bug, pinot-client, GRPC |
 
 ##### [pinot-contrib/pinot-docs](https://github.com/pinot-contrib/pinot-docs)
 
