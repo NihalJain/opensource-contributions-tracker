@@ -1,6 +1,6 @@
 # OpenSource Contributions Report
 
-*Report auto-generated on: 2026-04-01 02:54:59 for period 1970-01-01 to 2026-04-02*
+*Report auto-generated on: 2026-04-02 02:39:31 for period 1970-01-01 to 2026-04-03*
 
 ## Overall Summary
 
@@ -384,7 +384,7 @@
 | # | Title | Status | Created | Updated | Labels |
 |---|-------|--------|---------|---------|--------|
 | [#14593](https://github.com/apache/pinot/pull/14593) | [Doc] User API: Add hint for options available for 'components' field in SwaggerUI | ✅ Merged | 2024-12-04 | 2026-03-20 | bug |
-| [#15861](https://github.com/apache/pinot/pull/15861) | Refactor authorization code to reduce duplication and inconsistency | 🔄 Open | 2025-05-21 | 2026-03-20 | cleanup, refactor, security, auth |
+| [#15861](https://github.com/apache/pinot/pull/15861) | Refactor authorization code to reduce duplication and inconsistency | 🔄 Open | 2025-05-21 | 2026-04-01 | cleanup, refactor, security, auth |
 | [#15876](https://github.com/apache/pinot/pull/15876) | Add sanity checks to ensure write permissions for instance data and s… | ✅ Merged | 2025-05-22 | 2025-07-22 | user-experience |
 | [#16468](https://github.com/apache/pinot/pull/16468) | Replace all usages of commons-collections with commons-collections4 | ✅ Merged | 2025-07-30 | 2025-07-30 | dependencies |
 | [#17295](https://github.com/apache/pinot/pull/17295) | Add Row-Level Security (RLS) Support for ZooKeeper-Based Authentication (#17220) | ❌ Closed | 2025-12-01 | 2026-03-31 | query, security, rest-api, auth |
