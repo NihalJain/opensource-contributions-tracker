@@ -1,6 +1,6 @@
 # OpenSource Contributions Report
 
-*Report auto-generated on: 2026-04-03 02:41:02 for period 1970-01-01 to 2026-04-04*
+*Report auto-generated on: 2026-04-04 02:32:24 for period 1970-01-01 to 2026-04-05*
 
 ## Overall Summary
 
@@ -387,7 +387,7 @@
 | [#15861](https://github.com/apache/pinot/pull/15861) | Refactor authorization code to reduce duplication and inconsistency | 🔄 Open | 2025-05-21 | 2026-04-03 | cleanup, refactor, security, auth |
 | [#15876](https://github.com/apache/pinot/pull/15876) | Add sanity checks to ensure write permissions for instance data and s… | ✅ Merged | 2025-05-22 | 2025-07-22 | user-experience |
 | [#16468](https://github.com/apache/pinot/pull/16468) | Replace all usages of commons-collections with commons-collections4 | ✅ Merged | 2025-07-30 | 2025-07-30 | dependencies |
-| [#17295](https://github.com/apache/pinot/pull/17295) | Add Row-Level Security (RLS) Support for ZooKeeper-Based Authentication (#17220) | ❌ Closed | 2025-12-01 | 2026-03-31 | query, security, rest-api, auth |
+| [#17295](https://github.com/apache/pinot/pull/17295) | Add Row-Level Security (RLS) Support for ZooKeeper-Based Authentication (#17220) | ❌ Closed | 2025-12-01 | 2026-04-03 | query, security, rest-api, auth |
 | [#18029](https://github.com/apache/pinot/pull/18029) | Unify `headers.*` property handling across HTTP and gRPC JDBC drivers… | ✅ Merged | 2026-03-30 | 2026-03-30 | bug, pinot-client, GRPC |
 | [#18032](https://github.com/apache/pinot/pull/18032) | Parameterize node and npm download URLs in pinot-controller build | ✅ Merged | 2026-03-30 | 2026-03-31 |  |
 | [#18051](https://github.com/apache/pinot/pull/18051) | Add Row-Level Security (RLS) Support for ZooKeeper-Based Authentication | 🔄 Open | 2026-03-31 | 2026-04-02 |  |
