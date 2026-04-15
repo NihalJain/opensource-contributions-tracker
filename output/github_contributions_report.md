@@ -1,6 +1,6 @@
 # OpenSource Contributions Report
 
-*Report auto-generated on: 2026-04-14 02:52:56 for period 1970-01-01 to 2026-04-15*
+*Report auto-generated on: 2026-04-15 02:50:50 for period 1970-01-01 to 2026-04-16*
 
 ## Overall Summary
 
@@ -53,7 +53,7 @@
 | Apache Phoenix | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-queryserver](https://github.com/apache/phoenix-queryserver) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 4 | 5 | 0 | 5 | 0 | 0 | 5 | 10 |
 | Apache Phoenix | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-thirdparty](https://github.com/apache/phoenix-thirdparty) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 4 | 1 | 0 | 1 | 0 | 0 | 1 | 2 |
 | Apache Pinot | <img src='https://avatars.githubusercontent.com/u/62676312?v=4' width='12' height='12'> [pinot-contrib/pinot-docs](https://github.com/pinot-contrib/pinot-docs) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 62 | 2 | 0 | 2 | 0 | 0 | 2 | 4 |
-| Apache Pinot | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/pinot](https://github.com/apache/pinot) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 138 | 5 | 2 | 6 | 6 | 3 | 4 | 20 |
+| Apache Pinot | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/pinot](https://github.com/apache/pinot) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 137 | 5 | 2 | 6 | 6 | 3 | 4 | 20 |
 | Apache Zookeeper | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/zookeeper](https://github.com/apache/zookeeper) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 70 | 2 | 0 | 2 | 0 | 0 | 0 | 2 |
 
 ## Activity Details
@@ -390,7 +390,7 @@
 | [#17295](https://github.com/apache/pinot/pull/17295) | Add Row-Level Security (RLS) Support for ZooKeeper-Based Authentication (#17220) | ❌ Closed | 2025-12-01 | 2026-04-03 | query, security, rest-api, auth |
 | [#18029](https://github.com/apache/pinot/pull/18029) | Unify `headers.*` property handling across HTTP and gRPC JDBC drivers… | ✅ Merged | 2026-03-30 | 2026-03-30 | bug, pinot-client, GRPC |
 | [#18032](https://github.com/apache/pinot/pull/18032) | Parameterize node and npm download URLs in pinot-controller build | ✅ Merged | 2026-03-30 | 2026-03-31 |  |
-| [#18051](https://github.com/apache/pinot/pull/18051) | Add Row-Level Security (RLS) Support for ZooKeeper-Based Authentication | 🔄 Open | 2026-03-31 | 2026-04-07 |  |
+| [#18051](https://github.com/apache/pinot/pull/18051) | Add Row-Level Security (RLS) Support for ZooKeeper-Based Authentication | 🔄 Open | 2026-03-31 | 2026-04-15 | security, feature |
 
 **Issues**
 
