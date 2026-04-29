@@ -1,6 +1,6 @@
 # OpenSource Contributions Report
 
-*Report auto-generated on: 2026-04-28 03:33:44 for period 1970-01-01 to 2026-04-29*
+*Report auto-generated on: 2026-04-29 03:32:00 for period 1970-01-01 to 2026-04-30*
 
 ## Overall Summary
 
@@ -8,13 +8,13 @@
 |--------|-------|
 | Total number of projects | 5 |
 | Total number of repositories | 12 |
-| Total number of contributions | 380 |
+| Total number of contributions | 392 |
 | Number of commits to master* | 167 |
 | Number of pull requests (Open)* | 6 |
-| Number of pull requests (Closed) | 90 |
+| Number of pull requests (Closed) | 116 |
 | Number of issues (Open)* | 4 |
 | Number of issues (Closed)* | 5 |
-| Total unique PRs reviewed* | 198 |
+| Total unique PRs reviewed* | 210 |
 
 **Note:** Fields marked with * contribute to the total contribution count.
 
@@ -27,34 +27,34 @@
 
 | Project Key | Repositories | Users | Commits | Pull Requests (Open) | Pull Requests (Closed) | Issues (Open) | Issues (Closed) | Code Reviews | Overall Contribution |
 |--------------|--------------|-------|---------|----------------------|----------------------|----------------|----------------|--------------|----------------------|
-| Apache HBase | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase](https://github.com/apache/hbase)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-connectors](https://github.com/apache/hbase-connectors)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-operator-tools](https://github.com/apache/hbase-operator-tools)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-thirdparty](https://github.com/apache/hbase-thirdparty) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 129 | 4 | 67 | 0 | 0 | 168 | 301 |
-| Apache Phoenix | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix](https://github.com/apache/phoenix)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-omid](https://github.com/apache/phoenix-omid)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-queryserver](https://github.com/apache/phoenix-queryserver)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-thirdparty](https://github.com/apache/phoenix-thirdparty) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 28 | 0 | 19 | 0 | 0 | 26 | 54 |
+| Apache HBase | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase](https://github.com/apache/hbase)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-connectors](https://github.com/apache/hbase-connectors)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-operator-tools](https://github.com/apache/hbase-operator-tools)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-thirdparty](https://github.com/apache/hbase-thirdparty) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 129 | 4 | 84 | 0 | 0 | 177 | 310 |
+| Apache Phoenix | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix](https://github.com/apache/phoenix)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-omid](https://github.com/apache/phoenix-omid)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-queryserver](https://github.com/apache/phoenix-queryserver)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-thirdparty](https://github.com/apache/phoenix-thirdparty) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 28 | 0 | 26 | 0 | 0 | 28 | 56 |
 | Apache Pinot | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/pinot](https://github.com/apache/pinot)<br><img src='https://avatars.githubusercontent.com/u/62676312?v=4' width='12' height='12'> [pinot-contrib/pinot-docs](https://github.com/pinot-contrib/pinot-docs) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 7 | 2 | 4 | 4 | 5 | 4 | 22 |
-| Apache Zookeeper | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/zookeeper](https://github.com/apache/zookeeper) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 2 | 0 | 0 | 0 | 0 | 0 | 2 |
-| Apache Hadoop | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hadoop](https://github.com/apache/hadoop) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 1 | 0 | 0 | 0 | 0 | 0 | 1 |
+| Apache Hadoop | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hadoop](https://github.com/apache/hadoop) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 1 | 0 | 0 | 0 | 0 | 1 | 2 |
+| Apache Zookeeper | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/zookeeper](https://github.com/apache/zookeeper) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 2 | 0 | 2 | 0 | 0 | 0 | 2 |
 
 ## Summary of Contributions by each user
 
 | User | Repositories | Commits | Pull Requests (Open) | Pull Requests (Closed) | Issues (Open) | Issues (Closed) | Code Reviews | Overall Contribution |
 |------|--------------|---------|----------------------|----------------------|----------------|----------------|--------------|----------------------|
-| <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hadoop](https://github.com/apache/hadoop)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase](https://github.com/apache/hbase)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-connectors](https://github.com/apache/hbase-connectors)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-operator-tools](https://github.com/apache/hbase-operator-tools)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-thirdparty](https://github.com/apache/hbase-thirdparty)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix](https://github.com/apache/phoenix)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-omid](https://github.com/apache/phoenix-omid)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-queryserver](https://github.com/apache/phoenix-queryserver)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-thirdparty](https://github.com/apache/phoenix-thirdparty)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/pinot](https://github.com/apache/pinot)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/zookeeper](https://github.com/apache/zookeeper)<br><img src='https://avatars.githubusercontent.com/u/62676312?v=4' width='12' height='12'> [pinot-contrib/pinot-docs](https://github.com/pinot-contrib/pinot-docs) | 167 | 6 | 90 | 4 | 5 | 198 | 380 |
+| <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hadoop](https://github.com/apache/hadoop)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase](https://github.com/apache/hbase)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-connectors](https://github.com/apache/hbase-connectors)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-operator-tools](https://github.com/apache/hbase-operator-tools)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-thirdparty](https://github.com/apache/hbase-thirdparty)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix](https://github.com/apache/phoenix)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-omid](https://github.com/apache/phoenix-omid)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-queryserver](https://github.com/apache/phoenix-queryserver)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-thirdparty](https://github.com/apache/phoenix-thirdparty)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/pinot](https://github.com/apache/pinot)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/zookeeper](https://github.com/apache/zookeeper)<br><img src='https://avatars.githubusercontent.com/u/62676312?v=4' width='12' height='12'> [pinot-contrib/pinot-docs](https://github.com/pinot-contrib/pinot-docs) | 167 | 6 | 116 | 4 | 5 | 210 | 392 |
 
 ## Detailed Contributions
 
 | Project Key | Repository | User | Rank | Commits | Pull Requests (Open) | Pull Requests (Closed) | Issues (Open) | Issues (Closed) | Code Reviews | Overall Contribution |
 |--------------|------------|------|------|---------|----------------------|----------------------|----------------|----------------|--------------|----------------------|
-| Apache HBase | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase](https://github.com/apache/hbase) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 27 | 84 | 3 | 48 | 0 | 0 | 140 | 227 |
-| Apache HBase | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-connectors](https://github.com/apache/hbase-connectors) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 7 | 8 | 0 | 0 | 0 | 0 | 6 | 14 |
+| Apache HBase | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase](https://github.com/apache/hbase) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 27 | 84 | 3 | 61 | 0 | 0 | 147 | 234 |
+| Apache HBase | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-connectors](https://github.com/apache/hbase-connectors) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 7 | 8 | 0 | 2 | 0 | 0 | 8 | 16 |
 | Apache HBase | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-thirdparty](https://github.com/apache/hbase-thirdparty) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 3 | 24 | 1 | 17 | 0 | 0 | 16 | 41 |
-| Apache HBase | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-operator-tools](https://github.com/apache/hbase-operator-tools) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 5 | 13 | 0 | 2 | 0 | 0 | 6 | 19 |
-| Apache Hadoop | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hadoop](https://github.com/apache/hadoop) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | N/A | 1 | 0 | 0 | 0 | 0 | 0 | 1 |
-| Apache Phoenix | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix](https://github.com/apache/phoenix) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 40 | 12 | 0 | 18 | 0 | 0 | 23 | 35 |
-| Apache Phoenix | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-omid](https://github.com/apache/phoenix-omid) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 10 | 10 | 0 | 1 | 0 | 0 | 1 | 11 |
+| Apache HBase | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-operator-tools](https://github.com/apache/hbase-operator-tools) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 5 | 13 | 0 | 4 | 0 | 0 | 6 | 19 |
+| Apache Hadoop | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hadoop](https://github.com/apache/hadoop) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | N/A | 1 | 0 | 0 | 0 | 0 | 1 | 2 |
+| Apache Phoenix | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix](https://github.com/apache/phoenix) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 40 | 12 | 0 | 20 | 0 | 0 | 24 | 36 |
+| Apache Phoenix | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-omid](https://github.com/apache/phoenix-omid) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 10 | 10 | 0 | 6 | 0 | 0 | 2 | 12 |
 | Apache Phoenix | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-queryserver](https://github.com/apache/phoenix-queryserver) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 4 | 5 | 0 | 0 | 0 | 0 | 2 | 7 |
 | Apache Phoenix | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-thirdparty](https://github.com/apache/phoenix-thirdparty) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 4 | 1 | 0 | 0 | 0 | 0 | 0 | 1 |
 | Apache Pinot | <img src='https://avatars.githubusercontent.com/u/62676312?v=4' width='12' height='12'> [pinot-contrib/pinot-docs](https://github.com/pinot-contrib/pinot-docs) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 61 | 2 | 0 | 0 | 0 | 0 | 0 | 2 |
 | Apache Pinot | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/pinot](https://github.com/apache/pinot) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 138 | 5 | 2 | 4 | 4 | 5 | 4 | 20 |
-| Apache Zookeeper | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/zookeeper](https://github.com/apache/zookeeper) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 81 | 2 | 0 | 0 | 0 | 0 | 0 | 2 |
+| Apache Zookeeper | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/zookeeper](https://github.com/apache/zookeeper) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 81 | 2 | 0 | 2 | 0 | 0 | 0 | 2 |
 
 ## Activity Details
 
@@ -68,6 +68,10 @@
 
 | # | Title | Status | Created | Updated | Labels |
 |---|-------|--------|---------|---------|--------|
+| [#5109](https://github.com/apache/hbase/pull/5109) | HBASE-27671 Client should not be able to restore/clone a snapshot aft… | ✅ Merged | 2023-03-15 | 2023-03-18 |  |
+| [#5434](https://github.com/apache/hbase/pull/5434) | HBASE-28110 Align TestShadeSaslAuthenticationProvider between differe… | ✅ Merged | 2023-09-24 | 2023-10-21 |  |
+| [#5472](https://github.com/apache/hbase/pull/5472) | HBASE-24179 Backport fix for "Netty SASL implementation does not wait for challenge response" to branch-2.x | ✅ Merged | 2023-10-21 | 2023-11-01 |  |
+| [#5478](https://github.com/apache/hbase/pull/5478) | HBASE-28110 Align TestShadeSaslAuthenticationProvider between differe… | ✅ Merged | 2023-10-25 | 2023-10-25 | backport |
 | [#5588](https://github.com/apache/hbase/pull/5588) | HBASE-28269 Fix broken ruby scripts and clean up logging | ✅ Merged | 2023-12-19 | 2023-12-22 |  |
 | [#5607](https://github.com/apache/hbase/pull/5607) | HBASE-28070 Replace javax.servlet.jsp dependency with tomcat-jasper | ✅ Merged | 2024-01-06 | 2024-09-10 |  |
 | [#5608](https://github.com/apache/hbase/pull/5608) | HBASE-28295 Few tests are failing due to NCDFE: org/bouncycastle/ope… | ✅ Merged | 2024-01-07 | 2024-01-07 |  |
@@ -80,6 +84,15 @@
 | [#5729](https://github.com/apache/hbase/pull/5729) | Backport "HBASE-27814 Add support for dump and process metrics servlet in REST InfoServer" to branch-2.6 | ✅ Merged | 2024-02-29 | 2024-03-01 | backport |
 | [#5732](https://github.com/apache/hbase/pull/5732) | HBASE-20693 Refactor thrift jsp's and extract header and footer | ✅ Merged | 2024-02-29 | 2024-03-01 |  |
 | [#5737](https://github.com/apache/hbase/pull/5737) | Backport "HBASE-20693 Refactor thrift jsp's and extract header and footer" to branch-2 | ✅ Merged | 2024-03-01 | 2024-09-27 | backport |
+| [#6184](https://github.com/apache/hbase/pull/6184) | HBASE-28433 Modify the assembly to not include test jars and their tr… | ✅ Merged | 2024-08-30 | 2024-11-08 |  |
+| [#6415](https://github.com/apache/hbase/pull/6415) | HBASE-28947 Backport "HBASE-27598 Upgrade mockito to 4.x" to branch-2.5 | ✅ Merged | 2024-10-30 | 2024-11-07 |  |
+| [#6433](https://github.com/apache/hbase/pull/6433) | HBASE-28070 Replace javax.servlet.jsp dependency with tomcat-jasper | ✅ Merged | 2024-11-04 | 2024-11-07 | backport |
+| [#6434](https://github.com/apache/hbase/pull/6434) | HBASE-28070 Replace javax.servlet.jsp dependency with tomcat-jasper | ✅ Merged | 2024-11-04 | 2024-11-07 | backport |
+| [#6442](https://github.com/apache/hbase/pull/6442) | HBASE-28946 Update nightlies to run with HADOOP2_VERSION = 2.10.2 | ✅ Merged | 2024-11-06 | 2024-11-11 | backport |
+| [#6443](https://github.com/apache/hbase/pull/6443) | HBASE-28946 Update nightlies to run with HADOOP2_VERSION = 2.10.2 | ✅ Merged | 2024-11-06 | 2024-11-11 | backport |
+| [#6444](https://github.com/apache/hbase/pull/6444) | HBASE-28961 Add essential build plugins to hbase-diagnostics | ✅ Merged | 2024-11-06 | 2024-11-07 |  |
+| [#6449](https://github.com/apache/hbase/pull/6449) | HBASE-28961 Add essential build plugins to hbase-diagnostics | ✅ Merged | 2024-11-07 | 2024-11-07 | backport |
+| [#6452](https://github.com/apache/hbase/pull/6452) | HBASE-28433  Modify the assembly to not include test jars and their transitive dependencies | ✅ Merged | 2024-11-08 | 2024-11-11 | backport |
 | [#6560](https://github.com/apache/hbase/pull/6560) | HBASE-28968 Bump jruby to 9.4.9.0 to fix rexml CVE | ✅ Merged | 2024-12-24 | 2025-01-07 |  |
 | [#6759](https://github.com/apache/hbase/pull/6759) | HBASE-29167 Upgrade vega and its related js libraries | ✅ Merged | 2025-03-06 | 2025-03-07 |  |
 | [#6783](https://github.com/apache/hbase/pull/6783) | HBASE-29226 Migrate to jetty 12 with EE8 and bump java servlet to 4.0.1 | ✅ Merged | 2025-03-11 | 2025-08-22 |  |
@@ -120,12 +133,23 @@
 | [#7458](https://github.com/apache/hbase/pull/7458) | HBASE-29033 Add a shell command for inspecting the state of enable/di… | ✅ Merged | 2025-11-12 | 2025-11-12 | backport |
 | [#7459](https://github.com/apache/hbase/pull/7459) | HBASE-29033 Add a shell command for inspecting the state of enable/di… | ✅ Merged | 2025-11-12 | 2025-11-12 | backport |
 
+##### [apache/hbase-connectors](https://github.com/apache/hbase-connectors)
+
+**Pull Requests**
+
+| # | Title | Status | Created | Updated | Labels |
+|---|-------|--------|---------|---------|--------|
+| [#110](https://github.com/apache/hbase-connectors/pull/110) | HBASE-27639 Support hbase-connectors compilation with HBase 2.5.3, Ha… | ✅ Merged | 2023-02-27 | 2023-03-01 |  |
+| [#113](https://github.com/apache/hbase-connectors/pull/113) | HBASE-27680 Bump hbase, hbase-thirdparty, hadoop and spark for hbase-… | ✅ Merged | 2023-03-01 | 2023-03-03 |  |
+
 ##### [apache/hbase-operator-tools](https://github.com/apache/hbase-operator-tools)
 
 **Pull Requests**
 
 | # | Title | Status | Created | Updated | Labels |
 |---|-------|--------|---------|---------|--------|
+| [#113](https://github.com/apache/hbase-operator-tools/pull/113) | HBASE-27751 TestMissingTableDescriptorGenerator fails with HBase 2.5.3 | ✅ Merged | 2023-03-24 | 2023-03-31 |  |
+| [#114](https://github.com/apache/hbase-operator-tools/pull/114) | HBASE-27754 generateMissingTableDescriptorFile should throw write per… | ✅ Merged | 2023-03-27 | 2023-03-28 |  |
 | [#140](https://github.com/apache/hbase-operator-tools/pull/140) | HBASE-28375 HBase Operator Tools fails to compile with hbase 2.6.0 | ✅ Merged | 2024-02-18 | 2024-02-18 |  |
 | [#141](https://github.com/apache/hbase-operator-tools/pull/141) | HBASE-28381 Support building hbase-operator-tools with JDK17 | ✅ Merged | 2024-02-28 | 2024-03-04 |  |
 
@@ -162,6 +186,8 @@
 
 | # | Title | Status | Created | Updated | Labels |
 |---|-------|--------|---------|---------|--------|
+| [#1716](https://github.com/apache/phoenix/pull/1716) | PHOENIX-7075 Backport PHOENIX-6715 “Update Omid to 1.1.0” to branch 5.1 | ✅ Merged | 2023-10-18 | 2023-10-19 |  |
+| [#1760](https://github.com/apache/phoenix/pull/1760) | PHOENIX-7140 Update Apache Parent and Maven Plugin Versions in Core | ❌ Closed | 2023-12-13 | 2023-12-14 |  |
 | [#1771](https://github.com/apache/phoenix/pull/1771) | PHOENIX-7157 Upgrade to phoenix-thirdparty 2.1.0 | ✅ Merged | 2023-12-22 | 2024-02-15 |  |
 | [#1772](https://github.com/apache/phoenix/pull/1772) | PHOENIX-7157 Upgrade to phoenix-thirdparty 2.1.0 | ✅ Merged | 2023-12-22 | 2024-02-15 |  |
 | [#1773](https://github.com/apache/phoenix/pull/1773) | PHOENIX-7130 Support skipping of shade sources jar creation | ❌ Closed | 2023-12-22 | 2024-03-07 |  |
@@ -187,6 +213,11 @@
 
 | # | Title | Status | Created | Updated | Labels |
 |---|-------|--------|---------|---------|--------|
+| [#142](https://github.com/apache/phoenix-omid/pull/142) | OMID-251 Bump license-maven-plugin to latest version | ✅ Merged | 2023-10-18 | 2023-10-19 |  |
+| [#143](https://github.com/apache/phoenix-omid/pull/143) | OMID-253 Upgrade Netty to 4.1.100.Final | ✅ Merged | 2023-10-20 | 2023-10-25 |  |
+| [#144](https://github.com/apache/phoenix-omid/pull/144) | OMID-255 Upgrade guava to 32.1.3-jre | ✅ Merged | 2023-10-20 | 2023-10-25 |  |
+| [#145](https://github.com/apache/phoenix-omid/pull/145) | OMID-256 Bump hbase and other dependencies to latest version | ✅ Merged | 2023-10-20 | 2023-11-21 |  |
+| [#146](https://github.com/apache/phoenix-omid/pull/146) | OMID-257 Upgrade bouncycastle and move from jdk15on to latest jdk18on | ✅ Merged | 2023-10-20 | 2023-10-25 |  |
 | [#151](https://github.com/apache/phoenix-omid/pull/151) | OMID-254 Upgrade to phoenix-thirdparty 2.1.0 | ✅ Merged | 2023-12-22 | 2024-01-03 |  |
 
 #### Apache Pinot
@@ -217,3 +248,14 @@
 | [#17220](https://github.com/apache/pinot/issues/17220) | Add Row-Level Security (RLS) Support for ZooKeeper-Based Authentication | 🔓 Open | 2025-11-18 | 2025-11-24 | security, feature |
 | [#17307](https://github.com/apache/pinot/issues/17307) | Add method getPermissions in UserConfig and deprecate getPermissios | 🔒 Closed | 2025-12-03 | 2026-01-21 | bug, configuration |
 | [#18028](https://github.com/apache/pinot/issues/18028) | [JDBC] gRPC JDBC driver ignores headers.* prefixed properties (e.g., headers.Authorization) | 🔒 Closed | 2026-03-30 | 2026-03-30 | bug, pinot-client, GRPC |
+
+#### Apache Zookeeper
+
+##### [apache/zookeeper](https://github.com/apache/zookeeper)
+
+**Pull Requests**
+
+| # | Title | Status | Created | Updated | Labels |
+|---|-------|--------|---------|---------|--------|
+| [#1740](https://github.com/apache/zookeeper/pull/1740) | ZOOKEEPER-4355 ZK documentation side bar and welcome page are out of … | ❌ Closed | 2021-08-27 | 2021-09-01 |  |
+| [#1741](https://github.com/apache/zookeeper/pull/1741) | ZOOKEEPER-4356 Code blocks do not render correctly in ZK docs site | ❌ Closed | 2021-08-27 | 2021-09-01 |  |
