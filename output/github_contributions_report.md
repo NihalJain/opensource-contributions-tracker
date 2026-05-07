@@ -1,6 +1,6 @@
 # OpenSource Contributions Report
 
-*Report auto-generated on: 2026-05-06 03:31:16 for period 1970-01-01 to 2026-05-07*
+*Report auto-generated on: 2026-05-07 03:31:38 for period 1970-01-01 to 2026-05-08*
 
 ## Overall Summary
 
@@ -396,7 +396,7 @@
 
 | # | Title | Status | Created | Updated | Labels |
 |---|-------|--------|---------|---------|--------|
-| [#14594](https://github.com/apache/pinot/issues/14594) | User API: API fails if we skip component field, which is not marked as required  | 🔓 Open | 2024-12-04 | 2024-12-12 | bug, rest-api |
+| [#14594](https://github.com/apache/pinot/issues/14594) | User API: API fails if we skip component field, which is not marked as required  | 🔓 Open | 2024-12-04 | 2026-05-07 | bug, rest-api, stale |
 | [#14595](https://github.com/apache/pinot/issues/14595) | [Bug] Authorization is broken for endpoints which access any resource other than a table | 🔓 Open | 2024-12-04 | 2024-12-17 | bug, security |
 | [#14932](https://github.com/apache/pinot/issues/14932) | Refactor authorization code to reduce duplication and inconsistency in behaviour | 🔓 Open | 2025-01-28 | 2025-02-02 | refactor, security |
 | [#15877](https://github.com/apache/pinot/issues/15877) | Allow non-admin users to access Pinot UI | 🔒 Closed | 2025-05-22 | 2026-04-24 | user-experience, ui, stale |
