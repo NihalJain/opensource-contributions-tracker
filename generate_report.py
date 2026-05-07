@@ -98,8 +98,9 @@ def get_all_pages(url, params, max_retries=10, backoff_factor=0.3, with_paginati
                     return results
 
                 if with_pagination:
-                    if url == f"{GITHUB_API_URL}/search/issues":
-                        # For search API, check if there are more pages
+                    if isinstance(data, dict) and 'total_count' in data and 'items' in data:
+                        # Generic handling for any GitHub Search API endpoint
+                        # (e.g. /search/issues, /search/commits, /search/repositories)
                         total_count = data.get('total_count', 0)
                         items = data.get('items', [])
                         results.extend(items)
@@ -153,6 +154,98 @@ def get_repositories_contributed_to(username: str, per_page: int = 100) -> list[
         repositories.add(repo_full_name)
 
     return sorted(repositories, key=str.lower)
+
+
+def get_user_contributed_repos(user, all_repos, start_date, end_date):
+    """
+    Determine which repositories from all_repos a user has contributed to within the date range.
+
+    Uses the GitHub Search API to efficiently discover contributions (PRs, issues, commits,
+    and code reviews) across all candidate repos in a small number of API calls, rather than
+    making separate per-repo calls for every user.
+
+    Args:
+        user (str): The GitHub username.
+        all_repos (list): List of repos to check, each in "owner/repo" format.
+        start_date (str): The start date in "YYYY-MM-DD" format.
+        end_date (str): The end date in "YYYY-MM-DD" format.
+
+    Returns:
+        set: A set of repo names (from all_repos) where the user has at least one contribution.
+    """
+    if not all_repos:
+        return set()
+
+    all_repos_lower = {r.lower() for r in all_repos}
+    all_repos_map = {r.lower(): r for r in all_repos}
+    contributed_repos = set()
+
+    date_query = f"created:{start_date}..{end_date}"
+
+    def _extract_repo_from_url(repository_url):
+        """Parse 'https://api.github.com/repos/owner/repo' -> 'owner/repo'."""
+        prefix = f"{GITHUB_API_URL}/repos/"
+        if repository_url.startswith(prefix):
+            return repository_url[len(prefix):].rstrip('/')
+        return ""
+
+    # 1. Find repos where the user has authored PRs or issues
+    try:
+        params = {
+            "q": f"author:{user} {date_query}",
+            "per_page": 100
+        }
+        items = get_all_pages(f"{GITHUB_API_URL}/search/issues", params)
+        for item in items:
+            repo_url = item.get('repository_url', '')
+            if repo_url:
+                repo_name = _extract_repo_from_url(repo_url)
+                if repo_name.lower() in all_repos_lower:
+                    contributed_repos.add(all_repos_map[repo_name.lower()])
+    except Exception as e:
+        logger.warning(f"Could not fetch PR/issue contributions for '{user}': {e}")
+
+    # Early exit when all repos are already covered
+    if len(contributed_repos) == len(all_repos):
+        return contributed_repos
+
+    # 2. Find repos where the user has made commits (GitHub commit search API).
+    # The commit search API uses `committer-date` instead of `created` for date filtering.
+    try:
+        params = {
+            "q": f"author:{user} committer-date:{start_date}..{end_date}",
+            "per_page": 100
+        }
+        items = get_all_pages(f"{GITHUB_API_URL}/search/commits", params)
+        for item in items:
+            repo_info = item.get('repository', {})
+            full_name = repo_info.get('full_name', '')
+            if full_name.lower() in all_repos_lower:
+                contributed_repos.add(all_repos_map[full_name.lower()])
+    except Exception as e:
+        logger.warning(f"Could not fetch commit contributions for '{user}': {e}")
+
+    # Early exit when all repos are already covered
+    if len(contributed_repos) == len(all_repos):
+        return contributed_repos
+
+    # 3. Find repos where the user has reviewed PRs
+    try:
+        params = {
+            "q": f"type:pr reviewed-by:{user} {date_query}",
+            "per_page": 100
+        }
+        items = get_all_pages(f"{GITHUB_API_URL}/search/issues", params)
+        for item in items:
+            repo_url = item.get('repository_url', '')
+            if repo_url:
+                repo_name = _extract_repo_from_url(repo_url)
+                if repo_name.lower() in all_repos_lower:
+                    contributed_repos.add(all_repos_map[repo_name.lower()])
+    except Exception as e:
+        logger.warning(f"Could not fetch code review contributions for '{user}': {e}")
+
+    return contributed_repos
 
 
 def get_top_contributors(repo, per_page=100):
@@ -649,6 +742,21 @@ def process_github_data(start_date, end_date, users, project_to_repo_dict, contr
                                         "description": repo_info.get('description'), "url": repo_info.get('html_url'),
                                         "avatar_url": repo_info.get('owner', {}).get('avatar_url')}
 
+        # Build a mapping of user → repos they have contributed to so that the main
+        # data-fetching loop can skip (user, repo) pairs with no activity.  This trades
+        # a small number of broad search API calls per user for potentially many saved
+        # per-repo calls when users have not contributed to every configured repository.
+        logger.info("Building user-to-repo contribution map...")
+        all_repos_flat = [repo for repo_list in project_to_repo_dict.values() for repo in repo_list]
+        user_to_repos = {}
+        for user in users:
+            contributed = get_user_contributed_repos(user, all_repos_flat, start_date, end_date)
+            user_to_repos[user] = contributed
+            logger.info(
+                f"User '{user}' has contributions in {len(contributed)}/{len(all_repos_flat)} repo(s): "
+                f"{sorted(contributed)}"
+            )
+
         # Populate the data list with dictionaries
         logger.info("Fetching contribution data...")
         for project_key, repo_list in project_to_repo_dict.items():
@@ -663,6 +771,14 @@ def process_github_data(start_date, end_date, users, project_to_repo_dict, contr
 
                 for user in users:
                     logger.info(f"Processing user: {user}")
+
+                    # Skip repos where the user has no contributions (determined by the
+                    # pre-computed mapping above) to avoid unnecessary API calls.
+                    if repo not in user_to_repos.get(user, set()):
+                        logger.info(
+                            f"Skipping user '{user}' for repo '{repo}' (no contributions found in pre-check)"
+                        )
+                        continue
 
                     # Commits — always fetch when line_stats needs the SHA list too
                     need_commits = commits_cfg['enabled'] or line_stats_cfg['enabled']
