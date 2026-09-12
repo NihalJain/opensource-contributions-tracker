@@ -1,6 +1,6 @@
 # OpenSource Contributions Report
 
-*Report auto-generated on: 2026-09-11 03:44:19 for period 1970-01-01 to 2026-09-12*
+*Report auto-generated on: 2026-09-12 03:47:45 for period 1970-01-01 to 2026-09-13*
 
 ## Overall Summary
 
@@ -54,7 +54,7 @@
 | Apache Phoenix | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-thirdparty](https://github.com/apache/phoenix-thirdparty) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 4 | 1 | 0 | 1 | 0 | 0 | 1 | 2 |
 | Apache Pinot | <img src='https://avatars.githubusercontent.com/u/62676312?v=4' width='12' height='12'> [pinot-contrib/pinot-docs](https://github.com/pinot-contrib/pinot-docs) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 67 | 2 | 0 | 2 | 0 | 0 | 2 | 4 |
 | Apache Pinot | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/pinot](https://github.com/apache/pinot) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 144 | 5 | 2 | 6 | 3 | 6 | 4 | 20 |
-| Apache Zookeeper | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/zookeeper](https://github.com/apache/zookeeper) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 84 | 2 | 0 | 2 | 0 | 0 | 0 | 2 |
+| Apache Zookeeper | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/zookeeper](https://github.com/apache/zookeeper) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 81 | 2 | 0 | 2 | 0 | 0 | 0 | 2 |
 
 ## Activity Details
 
@@ -384,7 +384,7 @@
 | # | Title | Status | Created | Updated | Labels |
 |---|-------|--------|---------|---------|--------|
 | [#14593](https://github.com/apache/pinot/pull/14593) | [Doc] User API: Add hint for options available for 'components' field in SwaggerUI | ✅ Merged | 2024-12-04 | 2026-03-20 | bug |
-| [#15861](https://github.com/apache/pinot/pull/15861) | Refactor authorization code to reduce duplication and inconsistency | 🔄 Open | 2025-05-21 | 2026-04-07 | good first issue, cleanup, refactor, security, auth |
+| [#15861](https://github.com/apache/pinot/pull/15861) | Refactor authorization code to reduce duplication and inconsistency | 🔄 Open | 2025-05-21 | 2026-09-11 | good first issue, cleanup, refactor, security, auth |
 | [#15876](https://github.com/apache/pinot/pull/15876) | Add sanity checks to ensure write permissions for instance data and s… | ✅ Merged | 2025-05-22 | 2025-07-22 | user-experience |
 | [#16468](https://github.com/apache/pinot/pull/16468) | Replace all usages of commons-collections with commons-collections4 | ✅ Merged | 2025-07-30 | 2025-07-30 | dependencies |
 | [#17295](https://github.com/apache/pinot/pull/17295) | Add Row-Level Security (RLS) Support for ZooKeeper-Based Authentication (#17220) | ❌ Closed | 2025-12-01 | 2026-04-03 | query, security, rest-api, auth |
