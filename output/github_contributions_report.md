@@ -1,19 +1,19 @@
 # OpenSource Contributions Report
 
-*Report auto-generated on: 2026-09-23 18:31:39 for period 1970-01-01 to 2026-09-24*
+*Report auto-generated on: 2026-09-23 18:38:04 for period 1970-01-01 to 2026-09-24*
 
 ## Overall Summary
 
 | Metric | Value |
 |--------|-------|
-| Total number of projects | 6 |
-| Total number of repositories | 13 |
-| Total number of contributions | 541 |
-| Number of commits to master* | 167 |
+| Total number of projects | 7 |
+| Total number of repositories | 14 |
+| Total number of contributions | 552 |
+| Number of commits to master* | 175 |
 | Number of pull requests (Open)* | 10 |
-| Number of pull requests (Closed) | 248 |
+| Number of pull requests (Closed) | 254 |
 | Number of issues (Open)* | 4 |
-| Number of issues (Closed)* | 6 |
+| Number of issues (Closed)* | 9 |
 | Total unique PRs reviewed* | 354 |
 
 **Note:** Fields marked with * contribute to the total contribution count.
@@ -30,6 +30,7 @@
 | Apache HBase | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase](https://github.com/apache/hbase)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-connectors](https://github.com/apache/hbase-connectors)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-operator-tools](https://github.com/apache/hbase-operator-tools)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-thirdparty](https://github.com/apache/hbase-thirdparty) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 129 | 8 | 194 | 0 | 0 | 307 | 444 |
 | Apache Phoenix | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix](https://github.com/apache/phoenix)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-omid](https://github.com/apache/phoenix-omid)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-queryserver](https://github.com/apache/phoenix-queryserver)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-thirdparty](https://github.com/apache/phoenix-thirdparty) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 28 | 0 | 42 | 0 | 0 | 39 | 67 |
 | Apache Pinot | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/pinot](https://github.com/apache/pinot)<br><img src='https://avatars.githubusercontent.com/u/62676312?v=4' width='12' height='12'> [pinot-contrib/pinot-docs](https://github.com/pinot-contrib/pinot-docs) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 7 | 2 | 8 | 3 | 6 | 6 | 24 |
+| Codeburn | <img src='https://avatars.githubusercontent.com/u/277308000?v=4' width='12' height='12'> [getagentseal/codeburn](https://github.com/getagentseal/codeburn) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 8 | 0 | 6 | 0 | 3 | 0 | 11 |
 | Apache Hadoop | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hadoop](https://github.com/apache/hadoop) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 1 | 0 | 2 | 0 | 0 | 2 | 3 |
 | Apache Zookeeper | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/zookeeper](https://github.com/apache/zookeeper) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 2 | 0 | 2 | 0 | 0 | 0 | 2 |
 | Apache Iceberg | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/iceberg-cpp](https://github.com/apache/iceberg-cpp) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 0 | 0 | 0 | 1 | 0 | 0 | 1 |
@@ -38,7 +39,7 @@
 
 | User | Repositories | Commits | Pull Requests (Open) | Pull Requests (Closed) | Issues (Open) | Issues (Closed) | Code Reviews | Overall Contribution |
 |------|--------------|---------|----------------------|----------------------|----------------|----------------|--------------|----------------------|
-| <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hadoop](https://github.com/apache/hadoop)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase](https://github.com/apache/hbase)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-connectors](https://github.com/apache/hbase-connectors)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-operator-tools](https://github.com/apache/hbase-operator-tools)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-thirdparty](https://github.com/apache/hbase-thirdparty)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/iceberg-cpp](https://github.com/apache/iceberg-cpp)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix](https://github.com/apache/phoenix)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-omid](https://github.com/apache/phoenix-omid)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-queryserver](https://github.com/apache/phoenix-queryserver)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-thirdparty](https://github.com/apache/phoenix-thirdparty)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/pinot](https://github.com/apache/pinot)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/zookeeper](https://github.com/apache/zookeeper)<br><img src='https://avatars.githubusercontent.com/u/62676312?v=4' width='12' height='12'> [pinot-contrib/pinot-docs](https://github.com/pinot-contrib/pinot-docs) | 167 | 10 | 248 | 4 | 6 | 354 | 541 |
+| <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hadoop](https://github.com/apache/hadoop)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase](https://github.com/apache/hbase)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-connectors](https://github.com/apache/hbase-connectors)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-operator-tools](https://github.com/apache/hbase-operator-tools)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-thirdparty](https://github.com/apache/hbase-thirdparty)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/iceberg-cpp](https://github.com/apache/iceberg-cpp)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix](https://github.com/apache/phoenix)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-omid](https://github.com/apache/phoenix-omid)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-queryserver](https://github.com/apache/phoenix-queryserver)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-thirdparty](https://github.com/apache/phoenix-thirdparty)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/pinot](https://github.com/apache/pinot)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/zookeeper](https://github.com/apache/zookeeper)<br><img src='https://avatars.githubusercontent.com/u/277308000?v=4' width='12' height='12'> [getagentseal/codeburn](https://github.com/getagentseal/codeburn)<br><img src='https://avatars.githubusercontent.com/u/62676312?v=4' width='12' height='12'> [pinot-contrib/pinot-docs](https://github.com/pinot-contrib/pinot-docs) | 175 | 10 | 254 | 4 | 9 | 354 | 552 |
 
 ## Detailed Contributions
 
@@ -57,6 +58,7 @@
 | Apache Pinot | <img src='https://avatars.githubusercontent.com/u/62676312?v=4' width='12' height='12'> [pinot-contrib/pinot-docs](https://github.com/pinot-contrib/pinot-docs) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 71 | 2 | 0 | 2 | 0 | 0 | 2 | 4 |
 | Apache Pinot | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/pinot](https://github.com/apache/pinot) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 144 | 5 | 2 | 6 | 3 | 6 | 4 | 20 |
 | Apache Zookeeper | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/zookeeper](https://github.com/apache/zookeeper) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 82 | 2 | 0 | 2 | 0 | 0 | 0 | 2 |
+| Codeburn | <img src='https://avatars.githubusercontent.com/u/277308000?v=4' width='12' height='12'> [getagentseal/codeburn](https://github.com/getagentseal/codeburn) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 10 | 8 | 0 | 6 | 0 | 3 | 0 | 11 |
 
 ## Activity Details
 
@@ -437,3 +439,26 @@
 |---|-------|--------|---------|---------|--------|
 | [#1740](https://github.com/apache/zookeeper/pull/1740) | ZOOKEEPER-4355 ZK documentation side bar and welcome page are out of … | ❌ Closed | 2021-08-27 | 2021-09-01 |  |
 | [#1741](https://github.com/apache/zookeeper/pull/1741) | ZOOKEEPER-4356 Code blocks do not render correctly in ZK docs site | ❌ Closed | 2021-08-27 | 2021-09-01 |  |
+
+#### Codeburn
+
+##### [getagentseal/codeburn](https://github.com/getagentseal/codeburn)
+
+**Pull Requests**
+
+| # | Title | Status | Created | Updated | Labels |
+|---|-------|--------|---------|---------|--------|
+| [#191](https://github.com/getagentseal/codeburn/pull/191) | Add gpt-5.5 model for codex | ✅ Merged | 2026-05-02 | 2026-05-02 |  |
+| [#199](https://github.com/getagentseal/codeburn/pull/199) | Add Antigravity Gemini model IDs with preview pricing aliases | ✅ Merged | 2026-05-03 | 2026-05-03 |  |
+| [#220](https://github.com/getagentseal/codeburn/pull/220) | fix: update model aliases and enhance event parsing for Copilot provider | ✅ Merged | 2026-05-04 | 2026-05-05 |  |
+| [#366](https://github.com/getagentseal/codeburn/pull/366) | fix: add DeepSeek v4 Pro/Flash pricing and fix snapshot survival through runtime cache | ❌ Closed | 2026-05-20 | 2026-05-21 |  |
+| [#608](https://github.com/getagentseal/codeburn/pull/608) | feat(copilot): track GitHub Copilot JetBrains IDE usage | ✅ Merged | 2026-07-03 | 2026-07-05 |  |
+| [#609](https://github.com/getagentseal/codeburn/pull/609) | fix(overview): pin number grouping to en-US so output is locale-indep… | ✅ Merged | 2026-07-03 | 2026-07-05 |  |
+
+**Issues**
+
+| # | Title | Status | Created | Updated | Labels |
+|---|-------|--------|---------|---------|--------|
+| [#190](https://github.com/getagentseal/codeburn/issues/190) | Is release v0.9.5 broken? | 🔒 Closed | 2026-05-02 | 2026-05-03 |  |
+| [#219](https://github.com/getagentseal/codeburn/issues/219) | Copilot: Models like claude-sonnet-4.6 are classified as Copilot (auto) | 🔒 Closed | 2026-05-04 | 2026-05-05 |  |
+| [#365](https://github.com/getagentseal/codeburn/issues/365) | Cost is 0 for deepseek-v4-* models with claude | 🔒 Closed | 2026-05-20 | 2026-05-21 |  |
