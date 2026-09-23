@@ -43,6 +43,10 @@
     "Apache Hadoop": [
       "apache/hadoop"
     ],
+    "Apache Iceberg": [
+      "apache/iceberg",
+      "apache/iceberg-cpp"
+    ],
     "Apache Phoenix": [
       "apache/phoenix",
       "apache/phoenix-omid",
