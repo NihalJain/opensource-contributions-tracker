@@ -62,6 +62,9 @@
     ],
     "Apache Zookeeper": [
       "apache/zookeeper"
+    ],
+    "Codeburn": [
+      "getagentseal/codeburn"
     ]
   }
 }
