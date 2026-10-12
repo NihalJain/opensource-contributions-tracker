@@ -1,6 +1,6 @@
 # OpenSource Contributions Report
 
-*Report auto-generated on: 2026-10-11 04:49:12 for period 1970-01-01 to 2026-10-12*
+*Report auto-generated on: 2026-10-12 05:04:29 for period 1970-01-01 to 2026-10-13*
 
 ## Overall Summary
 
@@ -315,7 +315,7 @@
 
 | # | Title | Status | Created | Updated | Labels |
 |---|-------|--------|---------|---------|--------|
-| [#960](https://github.com/apache/iceberg-cpp/pull/960) | feat: support catalog labels on tables loaded from REST catalogs | 🔄 Open | 2026-09-23 | 2026-09-23 |  |
+| [#960](https://github.com/apache/iceberg-cpp/pull/960) | feat: support catalog labels on tables loaded from REST catalogs | 🔄 Open | 2026-09-23 | 2026-10-11 |  |
 
 **Issues**
 
