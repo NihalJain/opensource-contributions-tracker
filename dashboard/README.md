@@ -1,21 +1,52 @@
 # OSS Contributions Dashboard
 
-An interactive dashboard for the activity feed produced by the report generator, built with **Vite + React + TypeScript + Tailwind CSS + ECharts + TanStack Table**.
+A fast, static dashboard for the activity the report generator collects: pull requests, issues, code reviews, commits and contribution score, across any number of projects and people.
 
-The dashboard is a plain static site. The feed (`output/github_activity_data.json`) is copied into the build, so there is no server and no runtime API. It can be hosted anywhere that serves static files.
+![The dashboard in light mode: a large count of merged pull requests beside a ledger of reviews, commits and score, then a ribbon of projects, filters, highlights and a monthly timeline](docs/preview-light.png)
+
+It is a plain static site with no server and no runtime API. The data is published next to the page when the site is built, so it can be hosted anywhere that serves files.
+
+<details>
+<summary>Dark theme</summary>
+
+![The dashboard in dark mode](docs/preview-dark.png)
+
+</details>
+
+---
+
+## What it shows
+
+- **The headline.** Merged pull requests, with code reviews, commits, contribution score, issues and open pull requests beside it. With more than one contributor it describes the team instead of a person.
+- **Where the work went.** A ribbon sized by contribution score. Select a project to scope the whole page to it.
+- **Highlights.** Typical time to merge, merge rate, reviews per merged pull request, the longest-open pull request, and the busiest month.
+- **Activity over time.** Pull requests and issues by month and outcome. Drag across months (or use the arrow keys, Enter and Escape) to filter everything on the page.
+- **Projects and repositories.** Ranked bars with drill-down to repositories and your rank among each repository's contributors.
+- **How quickly pull requests merge**, and **contributors** when the report covers more than one person.
+- **Every pull request and issue.** Search, sort, page, and download the filtered list as CSV.
+
+Every chart has a **View as table** twin. The state of the page, including filters, sort and page, is kept in the address, so any view can be shared as a link. Light and dark themes follow the system setting and can be switched.
 
 ---
 
 ## How it works
 
 ```
-generate_report.py ──► output/github_activity_data.json
-                                   │   npm run build  (copies the feed to public/activity.json)
-                                   ▼
-                          dashboard/app/dist/   ──►  any static host
+generate_report.py
+   ├─ output/github_activity_data.json     every pull request and issue
+   └─ output/github_contribution_data.csv  commits, reviews, score and rank per repository
+                    │
+                    │  npm run build   (scripts/prepare-data.mjs)
+                    ▼
+   app/public/activity.json, contributions.json, meta.json
+                    │
+                    ▼
+        app/dist/   ──►  GitHub Pages, Cloudflare, or any static host
 ```
 
-The data shown is whatever was in `output/` when the site was last built. The nightly workflow regenerates the report and then redeploys the dashboard: to GitHub Pages by default, and to Cloudflare too when credentials are set. Pull requests that touch `dashboard/` build it as a check but never publish.
+The data shown is whatever was in `output/` when the site was last built. The nightly workflow regenerates the report and then redeploys the dashboard: to GitHub Pages by default, and to Cloudflare too when credentials are set. Pull requests that touch `dashboard/` build and test it as a check but never publish.
+
+If `github_contribution_data.csv` is missing, the dashboard still works and simply hides the commit, review and score figures.
 
 ---
 
@@ -24,29 +55,19 @@ The data shown is whatever was in `output/` when the site was last built. The ni
 ```
 dashboard/
 ├── README.md
-├── wrangler.toml            ← optional Cloudflare deploy config (static assets only)
-└── app/                     ← Vite React frontend
-    ├── package.json
-    ├── tsconfig.json
-    ├── vite.config.ts
-    ├── tailwind.config.js
-    ├── index.html
-    ├── scripts/
-    │   └── copy-data.mjs    ← copies the feed into public/ before dev and build
-    ├── public/
-    │   └── _headers         ← CORS header for /activity.json (Cloudflare)
+├── DESIGN.md                 ← design decisions and how to change them
+├── wrangler.toml             ← optional Cloudflare deploy config (static assets only)
+├── docs/                     ← preview images
+└── app/
+    ├── site.config.json      ← the page title
+    ├── scripts/              ← build-time data preparation, with tests
+    ├── public/               ← favicon, robots.txt and the published data files and llms.txt
     └── src/
-        ├── main.tsx
-        ├── App.tsx
-        ├── index.css
-        ├── types.ts
-        ├── hooks/useActivity.ts
-        ├── utils/normalize.ts
-        └── components/
-            ├── KpiCards.tsx
-            ├── FilterDrawer.tsx
-            ├── Charts.tsx
-            └── ActivityTable.tsx
+        ├── data/             ← types, loading, filtering, aggregation, insights (all tested)
+        ├── charts/           ← SVG charts: timeline, bar list, sparkline
+        ├── components/       ← hero, filters, sections, explorer
+        ├── hooks/            ← data loading, URL-backed view state, theme, sizing
+        └── styles/           ← design tokens and base styles
 ```
 
 ---
@@ -54,28 +75,27 @@ dashboard/
 ## Local development
 
 ```bash
-python generate_report.py      # optional: the repository ships with a sample feed in output/
+python generate_report.py      # optional: the repository ships with a sample report in output/
 cd dashboard/app
 npm install
 npm run dev                    # http://localhost:5173
+npm test                       # unit tests for the data layer and build scripts
+npm run typecheck
 ```
 
-`npm run dev` and `npm run build` first run `scripts/copy-data.mjs`, which copies `output/github_activity_data.json` to `app/public/activity.json` (git-ignored). To preview a different feed:
-
-```bash
-ACTIVITY_DATA_FILE=/path/to/feed.json npm run dev
-```
+`npm run dev` and `npm run build` first run `scripts/prepare-data.mjs`, which publishes the report's files into `app/public/` (git-ignored) and writes an `llms.txt` describing the site and its data files, using the title from `site.config.json`.
 
 ---
 
 ## Configuration
 
-| Variable | Used by | Default | Description |
+| Setting | Where | Default | What it does |
 |---|---|---|---|
-| `ACTIVITY_DATA_FILE` | `npm run dev` / `build` | `../../output/github_activity_data.json` | Feed to publish. A relative path is resolved from `dashboard/app`. |
-| `VITE_ACTIVITY_API_URL` | build (Vite) | `./activity.json` | Load the feed from another URL instead of the bundled file. That host must send `Access-Control-Allow-Origin`. Rarely needed. |
+| `title` | `app/site.config.json` | `Open source contributions` | The name shown at the top of the page and in the browser tab. |
+| `ACTIVITY_DATA_FILE` | environment, at build | `../../output/github_activity_data.json` | The activity feed to publish. A relative path is resolved from `dashboard/app`. |
+| `CONTRIBUTIONS_DATA_FILE` | environment, at build | `../../output/github_contribution_data.csv` | The contribution metrics to publish. |
 
-The page keeps the last feed in `localStorage` for 24 hours. The **Refresh** button bypasses that copy and fetches the published file again.
+Colours, type and spacing are CSS custom properties in `app/src/styles/tokens.css`; see [DESIGN.md](DESIGN.md) before changing them, because the chart colours were validated as a set.
 
 ---
 
