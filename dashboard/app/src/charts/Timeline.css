@@ -1,0 +1,51 @@
+.timeline {
+  position: relative;
+  border-radius: var(--radius-sm);
+  outline-offset: 4px;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.timeline svg {
+  overflow: visible;
+}
+
+.timeline text {
+  fill: var(--ink-3);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.timeline__grid {
+  stroke: var(--c-grid);
+  stroke-width: 1;
+}
+
+.timeline__axis {
+  stroke: var(--c-axis);
+  stroke-width: 1;
+}
+
+.timeline__hover {
+  fill: var(--sunken);
+}
+
+.timeline__drag {
+  fill: color-mix(in srgb, var(--c-merged) 14%, transparent);
+}
+
+.timeline__focus {
+  fill: none;
+  stroke: var(--focus);
+  stroke-width: 2;
+  rx: 4;
+}
+
+.timeline text.timeline__peak {
+  fill: var(--ink);
+  font-weight: 600;
+}
+
+.timeline__hit {
+  cursor: crosshair;
+}

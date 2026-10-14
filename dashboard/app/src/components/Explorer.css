@@ -1,0 +1,243 @@
+.explorer__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--s-4);
+  margin-bottom: var(--s-4);
+}
+
+.explorer__title {
+  line-height: 1.15;
+  font-size: var(--text-xl);
+  font-weight: 700;
+  font-stretch: 85%;
+  letter-spacing: -0.01em;
+}
+
+.explorer__desc {
+  margin-top: var(--s-1);
+  color: var(--ink-2);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.explorer__export,
+.pager button {
+  height: 2.25rem;
+  padding: 0 var(--s-4);
+  background: var(--ink);
+  border: 1px solid var(--ink);
+  border-radius: 999px;
+  color: var(--paper);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  white-space: nowrap;
+  transition: opacity 120ms;
+}
+
+.explorer__export:hover:not(:disabled),
+.pager button:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.explorer__export:disabled,
+.pager button:disabled {
+  background: transparent;
+  border-color: var(--rule-strong);
+  color: var(--ink-3);
+  cursor: not-allowed;
+}
+
+.explorer__scroll {
+  overflow-x: auto;
+  border-top: 2px solid var(--ink);
+}
+
+.grid {
+  font-size: var(--text-sm);
+}
+
+.grid th,
+.grid td {
+  padding: var(--s-3) var(--s-3);
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--rule);
+}
+
+.grid th:first-child,
+.grid td:first-child {
+  padding-left: 0;
+}
+
+.grid th:last-child,
+.grid td:last-child {
+  padding-right: 0;
+}
+
+.grid thead th {
+  padding-block: var(--s-3);
+  color: var(--ink-2);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.grid .is-end {
+  text-align: right;
+}
+
+.sort {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  padding: 0;
+  background: none;
+  border: 0;
+  color: inherit;
+  font-weight: inherit;
+}
+
+.sort:hover {
+  color: var(--ink);
+}
+
+.sort__arrow {
+  display: inline-block;
+  min-width: 0.8em;
+}
+
+.grid__title {
+  min-width: 18rem;
+  max-width: 34rem;
+}
+
+.grid__title a {
+  font-size: var(--text-base);
+  font-weight: 550;
+  line-height: 1.35;
+  text-decoration: none;
+}
+
+.grid__title a:hover {
+  text-decoration: underline;
+}
+
+.grid__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-1) var(--s-2);
+  margin-top: var(--s-1);
+  color: var(--ink-3);
+  font-size: var(--text-xs);
+}
+
+.grid__label {
+  padding: 0 0.4rem;
+  background: var(--sunken);
+  border-radius: 4px;
+  color: var(--ink-2);
+}
+
+.grid__more {
+  color: var(--ink-3);
+}
+
+.grid__num {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-weight: 550;
+}
+
+.status__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--c-closed);
+}
+
+.status[data-outcome='merged'] .status__dot {
+  background: var(--c-merged);
+}
+
+.status[data-outcome='open'] .status__dot {
+  background: var(--c-open);
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-4);
+  margin-top: var(--s-5);
+}
+
+.pager__status {
+  color: var(--ink-2);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.explorer__empty {
+  display: grid;
+  justify-items: start;
+  gap: var(--s-3);
+  padding: var(--s-6) 0;
+  border-top: 2px solid var(--ink);
+  color: var(--ink-2);
+}
+
+@media (max-width: 44rem) {
+  .grid thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+  }
+
+  .grid,
+  .grid tbody,
+  .grid tr,
+  .grid td {
+    display: block;
+  }
+
+  .grid tr {
+    padding-block: var(--s-3);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .grid td {
+    padding: 0;
+    border: 0;
+  }
+
+  .grid td + td {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--s-4);
+    margin-top: var(--s-1);
+    color: var(--ink-2);
+  }
+
+  .grid td + td::before {
+    content: attr(data-label);
+    color: var(--ink-3);
+  }
+
+  .grid .is-end {
+    text-align: left;
+  }
+
+  .grid__title {
+    max-width: none;
+    min-width: 0;
+  }
+}

@@ -1,0 +1,8 @@
+.contributor__avatar {
+  flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background: var(--sunken);
+  object-fit: cover;
+}
