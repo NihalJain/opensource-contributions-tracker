@@ -40,7 +40,7 @@ HEADERS = {
 }
 
 def get_all_pages(url, params, max_retries=10, backoff_factor=0.3, with_pagination=True, meta=None,
-                  give_up_over=None, no_retry_on=()):
+                  give_up_over=None, no_retry_on=(), redact_url=False):
     """
     Retrieve all pages of results from a paginated GitHub API endpoint.
 
@@ -60,6 +60,9 @@ def get_all_pages(url, params, max_retries=10, backoff_factor=0.3, with_paginati
         no_retry_on (tuple): Optional. HTTP status codes that are final answers, such as 404 for a
             repository the token cannot see. The error is raised at once, without retries and without
             being logged, because the logged URL would name the repository.
+        redact_url (bool): Optional. Keep the URL and the exception text out of the log, for a request
+            whose URL names something that must not be logged yet (a repository whose visibility is not
+            known). Failures are then logged by HTTP status or exception type only.
 
     Returns:
         list: A list of results from all pages.
@@ -137,11 +140,17 @@ def get_all_pages(url, params, max_retries=10, backoff_factor=0.3, with_paginati
             except requests.exceptions.RequestException as e:
                 if getattr(getattr(e, 'response', None), 'status_code', None) in no_retry_on:
                     raise
-                logger.error(f"Request failed: {e}, attempt {attempt + 1} of {max_retries}")
+                if redact_url:
+                    status = getattr(getattr(e, 'response', None), 'status_code', None)
+                    what = f"HTTP {status}" if status else type(e).__name__
+                    logger.error(f"Request failed: {what}, attempt {attempt + 1} of {max_retries}")
+                else:
+                    logger.error(f"Request failed: {e}, attempt {attempt + 1} of {max_retries}")
                 if attempt < max_retries - 1:
                     time.sleep(backoff_factor * (2 ** attempt))  # Exponential backoff
                 else:
-                    logger.critical(f"Max retries exceeded for URL: {url}")
+                    logger.critical("Max retries exceeded (URL withheld)" if redact_url
+                                    else f"Max retries exceeded for URL: {url}")
                     raise
     return results
 
@@ -721,15 +730,18 @@ def get_repo_info_if_visible(repo):
     Retrieve repository information, or None when GitHub says this token cannot see the repository.
 
     Any other failure (network, rate limit, server error) is raised, so a run stops instead of
-    quietly dropping repositories.
+    quietly dropping repositories. This runs before visibility is known, so neither the log nor the
+    raised error carries the repository name or URL.
     """
     try:
         return get_all_pages(f"{GITHUB_API_URL}/repos/{repo}", {}, with_pagination=False,
-                             no_retry_on=REPO_NOT_VISIBLE_STATUSES)
-    except requests.exceptions.HTTPError as e:
-        if getattr(e.response, 'status_code', None) in REPO_NOT_VISIBLE_STATUSES:
+                             no_retry_on=REPO_NOT_VISIBLE_STATUSES, redact_url=True)
+    except requests.exceptions.RequestException as e:
+        status = getattr(getattr(e, 'response', None), 'status_code', None)
+        if status in REPO_NOT_VISIBLE_STATUSES:
             return None
-        raise
+        what = f"HTTP {status}" if status else type(e).__name__
+        raise RuntimeError(f"Could not check whether a repository is public ({what})") from None
 
 
 def exclude_non_public_repositories(project_to_repo_dict):

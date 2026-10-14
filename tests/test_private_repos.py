@@ -60,12 +60,12 @@ def test_only_an_explicit_public_answer_counts_as_public():
 # ---------------------------------------------------------------- looking a repository up
 
 class Response:
-    def __init__(self, status, body=None):
-        self.status_code, self._body, self.headers = status, body or {}, {}
+    def __init__(self, status, body=None, url=""):
+        self.status_code, self._body, self.headers, self.url = status, body or {}, {}, url
 
     def raise_for_status(self):
         if self.status_code >= 400:
-            raise requests.exceptions.HTTPError(f"{self.status_code} for url: {API}/repos/x", response=self)
+            raise requests.exceptions.HTTPError(f"{self.status_code} Server Error for url: {self.url}", response=self)
 
     def json(self):
         return self._body
@@ -76,7 +76,7 @@ def fake_requests(monkeypatch, status, body=None):
 
     def get(url, **kwargs):
         calls.append(url)
-        return Response(status, body)
+        return Response(status, body, url)
 
     monkeypatch.setattr(g.requests, "get", get)
     monkeypatch.setattr(g.time, "sleep", lambda s: None)
@@ -94,9 +94,39 @@ def test_a_repository_the_token_cannot_see_is_none_after_one_request_and_is_not_
 
 def test_a_server_error_is_raised_so_a_run_never_drops_repositories_quietly(monkeypatch):
     calls = fake_requests(monkeypatch, 500)
-    with pytest.raises(requests.exceptions.HTTPError):
+    with pytest.raises(RuntimeError, match="500"):
         g.get_repo_info_if_visible(PUBLIC)
     assert len(calls) == 10        # ordinary retries still apply
+
+
+def test_a_failed_lookup_never_logs_or_raises_the_repository_name(monkeypatch, caplog):
+    """The lookup runs before visibility is known, so even its error paths must not name the repository."""
+    fake_requests(monkeypatch, 502)
+    with caplog.at_level(logging.DEBUG):
+        with pytest.raises(RuntimeError) as error:
+            g.get_repo_info_if_visible(PRIVATE)
+    assert PRIVATE not in caplog.text and PRIVATE not in str(error.value)
+    assert "top-secret" not in caplog.text and "top-secret" not in str(error.value)
+
+
+def test_a_dropped_connection_never_logs_or_raises_the_repository_name(monkeypatch, caplog):
+    def get(url, **kwargs):
+        raise requests.exceptions.ConnectionError(f"HTTPSConnectionPool: Max retries exceeded with url: /repos/{PRIVATE}")
+
+    monkeypatch.setattr(g.requests, "get", get)
+    monkeypatch.setattr(g.time, "sleep", lambda s: None)
+    with caplog.at_level(logging.DEBUG):
+        with pytest.raises(RuntimeError) as error:
+            g.get_repo_info_if_visible(PRIVATE)
+    assert "top-secret" not in caplog.text and "top-secret" not in str(error.value)
+
+
+def test_other_lookups_still_log_their_url_for_diagnosis(monkeypatch, caplog):
+    fake_requests(monkeypatch, 500)
+    with caplog.at_level(logging.ERROR):
+        with pytest.raises(requests.exceptions.HTTPError):
+            g.get_all_pages(f"{API}/repos/{PUBLIC}/commits", {}, with_pagination=False)
+    assert PUBLIC in caplog.text
 
 
 def test_a_visible_repository_returns_its_information(monkeypatch):
