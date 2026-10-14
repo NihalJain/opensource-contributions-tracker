@@ -12,11 +12,16 @@ export interface Range {
   to: string | null;
 }
 
+/**
+ * Stack order matters. Merged is the baseline because it is the series being read; open and issues
+ * follow, and closed is last. Green (open) and red (closed) are the pair people with red-green
+ * colour blindness cannot tell apart, so the gray issues segment always sits between them.
+ */
 export const SERIES = [
   { key: 'merged', label: 'Merged pull requests', color: 'var(--c-merged)' },
-  { key: 'closed', label: 'Closed without merging', color: 'var(--c-closed)' },
   { key: 'open', label: 'Open pull requests', color: 'var(--c-open)' },
   { key: 'issues', label: 'Issues', color: 'var(--c-issue)' },
+  { key: 'closed', label: 'Closed without merging', color: 'var(--c-closed)' },
 ] as const;
 
 const HEIGHT = 248;

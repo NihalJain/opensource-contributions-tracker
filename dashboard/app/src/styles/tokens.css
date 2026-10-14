@@ -2,18 +2,23 @@
  * Design tokens.
  *
  * Structure is neutral: paper, ink and rules, with no brand colour. Colour appears only where it
- * carries meaning, and those meanings are the ones GitHub teaches everyone who uses it:
+ * carries meaning, using the status colours people already read on GitHub:
  *
- *   merged  purple   open  green   issue  blue   closed without merging  gray
+ *   purple  merged pull request     green  open pull request
+ *   red     closed without merging  gray   issues (a different kind of item, kept quiet)
  *
- * The accent is the "merged" purple, so selection and focus read as the same idea: the thing the
- * page is about. Bars that measure score or count (not an outcome) are ink, not a hue.
+ * Blue is the interface accent (selection, focus, primary actions), as it is for links on GitHub.
+ * It is not used by any data series, so a colour never means two things. Bars that measure a score
+ * or a count rather than an outcome (projects, contributors) are ink, not a hue.
  *
- * The three outcome colours were run through the data-viz palette validator for each chart surface:
- *   light on #ffffff: #8250df, #1a7f37, #0969da   all checks pass
- *   dark  on #1b1b1d: #8957e5, #2ea043, #1f6feb   all checks pass
- * Purple against blue is the closest pair for tritanopia (below the comfortable margin), which is
- * why every chart also has a legend, 2px gaps between segments and a table twin.
+ * Red and green are the classic colour-blindness pair, so a stack never puts them side by side:
+ * the order is always purple, green, gray, red, with the gray issues segment between them. Green
+ * directly beside red fails the validator (deuteranopia delta-E 5.5 light, 3.1 dark); with gray
+ * between, the closest pair measures 9.3 light and 10.3 dark. The chromatic colours were validated
+ * for each chart surface:
+ *   light on #ffffff: #8250df, #1a7f37, #cf222e   dark on #1b1b1d: #8957e5, #2ea043, #da3633
+ * Purple against red and green against gray are the closest pairs, which is why every chart also
+ * has a legend, 2px gaps between segments and a table twin.
  */
 
 :root {
@@ -32,15 +37,15 @@
   --ink-3: #66686d;
   --on-accent: #ffffff;
 
-  /* Accent: the "merged" purple. Selection, focus and active states. */
-  --accent: #8250df;
-  --focus: #8250df;
+  /* Accent: interface blue. Selection, focus and primary actions. */
+  --accent: #0969da;
+  --focus: #0969da;
 
   /* Chart colours */
   --c-merged: #8250df;
   --c-open: #1a7f37;
-  --c-issue: #0969da;
-  --c-closed: #bcbcb5;
+  --c-closed: #cf222e;
+  --c-issue: #6e7781;
   --c-bar: #46484c;
   --c-grid: #e4e4df;
   --c-axis: #bebeb7;
@@ -86,12 +91,12 @@
     --ink: #ececea;
     --ink-2: #b6b6b2;
     --ink-3: #8f8f8c;
-    --accent: #8957e5;
-    --focus: #a98af0;
+    --accent: #1f6feb;
+    --focus: #58a6ff;
     --c-merged: #8957e5;
     --c-open: #2ea043;
-    --c-issue: #1f6feb;
-    --c-closed: #55555a;
+    --c-issue: #7d8590;
+    --c-closed: #da3633;
     --c-bar: #b6b6b2;
     --c-grid: #26262a;
     --c-axis: #3d3d42;
@@ -111,12 +116,12 @@
   --ink: #ececea;
   --ink-2: #b6b6b2;
   --ink-3: #8f8f8c;
-  --accent: #8957e5;
-  --focus: #a98af0;
+  --accent: #1f6feb;
+  --focus: #58a6ff;
   --c-merged: #8957e5;
   --c-open: #2ea043;
-  --c-issue: #1f6feb;
-  --c-closed: #55555a;
+  --c-issue: #7d8590;
+  --c-closed: #da3633;
   --c-bar: #b6b6b2;
   --c-grid: #26262a;
   --c-axis: #3d3d42;

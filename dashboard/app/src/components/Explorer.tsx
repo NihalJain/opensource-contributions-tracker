@@ -146,7 +146,7 @@ export function Explorer({ items, sort, dir, page, now, onSort, onPage, onClear,
                     </td>
                     <td data-label="Type">{item.kind === 'pr' ? 'Pull request' : 'Issue'}</td>
                     <td data-label="Status">
-                      <span className="status" data-outcome={item.outcome}>
+                      <span className="status" data-outcome={item.outcome} data-kind={item.kind}>
                         <span className="status__dot" aria-hidden="true" />
                         {STATUS[item.outcome]}
                       </span>

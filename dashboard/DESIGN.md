@@ -12,23 +12,26 @@ Notes for anyone changing how the dashboard looks or what it shows.
 
 ## Colour
 
-Structure is neutral: a pale stone paper, near-black ink and gray rules, with no brand colour. Colour is reserved for data and uses the meanings GitHub has taught everyone who reads pull requests: **purple is merged, green is open, blue is an issue, gray is closed without merging.** The accent used for selection and focus is the same purple, so "selected" and "merged" read as one idea: the thing the page is about.
+Structure is neutral: a pale stone paper, near-black ink and gray rules, with no brand colour. Colour is reserved for data and uses the status colours people already read on GitHub: **purple is a merged pull request, green is an open one, red is one closed without merging, and gray is an issue**, a different kind of item that is kept quiet. **Blue is the interface accent** (selection, focus, primary actions), as it is for links on GitHub. No data series uses blue, so a colour never means two things.
 
-Bars that measure a score or a count rather than an outcome (projects, contributors) are ink, not a hue, so a colour never means two things.
+Bars that measure a score or a count rather than an outcome (projects, contributors) are ink, not a hue. In the explorer a closed *issue* keeps a gray dot, because resolved work is not a rejection.
 
 | Role | Light | Dark |
 |---|---|---|
 | Paper | `#f3f3f0` | `#151517` |
 | Surface | `#ffffff` | `#1b1b1d` |
 | Ink | `#17181a` | `#ececea` |
-| Merged, and the accent | `#8250df` | `#8957e5` |
+| Merged | `#8250df` | `#8957e5` |
 | Open | `#1a7f37` | `#2ea043` |
-| Issue | `#0969da` | `#1f6feb` |
-| Closed without merging | `#bcbcb5` | `#55555a` |
+| Closed without merging | `#cf222e` | `#da3633` |
+| Issues | `#6e7781` | `#7d8590` |
+| Interface accent | `#0969da` | `#1f6feb` |
 
-The three outcome colours were validated as a set against each theme's chart surface (lightness band, chroma floor, colour-vision-deficiency separation, normal-vision separation, contrast). Purple against blue is the closest pair under tritanopia, below the comfortable margin, so no chart relies on colour alone: each has a legend, 2px gaps between segments, and a table twin. "Closed without merging" is deliberately a de-emphasised gray, not a series colour.
+**Red and green are the classic colour-blindness pair**, so a stack never puts them side by side. The order is always merged, open, issues, closed: merged sits on the baseline because it is the series being read, and the gray issues segment sits between green and red. The validator measures green directly beside red at a deuteranopia ΔE of only 5.5 in light mode and 3.1 in dark mode (both fail); with gray between them the closest pair measures 9.3 and 10.3. The three chromatic colours were validated against each theme's chart surface (lightness band, colour-vision-deficiency separation, normal-vision separation, contrast). Gray is deliberately the de-emphasis role rather than a series colour, which is why it sits outside the chroma floor.
 
-If you change a chart colour, re-validate the set rather than judging by eye. Text never uses a series colour; it uses the ink tokens.
+No chart relies on colour alone: each has a legend in the stack's order, 2px gaps between segments, and a table twin.
+
+If you change a chart colour or the stack order, re-validate the set rather than judging by eye. Text never uses a series colour; it uses the ink tokens.
 
 ## Type
 

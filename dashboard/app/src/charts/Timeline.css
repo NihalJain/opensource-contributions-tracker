@@ -31,7 +31,7 @@
 }
 
 .timeline__drag {
-  fill: color-mix(in srgb, var(--c-merged) 14%, transparent);
+  fill: color-mix(in srgb, var(--accent) 14%, transparent);
 }
 
 .timeline__focus {
