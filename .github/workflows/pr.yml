@@ -25,6 +25,15 @@ jobs:
       - name: Run unit tests
         run: python -m pytest -q
 
+      # Checks the output committed in this pull request, before the next step regenerates it.
+      - name: Check the committed report names only public repositories
+        run: |
+          python check_output_visibility.py output
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HTTP_PROXY: ${{ secrets.HTTP_PROXY }}
+          HTTPS_PROXY: ${{ secrets.HTTPS_PROXY }}
+
       - name: Run script
         run: |
           python generate_report.py

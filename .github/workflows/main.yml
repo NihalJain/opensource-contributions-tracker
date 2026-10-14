@@ -33,6 +33,16 @@ jobs:
           HTTP_PROXY: ${{ secrets.HTTP_PROXY }}
           HTTPS_PROXY: ${{ secrets.HTTPS_PROXY }}
 
+      # Last line of defence before anything is committed and published: every repository named in
+      # the report must be public. The check prints counts only, since this log is public.
+      - name: Check the report names only public repositories
+        run: |
+          python check_output_visibility.py output
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HTTP_PROXY: ${{ secrets.HTTP_PROXY }}
+          HTTPS_PROXY: ${{ secrets.HTTPS_PROXY }}
+
       - name: Configure Git
         run: |
           git config --global user.name 'github-actions[bot]'
