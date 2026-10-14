@@ -7,26 +7,45 @@ on:
 jobs:
   pr-test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # A pull request that only touches the dashboard or the documentation does not need the Python
+      # checks, which take about a minute and make a few dozen GitHub API requests. This job always
+      # runs and reports, so the check never goes missing; only the steps below are skipped. If the
+      # changed files cannot be listed, everything runs.
+      - name: Work out which checks this pull request needs
+        id: changes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --paginate "repos/${GITHUB_REPOSITORY}/pulls/${{ github.event.pull_request.number }}/files" \
+            --jq '.[].filename' | python3 .github/scripts/classify_changes.py
+
       - name: Set up Python
+        if: steps.changes.outputs.python == 'true' || steps.changes.outputs.output == 'true'
         uses: actions/setup-python@v2
         with:
           python-version: '3.x'
 
       - name: Install dependencies
+        if: steps.changes.outputs.python == 'true' || steps.changes.outputs.output == 'true'
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
 
       - name: Run unit tests
+        if: steps.changes.outputs.python == 'true'
         run: python -m pytest -q
 
       # Checks the output committed in this pull request, before the next step regenerates it.
       - name: Check the committed report names only public repositories
+        if: steps.changes.outputs.python == 'true' || steps.changes.outputs.output == 'true'
         run: |
           python check_output_visibility.py output
         env:
@@ -35,6 +54,7 @@ jobs:
           HTTPS_PROXY: ${{ secrets.HTTPS_PROXY }}
 
       - name: Run script
+        if: steps.changes.outputs.python == 'true'
         run: |
           python generate_report.py
         env:
@@ -42,3 +62,7 @@ jobs:
           HTTP_PROXY: ${{ secrets.HTTP_PROXY }}
           HTTPS_PROXY: ${{ secrets.HTTPS_PROXY }}
         continue-on-error: false
+
+      - name: Note the skipped checks
+        if: steps.changes.outputs.python != 'true' && steps.changes.outputs.output != 'true'
+        run: echo "::notice title=Python checks skipped::This pull request changes nothing the generator, its tests or the report depend on."
