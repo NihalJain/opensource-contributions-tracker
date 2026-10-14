@@ -39,6 +39,10 @@ HEADERS = {
     "Accept": "application/vnd.github.v3+json"
 }
 
+# Every request goes through one session. It keeps the connection to api.github.com open between
+# requests, so the TCP and TLS handshake is paid once per run instead of once per request.
+SESSION = requests.Session()
+
 def get_all_pages(url, params, max_retries=10, backoff_factor=0.3, with_pagination=True, meta=None,
                   give_up_over=None, no_retry_on=(), redact_url=False):
     """
@@ -75,7 +79,7 @@ def get_all_pages(url, params, max_retries=10, backoff_factor=0.3, with_paginati
             params['page'] = page
         for attempt in range(max_retries):
             try:
-                response = requests.get(url, headers=HEADERS, params=params, proxies=proxies, verify=False)
+                response = SESSION.get(url, headers=HEADERS, params=params, proxies=proxies, verify=False)
 
                 # Handle rate-limit responses before raise_for_status so we can inspect headers.
                 # 429 = secondary rate limit; 403 with X-RateLimit-Remaining=0 = primary rate limit.

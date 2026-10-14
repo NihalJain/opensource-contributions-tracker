@@ -34,7 +34,7 @@ class SearchServer:
 
 def test_without_a_limit_it_pages_up_to_the_cap(monkeypatch):
     server = SearchServer(total=5000)
-    monkeypatch.setattr(g.requests, "get", server)
+    monkeypatch.setattr(g.SESSION, "get", server)
     meta = {}
     results = g.get_all_pages("https://api.github.com/search/issues", {"q": "x", "per_page": 100}, meta=meta)
     assert len(results) == 1000 and server.pages == list(range(1, 11))   # today's behaviour, unchanged
@@ -43,7 +43,7 @@ def test_without_a_limit_it_pages_up_to_the_cap(monkeypatch):
 
 def test_over_the_limit_it_stops_after_the_first_page(monkeypatch):
     server = SearchServer(total=5000)
-    monkeypatch.setattr(g.requests, "get", server)
+    monkeypatch.setattr(g.SESSION, "get", server)
     meta = {}
     results = g.get_all_pages("https://api.github.com/search/issues", {"q": "x", "per_page": 100},
                               meta=meta, give_up_over=1000)
@@ -54,7 +54,7 @@ def test_over_the_limit_it_stops_after_the_first_page(monkeypatch):
 
 def test_under_the_limit_it_still_fetches_everything(monkeypatch):
     server = SearchServer(total=250)
-    monkeypatch.setattr(g.requests, "get", server)
+    monkeypatch.setattr(g.SESSION, "get", server)
     meta = {}
     results = g.get_all_pages("https://api.github.com/search/issues", {"q": "x", "per_page": 100},
                               meta=meta, give_up_over=1000)
@@ -64,7 +64,7 @@ def test_under_the_limit_it_still_fetches_everything(monkeypatch):
 
 def test_exactly_at_the_limit_is_still_complete(monkeypatch):
     server = SearchServer(total=1000)
-    monkeypatch.setattr(g.requests, "get", server)
+    monkeypatch.setattr(g.SESSION, "get", server)
     results = g.get_all_pages("https://api.github.com/search/issues", {"q": "x", "per_page": 100}, give_up_over=1000)
     assert len(results) == 1000
 
