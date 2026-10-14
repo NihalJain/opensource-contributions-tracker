@@ -131,4 +131,21 @@ describe('projectRows', () => {
     const repo = rows.projects[0].repos.find((r) => r.repo === 'apache/hbase')!;
     expect(repo.rank).toBe(7);
   });
+
+  it('gives each project the avatar of its highest-ranked repository', () => {
+    const rows = projectRows(items, [
+      makeContribution({ project: 'Apache HBase', repo: 'apache/hbase-connectors', score: 1, repoAvatar: 'https://a/small' }),
+      makeContribution({ project: 'Apache HBase', repo: 'apache/hbase', score: 9, repoAvatar: 'https://a/main' }),
+    ]);
+    expect(rows.projects.find((p) => p.project === 'Apache HBase')?.avatar).toBe('https://a/main');
+  });
+
+  it('skips repositories without an avatar, and leaves the project blank if none has one', () => {
+    const withGap = projectRows(items, [
+      makeContribution({ project: 'Apache HBase', repo: 'apache/hbase', score: 9, repoAvatar: '' }),
+      makeContribution({ project: 'Apache HBase', repo: 'apache/hbase-connectors', score: 1, repoAvatar: 'https://a/other' }),
+    ]);
+    expect(withGap.projects.find((p) => p.project === 'Apache HBase')?.avatar).toBe('https://a/other');
+    expect(projectRows(items, []).projects.every((p) => p.avatar === '')).toBe(true);
+  });
 });

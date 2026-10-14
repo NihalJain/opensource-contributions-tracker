@@ -3,6 +3,7 @@ import { BarList, type BarRow } from '../charts/BarList';
 import type { ProjectBreakdown } from '../data/aggregate';
 import { formatCompact, formatInt, plural } from '../data/format';
 import { ChartFrame, DataTable } from './ChartFrame';
+import './Projects.css';
 
 interface Props {
   breakdown: ProjectBreakdown;
@@ -10,6 +11,21 @@ interface Props {
   selectedRepos: string[];
   onToggleProject: (project: string) => void;
   onToggleRepo: (repo: string) => void;
+}
+
+/** Organisations get a rounded square on GitHub, people a circle; the same distinction here. */
+function Avatar({ src, small }: { src: string; small?: boolean }) {
+  if (!src) return null;
+  return (
+    <img
+      className={small ? 'project-avatar project-avatar--small' : 'project-avatar'}
+      src={src}
+      alt=""
+      width={small ? 16 : 22}
+      height={small ? 16 : 22}
+      loading="lazy"
+    />
+  );
 }
 
 const n = (value: number, measure: ProjectBreakdown['measure']) => (measure === 'score' ? formatCompact(value) : formatInt(value));
@@ -31,6 +47,7 @@ export function Projects({ breakdown, selectedProjects, selectedRepos, onToggleP
         value: project.value,
         display: n(project.value, measure),
         detail: parts.join(', '),
+        leading: <Avatar src={project.avatar} />,
       });
       if (selectedProjects.includes(project.project) && project.repos.length > 1) {
         for (const repo of project.repos) {
@@ -39,6 +56,7 @@ export function Projects({ breakdown, selectedProjects, selectedRepos, onToggleP
             label: repo.repo,
             value: repo.value,
             display: n(repo.value, measure),
+            leading: <Avatar src={repo.repoAvatar} small />,
             nested: true,
             detail: repo.rank ? `Ranked #${formatInt(repo.rank)} among contributors` : repo.description || undefined,
           });

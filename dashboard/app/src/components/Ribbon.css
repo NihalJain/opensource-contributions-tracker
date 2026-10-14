@@ -139,6 +139,16 @@
   opacity: 0.6;
 }
 
+.ribbon__item-avatar {
+  align-self: center;
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 3px;
+  background: var(--sunken);
+  object-fit: cover;
+}
+
 .ribbon__item-name {
   font-weight: 600;
 }

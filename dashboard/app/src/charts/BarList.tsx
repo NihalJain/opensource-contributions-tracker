@@ -31,13 +31,16 @@ const FULL = 0.84;
 /** Horizontal bars with the value at the tip. One colour: position, not hue, carries the ranking. */
 export function BarList({ rows, ariaLabel, selected = [], onSelect, color = 'var(--c-bar)' }: Props) {
   const max = Math.max(...rows.map((r) => r.value), 1);
-  const anySelected = selected.length > 0;
+  // Top-level rows recede once something is selected. Nested rows (a project's repositories) are
+  // the selection's own detail, so they only recede when one of them is itself the selection.
+  const anyTopSelected = rows.some((r) => !r.nested && selected.includes(r.key));
+  const anyNestedSelected = rows.some((r) => r.nested && selected.includes(r.key));
 
   return (
     <ul className="bars" aria-label={ariaLabel}>
       {rows.map((row) => {
         const isSelected = selected.includes(row.key);
-        const dim = anySelected && !isSelected;
+        const dim = row.nested ? anyNestedSelected && !isSelected : (anyTopSelected || anyNestedSelected) && !isSelected;
         const body = (
           <>
             <span className="bars__label">
