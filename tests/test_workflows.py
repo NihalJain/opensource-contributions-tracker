@@ -39,3 +39,24 @@ def test_the_nightly_workflow_publishes_only_through_the_guarded_workflow():
     for name, job in nightly["jobs"].items():
         steps = " ".join(str(s.get("run", "")) + str(s.get("uses", "")) for s in job.get("steps") or [])
         assert "deploy-pages" not in steps and "wrangler" not in steps, f"main.yml:{name} publishes directly"
+
+
+def _steps(workflow, job):
+    return yaml.safe_load((WORKFLOWS / workflow).read_text())["jobs"][job]["steps"]
+
+
+def _index(steps, needle):
+    return next(i for i, s in enumerate(steps) if needle in str(s.get("run", "")))
+
+
+def test_the_nightly_run_checks_the_report_after_generating_it_and_before_committing_it():
+    steps = _steps("main.yml", "nightly-job")
+    generate = _index(steps, "python generate_report.py")
+    check = _index(steps, "check_output_visibility.py")
+    commit = _index(steps, "git commit")
+    assert generate < check < commit      # a check after the commit would be too late to stop the leak
+
+
+def test_pull_requests_check_the_committed_report_before_regenerating_it():
+    steps = _steps("pr.yml", "pr-test")
+    assert _index(steps, "check_output_visibility.py") < _index(steps, "python generate_report.py")

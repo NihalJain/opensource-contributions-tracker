@@ -244,6 +244,20 @@ private hosting. A value other than `exclude` or `include` stops the run before 
 Running with a token that can see private repositories is safe with the default, but a token without that
 access is better still: the GitHub Actions workflow's built-in `GITHUB_TOKEN` already sees only public data.
 
+**Independent check.** `check_output_visibility.py` looks up every repository named in `output/` and fails if any
+is not public. The nightly workflow runs it before committing, so a leak is stopped before anything is published,
+and pull requests run it on the output they commit.
+
+```sh
+python check_output_visibility.py            # checks output/, prints counts only
+python check_output_visibility.py --show-names   # locally: also prints which repositories
+python check_output_visibility.py --allow-private  # report them but exit 0, for output published privately
+```
+
+It prints counts and file names but not repository names, because CI logs of a public repository are public.
+A repository the token cannot see counts as not public, so one that has been deleted is reported until it is
+removed from the output.
+
 **Output files** written to `output/`:
 
 | File | Description |
