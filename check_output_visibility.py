@@ -25,7 +25,7 @@ import pathlib
 import re
 import sys
 
-import generate_report as g
+from tracker import privacy
 
 # owner/repo as it appears in any GitHub URL: pull request links, repository links, `repo_url` fields
 REPO_URL = re.compile(r"github\.com/([A-Za-z0-9_.-]+)/([A-Za-z0-9_.-]+)")
@@ -94,7 +94,7 @@ def main(argv=None):
     not_public = {}
     try:
         for repo in sorted(where):
-            if not g.is_public_repo(g.get_repo_info_if_visible(repo)):
+            if not privacy.is_public_repo(privacy.get_repo_info_if_visible(repo)):
                 not_public[repo] = where[repo]
     except Exception as e:  # the lookup error carries no repository name, see get_repo_info_if_visible
         print(f"Cannot check: could not look up a repository ({e}).")

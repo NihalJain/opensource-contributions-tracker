@@ -6,7 +6,7 @@ from urllib.parse import quote
 import pytest
 
 import check_output_visibility as check
-import generate_report as g
+from tracker import api, cli, github, log, privacy
 
 API = "https://api.github.com"
 PUBLIC = "apache/hbase"
@@ -57,9 +57,9 @@ def build(monkeypatch):
             meta["total_count"] = 0
         return []
 
-    monkeypatch.setattr(g, "get_all_pages", pages)
-    monkeypatch.setattr(g, "get_user_info", lambda u: {"name": u, "avatar_url": f"https://a/{u}", "html_url": f"https://github.com/{u}"})
-    monkeypatch.setattr(g, "get_repo_info_if_visible", lambda repo: ANSWERS.get(repo.lower()) if repo.lower() in ANSWERS else ANSWERS.get(repo))
+    monkeypatch.setattr(api, "get_all_pages", pages)
+    monkeypatch.setattr(github, "get_user_info", lambda u: {"name": u, "avatar_url": f"https://a/{u}", "html_url": f"https://github.com/{u}"})
+    monkeypatch.setattr(privacy, "get_repo_info_if_visible", lambda repo: ANSWERS.get(repo.lower()) if repo.lower() in ANSWERS else ANSWERS.get(repo))
 
     def repo_info(repo):
         world.info_calls.append(repo)
@@ -69,9 +69,9 @@ def build(monkeypatch):
         world.contributor_calls.append(repo)
         return [{"login": "ada"}, {"login": "bob"}]
 
-    monkeypatch.setattr(g, "get_repo_info", repo_info)
-    monkeypatch.setattr(g, "get_top_contributors", contributors)
-    monkeypatch.setattr(g, "get_commits", lambda *a, **k: [])
+    monkeypatch.setattr(github, "get_repo_info", repo_info)
+    monkeypatch.setattr(github, "get_top_contributors", contributors)
+    monkeypatch.setattr(github, "get_commits", lambda *a, **k: [])
     return world
 
 
@@ -83,7 +83,7 @@ def run(tmp_path, config=None):
         "project_to_repo_dict": {"HBase": [PUBLIC], "Secret Codename": [PRIVATE, PRIVATE2]},
         **(config or {})}))
     out = tmp_path / "out"
-    g.generate_report(github_conf_path=str(conf), output_dir=f"{out}/")
+    cli.generate_report(github_conf_path=str(conf), output_dir=f"{out}/")
     return out
 
 
@@ -105,9 +105,9 @@ def test_private_work_becomes_one_unnamed_row_per_user_and_still_counts(monkeypa
         out = run(tmp_path)
     rows = {(r["User"], r["Repository"]): r for r in rows_of(out)}
 
-    assert set(rows) == {("ada", PUBLIC), ("ada", g.REDACTED_REPOSITORY), ("bob", g.REDACTED_REPOSITORY)}
-    ada_private, bob_private = rows[("ada", g.REDACTED_REPOSITORY)], rows[("bob", g.REDACTED_REPOSITORY)]
-    assert ada_private["Project Key"] == bob_private["Project Key"] == g.REDACTED_PROJECT
+    assert set(rows) == {("ada", PUBLIC), ("ada", privacy.REDACTED_REPOSITORY), ("bob", privacy.REDACTED_REPOSITORY)}
+    ada_private, bob_private = rows[("ada", privacy.REDACTED_REPOSITORY)], rows[("bob", privacy.REDACTED_REPOSITORY)]
+    assert ada_private["Project Key"] == bob_private["Project Key"] == privacy.REDACTED_PROJECT
     assert int(ada_private["Pull Requests (Closed)"]) == 2           # two private repos, summed
     assert int(bob_private["Pull Requests (Closed)"]) == 1
     assert int(ada_private["Overall Contribution"]) == 2             # it counts towards the score
@@ -127,7 +127,7 @@ def test_nothing_identifying_is_written_to_any_file_or_log(monkeypatch, tmp_path
 
 def test_the_redacted_row_has_no_url_description_avatar_or_rank(monkeypatch, tmp_path):
     build(monkeypatch)
-    row = next(r for r in rows_of(run(tmp_path)) if r["Repository"] == g.REDACTED_REPOSITORY)
+    row = next(r for r in rows_of(run(tmp_path)) if r["Repository"] == privacy.REDACTED_REPOSITORY)
     assert row["Repository URL"] == row["Repository Description"] == row["Repository Avatar"] == ""
     assert row["Rank"] == "-1"
 
@@ -149,7 +149,7 @@ def test_private_repositories_are_not_looked_up_for_details_or_contributors(monk
 def test_the_markdown_report_has_no_empty_link_or_image_for_redacted_work(monkeypatch, tmp_path):
     build(monkeypatch)
     md = (run(tmp_path) / "github_contributions_report.md").read_text()
-    assert g.REDACTED_REPOSITORY in md and g.REDACTED_PROJECT in md
+    assert privacy.REDACTED_REPOSITORY in md and privacy.REDACTED_PROJECT in md
     assert "[Private repositories](" not in md
     assert "src='None'" not in md and "src=''" not in md.replace("<img src='' ", "")  # no broken avatar for it
 
@@ -165,7 +165,7 @@ def test_the_default_is_still_exclude_and_include_still_names_everything(monkeyp
     build(monkeypatch)
     with caplog.at_level(logging.DEBUG):
         out = run(tmp_path, {"private_repos": "exclude"})
-    assert PRIVATE not in everything(out, caplog) and g.REDACTED_REPOSITORY not in everything(out, caplog)
+    assert PRIVATE not in everything(out, caplog) and privacy.REDACTED_REPOSITORY not in everything(out, caplog)
     caplog.clear()
     with caplog.at_level(logging.DEBUG):
         out = run(tmp_path / "again" if (tmp_path / "again").mkdir() is None else tmp_path, {"private_repos": "include"})
@@ -178,7 +178,7 @@ def test_a_failure_while_redacting_does_not_put_a_private_name_in_the_log(monkey
     def boom(*a, **k):
         raise RuntimeError(f"cannot list commits for {PRIVATE} (https://api.github.com/repos/{PRIVATE}/commits)")
 
-    monkeypatch.setattr(g, "get_user_search_activity", boom)
+    monkeypatch.setattr(github, "get_user_search_activity", boom)
     with caplog.at_level(logging.DEBUG):
         with pytest.raises(RuntimeError):
             run(tmp_path)
@@ -192,7 +192,7 @@ def row(repo, user, **counts):
     base = {"Project Key": "P", "Repository": repo, "Repository URL": f"https://github.com/{repo}",
             "Repository Description": "d", "Repository Avatar": "a", "User": user, "User Avatar": "ua",
             "User URL": f"https://github.com/{user}", "Rank": 3}
-    base.update({c: 0 for c in g._COUNT_COLUMNS})
+    base.update({c: 0 for c in privacy._COUNT_COLUMNS})
     base.update(counts)
     return base
 
@@ -202,8 +202,8 @@ def test_rows_of_one_user_are_summed_and_other_users_are_kept_apart():
             row("a/two", "ada", Commits=3, **{"Pull Requests (Open)": 1, "Overall Contribution": 4}),
             row("a/one", "bob", Commits=7, **{"Overall Contribution": 7}),
             row("a/public", "ada", Commits=1, **{"Overall Contribution": 1})]
-    rows, _ = g.redact_private_rows(data, [], ["a/one", "a/two"])
-    redacted = {r["User"]: r for r in rows if r["Repository"] == g.REDACTED_REPOSITORY}
+    rows, _ = privacy.redact_private_rows(data, [], ["a/one", "a/two"])
+    redacted = {r["User"]: r for r in rows if r["Repository"] == privacy.REDACTED_REPOSITORY}
     assert redacted["ada"]["Commits"] == 5 and redacted["ada"]["Pull Requests (Open)"] == 1
     assert redacted["ada"]["Overall Contribution"] == 6 and redacted["bob"]["Commits"] == 7
     assert [r["Repository"] for r in rows].count("a/public") == 1
@@ -213,8 +213,8 @@ def test_rows_of_one_user_are_summed_and_other_users_are_kept_apart():
 def test_matching_private_names_ignores_case_and_leaves_activity_of_public_repos():
     data = [row("Acme/Secret", "ada", Commits=1)]
     activity = [{"repo": "ACME/secret", "user": "ada"}, {"repo": "apache/hbase", "user": "ada"}]
-    rows, kept = g.redact_private_rows(data, activity, ["acme/secret"])
-    assert [r["Repository"] for r in rows] == [g.REDACTED_REPOSITORY]
+    rows, kept = privacy.redact_private_rows(data, activity, ["acme/secret"])
+    assert [r["Repository"] for r in rows] == [privacy.REDACTED_REPOSITORY]
     assert kept == [{"repo": "apache/hbase", "user": "ada"}]
 
 
@@ -222,34 +222,34 @@ def test_matching_private_names_ignores_case_and_leaves_activity_of_public_repos
 
 def emit(caplog, message):
     with caplog.at_level(logging.DEBUG):
-        g.logger.error(message)
+        log.logger.error(message)
     return caplog.records[-1].getMessage()
 
 
 def test_scrubber_hides_names_in_urls_and_encoded_queries_case_insensitively(caplog):
-    g._scrubber.hide([PRIVATE, "secretorg"])
+    log._scrubber.hide([PRIVATE, "secretorg"])
     shown = emit(caplog, f"Request failed: 404 for url: {API}/repos/{PRIVATE.upper()}/commits?q=repo%3A{quote(PRIVATE, safe='')}"
                          f"+user%3Asecretorg")
     assert "secret" not in shown.lower() and shown.count("<private>") == 3
 
 
 def test_scrubber_leaves_public_names_users_and_short_names_alone(caplog):
-    g._scrubber.hide([PRIVATE, "ab"])
+    log._scrubber.hide([PRIVATE, "ab"])
     shown = emit(caplog, f"user ada has {PUBLIC} and an ab")
     assert shown == f"user ada has {PUBLIC} and an ab"
 
 
 def test_each_run_starts_with_nothing_hidden(monkeypatch, tmp_path):
     build(monkeypatch)
-    g._scrubber.hide(["apache/hbase"])
+    log._scrubber.hide(["apache/hbase"])
     run(tmp_path, {"private_repos": "exclude"})
-    assert g._scrubber._pattern is None
+    assert log._scrubber._pattern is None
 
 
 def test_the_redacted_row_carries_none_of_the_private_repository_details_it_was_built_from():
     data = [row("secret/one", "ada", Commits=1)]
     data[0].update({"Repository Description": "launch plans", "Repository Avatar": "https://a/secret", "Rank": 4})
-    rows, _ = g.redact_private_rows(data, [], ["secret/one"])
+    rows, _ = privacy.redact_private_rows(data, [], ["secret/one"])
     assert len(rows) == 1
     assert rows[0]["Repository URL"] == rows[0]["Repository Description"] == rows[0]["Repository Avatar"] == ""
     assert rows[0]["Rank"] == -1
@@ -263,21 +263,21 @@ def found(public, private):
 
 
 def test_an_owner_that_appears_only_through_private_repositories_is_hidden():
-    names = g.names_to_hide(found({"P": ["apache/hbase"]}, ["secretorg/x"]), {"P": ["apache/hbase"], "Q": ["secretorg/x"]}, ["ada"])
+    names = privacy.names_to_hide(found({"P": ["apache/hbase"]}, ["secretorg/x"]), {"P": ["apache/hbase"], "Q": ["secretorg/x"]}, ["ada"])
     assert "secretorg" in names and "secretorg/x" in names
 
 
 def test_an_owner_that_also_owns_a_public_repository_is_not_hidden():
-    names = g.names_to_hide(found({"P": ["apache/hbase"]}, ["apache/secret"]), {"P": ["apache/hbase", "apache/secret"]}, ["ada"])
+    names = privacy.names_to_hide(found({"P": ["apache/hbase"]}, ["apache/secret"]), {"P": ["apache/hbase", "apache/secret"]}, ["ada"])
     assert "apache/secret" in names and "apache" not in names
 
 
 def test_a_tracked_user_is_not_hidden_even_when_all_their_own_repositories_are_private():
-    names = g.names_to_hide(found({}, ["ada/side-project"]), {"ada/side-project": ["ada/side-project"]}, ["ada"])
+    names = privacy.names_to_hide(found({}, ["ada/side-project"]), {"ada/side-project": ["ada/side-project"]}, ["ada"])
     assert "ada/side-project" in names and "ada" not in names
 
 
 def test_a_project_made_only_of_private_repositories_is_hidden_but_a_mixed_one_is_not():
     config = {"Secret Codename": ["acme/a", "acme/b"], "Mixed": ["apache/hbase", "acme/c"]}
-    names = g.names_to_hide(found({"Mixed": ["apache/hbase"]}, ["acme/a", "acme/b", "acme/c"]), config, ["ada"])
+    names = privacy.names_to_hide(found({"Mixed": ["apache/hbase"]}, ["acme/a", "acme/b", "acme/c"]), config, ["ada"])
     assert "Secret Codename" in names and "Mixed" not in names

@@ -1,5 +1,5 @@
 """One owner-scoped search per user replaces three searches per (user, repo)."""
-import generate_report as g
+from tracker import api, github
 
 API = "https://api.github.com"
 
@@ -35,8 +35,8 @@ class FakeSearch:
 
 
 def run(monkeypatch, fake, repos, **kwargs):
-    monkeypatch.setattr(g, "get_all_pages", fake)
-    return g.get_user_search_activity("ada", repos, "2024-01-01", "2024-12-31", **kwargs)
+    monkeypatch.setattr(api, "get_all_pages", fake)
+    return github.get_user_search_activity("ada", repos, "2024-01-01", "2024-12-31", **kwargs)
 
 
 def test_splits_prs_and_issues_by_repo_and_state(monkeypatch):
@@ -100,8 +100,8 @@ def test_truncated_results_are_reported_incomplete(monkeypatch):
             meta["total_count"] = 5000  # more matches than the Search API will return
         return items
 
-    monkeypatch.setattr(g, "get_all_pages", capped)
-    a = g.get_user_search_activity("ada", ["apache/hbase"], "2024-01-01", "2024-12-31", want_items=True, want_reviews=False)
+    monkeypatch.setattr(api, "get_all_pages", capped)
+    a = github.get_user_search_activity("ada", ["apache/hbase"], "2024-01-01", "2024-12-31", want_items=True, want_reviews=False)
     assert a["items_complete"] is False
 
 

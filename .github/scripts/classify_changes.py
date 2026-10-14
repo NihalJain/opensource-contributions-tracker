@@ -15,7 +15,7 @@ import os
 import sys
 
 PYTHON_FILES = {"generate_report.py", "check_output_visibility.py", "requirements.txt", "requirements-dev.txt"}
-PYTHON_PREFIXES = ("tests/", "input/", ".github/workflows/", ".github/scripts/")
+PYTHON_PREFIXES = ("tracker/", "tests/", "input/", ".github/workflows/", ".github/scripts/")
 OUTPUT_PREFIXES = ("output/",)
 
 
