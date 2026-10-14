@@ -169,7 +169,7 @@ This block lists every key the generator reads. Only `start_date` and `users` ar
 can be left out. Where the block differs from the defaults:
 
 - `end_date` is optional and defaults to tomorrow.
-- `private_repos` defaults to `"exclude"`; the other value is `"include"`. See
+- `private_repos` defaults to `"exclude"`; the other values are `"redact"` and `"include"`. See
   [Private repositories](#private-repositories).
 - `project_to_repo_dict` can be left out, or set to `{}`, to
   [auto-detect repositories](#auto-detected-repositories-empty-project_to_repo_dict).
@@ -185,7 +185,7 @@ can be left out. Where the block differs from the defaults:
 | `end_date` | No | Tomorrow | End of the reporting period (`YYYY-MM-DD`, inclusive) |
 | `users` | Yes | — | List of GitHub usernames to track |
 | `project_to_repo_dict` | No | Auto-detected | Maps project display names to lists of `owner/repo` strings. If omitted or `{}`, repositories are [discovered](#auto-detected-repositories-empty-project_to_repo_dict) from each user's PR history (capped at 1 000 results by the GitHub Search API) |
-| `private_repos` | No | `exclude` | `exclude` leaves private repositories out of every output and log; `include` keeps them. See [Private repositories](#private-repositories) |
+| `private_repos` | No | `exclude` | `exclude` leaves private repositories out of every output and log; `redact` counts their work without naming anything; `include` keeps them as they are. See [Private repositories](#private-repositories) |
 | `contribution_config` | No | All enabled | Per-metric configuration object. Omitting it or any key within it uses the defaults shown below |
 | &nbsp;&nbsp;`commits` | No | — | Config for merged commits |
 | &nbsp;&nbsp;&nbsp;&nbsp;`enabled` | No | `true` | Collect and display this metric |
@@ -238,8 +238,23 @@ public site, so **private repositories are excluded by default** (`"private_repo
 - This applies to repositories listed in `project_to_repo_dict` as well as to auto-detected ones.
 - Excluded work does not count towards anyone's totals or rank.
 
-Set `"private_repos": "include"` only when the output stays private, for example a private repository with
-private hosting. A value other than `exclude` or `include` stops the run before any API call.
+Two other modes exist for the case where your private work should be reflected in the report:
+
+- **`"redact"`** counts private work without naming it. Each user gets one row, `Private repositories` in the
+  project `Private work`, with the commits, pull requests, issues and reviews of all their private repositories
+  summed. Their numbers count towards that user's totals and score. Nothing else about them is written: no
+  repository or owner names, titles, links, labels, descriptions, avatars, rank or contributor names, and no
+  activity records, so private work does not appear on the dashboard timeline or in the pull request explorer.
+  The same names are removed from log output, including failed requests and error messages.
+- **`"include"`** keeps private repositories exactly as they are, names and titles included. Use it only when the
+  output stays private, for example a private repository with private hosting.
+
+`redact` needs a token that can see your private repositories, which the workflow's built-in `GITHUB_TOKEN`
+cannot, so it matters for local runs or for a personal access token stored as a secret. A value other than
+`exclude`, `redact` or `include` stops the run before any API call.
+
+What `redact` does not hide: that you have private work at all, and how much of it there is. Both appear in the
+totals and the `Private repositories` row. Leave the default `exclude` if that matters.
 
 Running with a token that can see private repositories is safe with the default, but a token without that
 access is better still: the GitHub Actions workflow's built-in `GITHUB_TOKEN` already sees only public data.
