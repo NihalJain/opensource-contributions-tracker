@@ -33,7 +33,7 @@ You control which metrics count toward the **Overall Contribution** score via `c
 ## Quick start (fork & go)
 
 1. **Fork this repository.**
-2. **Edit `input/github.json`** — set `start_date`, add your GitHub usernames, and map projects to repositories. See [Configuration](#configuration) for all options.
+2. **Edit `input/github.json`** — set `start_date`, add your GitHub usernames, and either map projects to repositories or leave `project_to_repo_dict` empty to have them [auto-detected](#auto-detected-repositories-empty-project_to_repo_dict). See [Configuration](#configuration) for all options.
 3. **Push the changes** — the GitHub Actions workflow will run automatically on the next scheduled cycle, or you can [trigger it manually](#steps-to-trigger-the-workflow-manually).
 4. **View the report** — open `output/github_contributions_report.md` in the repository.
 
@@ -99,6 +99,49 @@ The input file is `input/github.json`. The only required fields are `start_date`
 }
 ```
 
+#### Auto-detected repositories (empty `project_to_repo_dict`)
+
+Leave `project_to_repo_dict` out, or set it to `{}`, and the generator finds the repositories itself. Both of these
+are equivalent:
+
+```json
+{
+    "start_date": "2024-01-01",
+    "users": ["user1", "user2"],
+    "project_to_repo_dict": {}
+}
+```
+
+For every user it searches the pull requests they authored, collects the repositories those pull requests were
+opened against, and turns each repository into a project named after itself. With the configuration above the
+effective mapping could look like this (illustrative):
+
+```json
+{
+    "owner-a/repo-one": ["owner-a/repo-one"],
+    "owner-a/repo-two": ["owner-a/repo-two"],
+    "owner-b/tool":     ["owner-b/tool"]
+}
+```
+
+Use this for a quick look at everything a person has worked on. When you want repositories grouped under
+meaningful project names (for example several repositories under one product), list them explicitly as in the
+full structure below.
+
+> **Notes on auto-detection**
+> - **Explicit wins.** As soon as `project_to_repo_dict` has at least one entry, only the repositories you list are
+>   tracked. Discovery is not mixed in.
+> - **Found through authored pull requests only.** A repository where a user only committed directly, reviewed or
+>   filed issues is not discovered. List it explicitly if it matters.
+> - **Up to 1 000 pull requests per user.** The GitHub Search API returns at most 1 000 results, so a very
+>   prolific user can have some repositories missed. List those explicitly.
+> - **The date range does not limit discovery,** it limits what is counted. A discovered repository with no
+>   activity in the range simply does not appear in the report.
+> - **Every repository is its own project,** so the project pie chart and project list have one entry per
+>   repository.
+> - **Private repositories are left out** of the discovered set under the default `private_repos: "exclude"`;
+>   see [Private repositories](#private-repositories).
+
 **Full structure:**
 ```json
 {
@@ -129,7 +172,7 @@ The input file is `input/github.json`. The only required fields are `start_date`
 | `start_date` | Yes | — | Start of the reporting period (`YYYY-MM-DD`) |
 | `end_date` | No | Tomorrow | End of the reporting period (`YYYY-MM-DD`, inclusive) |
 | `users` | Yes | — | List of GitHub usernames to track |
-| `project_to_repo_dict` | No | Auto-detected | Maps project display names to lists of `owner/repo` strings. If omitted, repositories are discovered from each user's PR history (capped at 1 000 results by the GitHub Search API) |
+| `project_to_repo_dict` | No | Auto-detected | Maps project display names to lists of `owner/repo` strings. If omitted or `{}`, repositories are [discovered](#auto-detected-repositories-empty-project_to_repo_dict) from each user's PR history (capped at 1 000 results by the GitHub Search API) |
 | `private_repos` | No | `exclude` | `exclude` leaves private repositories out of every output and log; `include` keeps them. See [Private repositories](#private-repositories) |
 | `contribution_config` | No | All enabled | Per-metric configuration object. Omitting it or any key within it uses the defaults shown below |
 | &nbsp;&nbsp;`commits` | No | — | Config for merged commits |
@@ -153,6 +196,22 @@ The input file is `input/github.json`. The only required fields are `start_date`
 | &nbsp;&nbsp;`line_stats` | No | — | Config for lines added/removed. Expensive: one extra API call per commit and per open PR |
 | &nbsp;&nbsp;&nbsp;&nbsp;`enabled` | No | `false` | Fetch and display line stats. Set to `false` to skip (recommended for large datasets) |
 | &nbsp;&nbsp;&nbsp;&nbsp;`refactor_threshold` | No | Disabled | Float (0–1). Commits/PRs where net-change ratio is below this are excluded from line counts |
+
+### Notes
+
+- **Cost of a run.** A run makes a few search requests per user, then a handful of requests for each repository
+  someone was active in (its details, its contributor ranking and, only for users who committed there, the
+  commit listing). Repositories with no activity cost one lookup, to check that they are public. The production
+  configuration (1 user, 16 repositories) takes about 70 requests and a minute. `line_stats` is the expensive
+  option: it adds one request per commit and per open pull request, which is why it is off by default.
+- **Search API limits.** The GitHub Search API returns at most 1 000 results per query. When a user's results are
+  truncated the generator notices and falls back to per-repository queries, so counts stay exact but the run is
+  slower. The log says when this happens.
+- **Dates are inclusive.** Both `start_date` and `end_date` are included, and `end_date` defaults to tomorrow so
+  that today's activity is counted.
+- **Usernames are case-insensitive.** They are lower-cased before use.
+- **Misconfiguration fails early.** A missing `start_date` or `users`, an unknown `private_repos` value, or a
+  configuration with nothing public left stops the run with a message before the report is written.
 
 ### Private repositories
 
@@ -215,7 +274,12 @@ To update the configuration, edit `input/github.json` and push — the next work
     export GITHUB_TOKEN=your_token
     python generate_report.py
     ```
-3. Commit, push, and open a pull request against `main`.
+3. Run the tests (they use stubbed GitHub responses and need no token):
+    ```sh
+    pip install -r requirements-dev.txt
+    pytest
+    ```
+4. Commit, push, and open a pull request against `main`.
 
 ## License
 
