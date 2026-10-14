@@ -1,0 +1,126 @@
+/*
+ * Design tokens.
+ *
+ * Structure is neutral: paper, ink and rules, with no brand colour. Colour appears only where it
+ * carries meaning, and those meanings are the ones GitHub teaches everyone who uses it:
+ *
+ *   merged  purple   open  green   issue  blue   closed without merging  gray
+ *
+ * The accent is the "merged" purple, so selection and focus read as the same idea: the thing the
+ * page is about. Bars that measure score or count (not an outcome) are ink, not a hue.
+ *
+ * The three outcome colours were run through the data-viz palette validator for each chart surface:
+ *   light on #ffffff: #8250df, #1a7f37, #0969da   all checks pass
+ *   dark  on #1b1b1d: #8957e5, #2ea043, #1f6feb   all checks pass
+ * Purple against blue is the closest pair for tritanopia (below the comfortable margin), which is
+ * why every chart also has a legend, 2px gaps between segments and a table twin.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* Ground */
+  --paper: #f3f3f0;
+  --surface: #ffffff;
+  --sunken: #e9e9e5;
+  --rule: #dadad5;
+  --rule-strong: #bebeb7;
+
+  /* Ink */
+  --ink: #17181a;
+  --ink-2: #46484c;
+  --ink-3: #66686d;
+  --on-accent: #ffffff;
+
+  /* Accent: the "merged" purple. Selection, focus and active states. */
+  --accent: #8250df;
+  --focus: #8250df;
+
+  /* Chart colours */
+  --c-merged: #8250df;
+  --c-open: #1a7f37;
+  --c-issue: #0969da;
+  --c-closed: #bcbcb5;
+  --c-bar: #46484c;
+  --c-grid: #e4e4df;
+  --c-axis: #bebeb7;
+
+  /* Ribbon segments */
+  --segment: #d3d3cc;
+  --segment-hover: #c3c3bb;
+
+  /* Type */
+  --font: 'Archivo Variable', 'Archivo', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.9375rem;
+  --text-md: 1.0625rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.5rem;
+
+  /* Space and shape */
+  --s-1: 0.25rem;
+  --s-2: 0.5rem;
+  --s-3: 0.75rem;
+  --s-4: 1rem;
+  --s-5: 1.5rem;
+  --s-6: 2rem;
+  --s-7: 3rem;
+  --s-8: 4.5rem;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --measure: 72rem;
+  --gutter: clamp(1rem, 4vw, 2.5rem);
+
+  --shadow-pop: 0 10px 30px rgba(20, 20, 24, 0.16), 0 2px 6px rgba(20, 20, 24, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme='light'])) {
+    color-scheme: dark;
+    --paper: #151517;
+    --surface: #1b1b1d;
+    --sunken: #111113;
+    --rule: #2a2a2e;
+    --rule-strong: #3d3d42;
+    --ink: #ececea;
+    --ink-2: #b6b6b2;
+    --ink-3: #8f8f8c;
+    --accent: #8957e5;
+    --focus: #a98af0;
+    --c-merged: #8957e5;
+    --c-open: #2ea043;
+    --c-issue: #1f6feb;
+    --c-closed: #55555a;
+    --c-bar: #b6b6b2;
+    --c-grid: #26262a;
+    --c-axis: #3d3d42;
+    --segment: #34343a;
+    --segment-hover: #444449;
+    --shadow-pop: 0 12px 34px rgba(0, 0, 0, 0.55), 0 2px 6px rgba(0, 0, 0, 0.4);
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --paper: #151517;
+  --surface: #1b1b1d;
+  --sunken: #111113;
+  --rule: #2a2a2e;
+  --rule-strong: #3d3d42;
+  --ink: #ececea;
+  --ink-2: #b6b6b2;
+  --ink-3: #8f8f8c;
+  --accent: #8957e5;
+  --focus: #a98af0;
+  --c-merged: #8957e5;
+  --c-open: #2ea043;
+  --c-issue: #1f6feb;
+  --c-closed: #55555a;
+  --c-bar: #b6b6b2;
+  --c-grid: #26262a;
+  --c-axis: #3d3d42;
+  --segment: #34343a;
+  --segment-hover: #444449;
+  --shadow-pop: 0 12px 34px rgba(0, 0, 0, 0.55), 0 2px 6px rgba(0, 0, 0, 0.4);
+}

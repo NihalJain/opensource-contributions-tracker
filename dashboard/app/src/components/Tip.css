@@ -1,0 +1,49 @@
+.tip {
+  position: absolute;
+  z-index: 20;
+  min-width: 9rem;
+  max-width: 14rem;
+  padding: var(--s-3) var(--s-3);
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-pop);
+  font-size: var(--text-sm);
+  line-height: 1.35;
+  pointer-events: none;
+  transform: translate(-50%, calc(-100% - 10px));
+}
+
+.tip__title {
+  margin-bottom: var(--s-2);
+  font-weight: 600;
+}
+
+.tip__row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+}
+
+.tip__key {
+  width: 0.75rem;
+  height: 0.1875rem;
+  border-radius: 2px;
+  align-self: center;
+  flex: none;
+}
+
+.tip__value {
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.tip__label {
+  opacity: 0.8;
+}
+
+.tip__note {
+  margin-top: var(--s-2);
+  opacity: 0.75;
+  font-size: var(--text-xs);
+}

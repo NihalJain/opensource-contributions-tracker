@@ -179,8 +179,11 @@ cython_debug/
 # Dashboard
 dashboard/app/node_modules/
 dashboard/app/dist/
-# Copied from output/ at build time by dashboard/app/scripts/copy-data.mjs
+# Published from output/ at build time by dashboard/app/scripts/prepare-data.mjs
 dashboard/app/public/activity.json
+dashboard/app/public/contributions.json
+dashboard/app/public/meta.json
+dashboard/app/public/llms.txt
 # Created by `wrangler dev` / `wrangler deploy` when run from dashboard/
 dashboard/.wrangler/
 dashboard/node_modules/

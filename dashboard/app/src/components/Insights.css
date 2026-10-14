@@ -1,0 +1,40 @@
+.insights {
+  padding-block: var(--s-6) 0;
+}
+
+.insights__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11.5rem, 1fr));
+  gap: var(--s-5) var(--s-6);
+}
+
+.insights__fact {
+  padding-top: var(--s-3);
+  border-top: 2px solid var(--ink);
+}
+
+.insights__fact dt {
+  color: var(--ink-2);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.insights__value {
+  margin: var(--s-1) 0 0;
+  font-size: var(--text-xl);
+  font-weight: 750;
+  font-stretch: 82%;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+}
+
+.insights__context {
+  margin: var(--s-1) 0 0;
+  color: var(--ink-3);
+  font-size: var(--text-xs);
+  line-height: 1.4;
+}
+
+.insights__context a {
+  color: var(--ink-2);
+}

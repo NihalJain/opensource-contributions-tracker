@@ -1,108 +1,180 @@
-import { useState } from 'react';
-import { useActivity } from './hooks/useActivity';
-import KpiCards from './components/KpiCards';
-import FilterDrawer from './components/FilterDrawer';
-import Charts from './components/Charts';
-import ActivityTable from './components/ActivityTable';
+import { useEffect, useMemo } from 'react';
+import site from '../site.config.json';
+import { Timeline } from './charts/Timeline';
+import { Contributors } from './components/Contributors';
+import { Explorer } from './components/Explorer';
+import { FilterBar } from './components/FilterBar';
+import { Hero } from './components/Hero';
+import { Insights } from './components/Insights';
+import { Projects } from './components/Projects';
+import { LoadError, Loading, NoData } from './components/States';
+import { Speed } from './components/Speed';
+import { monthlyBuckets, projectRows, speedHistogram, totals } from './data/aggregate';
+import { applyFilters, filterContributions, isFiltered } from './data/filters';
+import { formatDate } from './data/format';
+import { activeSpan } from './data/insights';
+import type { Dataset } from './data/types';
+import { useDataset } from './hooks/useDataset';
+import { useTheme } from './hooks/useTheme';
+import { useView } from './hooks/useView';
 
-function Spinner() {
+const toggle = (list: string[], value: string) => (list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
+
+function Dashboard({ data, theme, onToggleTheme }: { data: Dataset; theme: 'light' | 'dark'; onToggleTheme: () => void }) {
+  const { view, setFilters, clearFilters, setSort, setPage } = useView();
+  const { filters } = view;
+  const now = data.meta.builtAt ? Date.parse(data.meta.builtAt) : Date.now();
+
+  // Each part of the page ignores the filters that would hide its own choices: the timeline keeps
+  // every month so a range can be changed, and the project list keeps every project so one can be
+  // switched off again.
+  const filtered = useMemo(() => applyFilters(data.items, filters), [data.items, filters]);
+  const forTimeline = useMemo(
+    () => applyFilters(data.items, { ...filters, from: null, to: null }),
+    [data.items, filters],
+  );
+  const forProjects = useMemo(
+    () => applyFilters(data.items, { ...filters, projects: [], repos: [] }),
+    [data.items, filters],
+  );
+
+  const scopedRows = useMemo(() => filterContributions(data.contributions, filters), [data.contributions, filters]);
+  const projectRowsInput = useMemo(
+    () => filterContributions(data.contributions, { ...filters, projects: [], repos: [] }),
+    [data.contributions, filters],
+  );
+
+  const sums = useMemo(() => totals(filtered), [filtered]);
+  const buckets = useMemo(() => monthlyBuckets(forTimeline), [forTimeline]);
+  const breakdown = useMemo(() => projectRows(forProjects, projectRowsInput), [forProjects, projectRowsInput]);
+  const speed = useMemo(() => speedHistogram(filtered), [filtered]);
+  const span = useMemo(() => activeSpan(filtered.length > 0 ? filtered : data.items), [filtered, data.items]);
+
+  const metrics = useMemo(
+    () =>
+      data.contributions.length === 0
+        ? null
+        : {
+            reviews: scopedRows.reduce((s, r) => s + r.reviews, 0),
+            commits: scopedRows.reduce((s, r) => s + r.commits, 0),
+            score: scopedRows.reduce((s, r) => s + r.score, 0),
+          },
+    [data.contributions.length, scopedRows],
+  );
+
+  const projects = new Set([...filtered.map((i) => i.project), ...scopedRows.map((r) => r.project)]);
+  const repos = new Set([...filtered.map((i) => i.repo), ...scopedRows.map((r) => r.repo)]);
+  const multiUser = data.people.length > 1;
+  const visiblePeople = filters.users.length > 0 ? data.people.filter((p) => filters.users.includes(p.name)) : data.people;
+  const reviewsPerMerge = metrics && sums.merged > 0 && metrics.reviews > 0 ? metrics.reviews / sums.merged : null;
+
   return (
-    <div className="flex items-center justify-center h-64">
-      <div className="w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
-    </div>
+    <>
+      <Hero
+        title={site.title}
+        people={visiblePeople}
+        totals={sums}
+        metrics={metrics}
+        metricsAllTime={Boolean(filters.from || filters.to)}
+        span={span}
+        projectCount={projects.size}
+        repoCount={repos.size}
+        breakdown={breakdown}
+        selectedProjects={filters.projects}
+        onToggleProject={(project) => setFilters((f) => ({ ...f, projects: toggle(f.projects, project) }))}
+        theme={theme}
+        onToggleTheme={onToggleTheme}
+      />
+
+      <FilterBar
+        items={data.items}
+        filters={filters}
+        shown={filtered.length}
+        multiUser={multiUser}
+        now={now}
+        onChange={(update) => setFilters(update)}
+        onClear={clearFilters}
+      />
+
+      <main id="main" className="page layout">
+        <Insights items={filtered} buckets={buckets} now={now} reviewsPerMerge={reviewsPerMerge} />
+
+        <div className="layout__block">
+          <Timeline buckets={buckets} range={{ from: filters.from, to: filters.to }} onRange={(r) => setFilters(r)} />
+        </div>
+
+        <div className="layout__split">
+          <Projects
+            breakdown={breakdown}
+            selectedProjects={filters.projects}
+            selectedRepos={filters.repos}
+            onToggleProject={(project) => setFilters((f) => ({ ...f, projects: toggle(f.projects, project) }))}
+            onToggleRepo={(repo) => setFilters((f) => ({ ...f, repos: toggle(f.repos, repo) }))}
+          />
+          <div className="layout__stack">
+            <Speed bands={speed} />
+            {multiUser ? (
+              <Contributors
+                people={data.people}
+                items={forProjects}
+                contributions={projectRowsInput}
+                selected={filters.users}
+                onToggle={(name) => setFilters((f) => ({ ...f, users: toggle(f.users, name) }))}
+              />
+            ) : null}
+          </div>
+        </div>
+
+        <div className="layout__block">
+          <Explorer
+            items={filtered}
+            sort={view.sort}
+            dir={view.dir}
+            page={view.page}
+            now={now}
+            onSort={(sort) => setSort(sort)}
+            onPage={setPage}
+            onClear={clearFilters}
+            filtered={isFiltered(filters)}
+          />
+        </div>
+      </main>
+
+      <footer className="footer">
+        <div className="page footer__inner">
+          <p>
+            {data.meta.builtAt ? `Data as of ${formatDate(Date.parse(data.meta.builtAt))}. ` : ''}
+            Generated by{' '}
+            <a href="https://github.com/NihalJain/opensource-contributions-tracker" target="_blank" rel="noreferrer">
+              opensource-contributions-tracker
+            </a>
+            , which anyone can fork to host their own.
+          </p>
+        </div>
+      </footer>
+    </>
   );
 }
 
 export default function App() {
-  const {
-    filteredEvents,
-    loading,
-    error,
-    lastFetched,
-    refresh,
-    allProjects,
-    allRepos,
-    allUsers,
-    allLabels,
-    filters,
-    setFilters,
-  } = useActivity();
+  const { theme, toggle: toggleTheme } = useTheme();
+  const { state, reload } = useDataset();
 
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  useEffect(() => {
+    document.title = site.title;
+  }, []);
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col">
-      {/* Navbar */}
-      <header className="bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
-        <div className="flex items-center gap-3">
-          {/* Mobile filter toggle */}
-          <button
-            onClick={() => setDrawerOpen(true)}
-            className="lg:hidden p-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 transition-colors"
-            aria-label="Open filters"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h18M6 8h12M10 12h4" />
-            </svg>
-          </button>
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">🚀</span>
-            <h1 className="text-slate-100 font-bold text-base sm:text-lg leading-tight">
-              OSS Contributions Dashboard
-            </h1>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          {lastFetched && (
-            <span className="hidden sm:block text-slate-500 text-xs">
-              Updated {lastFetched.toLocaleTimeString()}
-            </span>
-          )}
-          <button
-            onClick={refresh}
-            disabled={loading}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary-600 hover:bg-primary-500 disabled:opacity-50 text-white text-sm font-medium transition-colors"
-          >
-            <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            Refresh
-          </button>
-        </div>
-      </header>
-
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar filter (desktop) + mobile drawer */}
-        <FilterDrawer
-          filters={filters}
-          setFilters={setFilters}
-          allProjects={allProjects}
-          allRepos={allRepos}
-          allUsers={allUsers}
-          allLabels={allLabels}
-          open={drawerOpen}
-          onClose={() => setDrawerOpen(false)}
-        />
-
-        {/* Main content */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6">
-          {loading && <Spinner />}
-
-          {error && (
-            <div className="bg-red-900/30 border border-red-700/50 rounded-xl p-4 mb-6 text-red-300 text-sm">
-              <strong>Error:</strong> {error}
-            </div>
-          )}
-
-          {!loading && !error && (
-            <>
-              <KpiCards events={filteredEvents} />
-              <Charts events={filteredEvents} />
-              <ActivityTable events={filteredEvents} />
-            </>
-          )}
-        </main>
-      </div>
-    </div>
+    <>
+      <a className="skip-link" href="#main">
+        Skip to the activity
+      </a>
+      {state.status === 'loading' ? <Loading title={site.title} /> : null}
+      {state.status === 'error' ? <LoadError title={site.title} message={state.message} onRetry={reload} /> : null}
+      {state.status === 'ready' && state.data.items.length === 0 ? <NoData title={site.title} /> : null}
+      {state.status === 'ready' && state.data.items.length > 0 ? (
+        <Dashboard data={state.data} theme={theme} onToggleTheme={toggleTheme} />
+      ) : null}
+    </>
   );
 }
