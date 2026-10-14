@@ -1,9 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ProjectBreakdown, Totals } from '../data/aggregate';
-import { formatCompact, formatInt, formatMonth, plural } from '../data/format';
+import { formatInt, formatMonth, plural } from '../data/format';
 import type { Person } from '../data/types';
-import { useWidth } from '../hooks/useSize';
 import type { Theme } from '../hooks/useTheme';
+import { Ribbon } from './Ribbon';
 import './Hero.css';
 
 export interface HeroMetrics {
@@ -69,49 +68,8 @@ function ThemeToggle({ theme, onToggle }: { theme: Theme; onToggle: () => void }
   );
 }
 
-/** Horizontal padding inside a ribbon segment, both sides together. */
-const SEGMENT_PADDING = 26;
-
-/**
- * Measures text in the real font so a label is only drawn where it fits. The measurement is
- * repeated once web fonts finish loading, because the fallback font is wider or narrower.
- */
-function useTextWidth(font: string) {
-  const [loaded, setLoaded] = useState(0);
-  const context = useMemo(() => document.createElement('canvas').getContext('2d'), []);
-
-  useEffect(() => {
-    let cancelled = false;
-    document.fonts?.ready.then(() => {
-      if (!cancelled) setLoaded((n) => n + 1);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  return useCallback(
-    (text: string) => {
-      if (!context) return text.length * 8;
-      context.font = font;
-      return context.measureText(text).width;
-    },
-    // `loaded` is a dependency on purpose: it changes when the fonts become available.
-    [context, font, loaded],
-  );
-}
-
-/** WCAG 2.2 minimum pointer target. */
-const MIN_TARGET = 24;
-
 export function Hero(props: Props) {
   const { totals, metrics, breakdown } = props;
-  const { ref: ribbonRef, width: ribbonWidth } = useWidth<HTMLUListElement>(960);
-  const nameWidth = useTextWidth('600 13px "Archivo Variable", sans-serif');
-  const valueWidth = useTextWidth('700 13px "Archivo Variable", sans-serif');
-  const total = breakdown.projects.reduce((sum, p) => sum + p.value, 0);
-  const usable = Math.max(ribbonWidth - 2 * Math.max(breakdown.projects.length - 1, 0), 0);
-  const measureLabel = breakdown.measure === 'score' ? 'by contribution score' : 'by pull requests and issues';
   const places = `${plural(props.projectCount, 'project')} and ${plural(props.repoCount, 'repository', 'repositories')}`;
   const start = props.span ? formatMonth(props.span.from) : null;
   const many = props.people.length > 1;
@@ -163,56 +121,11 @@ export function Hero(props: Props) {
         ) : null}
 
         {breakdown.projects.length > 0 ? (
-          <section className="ribbon" aria-label="Where the work went">
-            <div className="ribbon__head">
-              <h2 className="ribbon__title">Where the work went</h2>
-              <p className="ribbon__measure">{measureLabel}</p>
-            </div>
-            <ul className="ribbon__bar" ref={ribbonRef}>
-              {breakdown.projects.map((project, i) => {
-                const share = total > 0 ? project.value / total : 0;
-                const selected = props.selectedProjects.includes(project.project);
-                const dim = props.selectedProjects.length > 0 && !selected;
-                const value = breakdown.measure === 'score' ? formatCompact(project.value) : formatInt(project.value);
-                const room = share * usable;
-                const interactive = room >= MIN_TARGET;
-                const showName = room >= nameWidth(project.project) + SEGMENT_PADDING;
-                const showValue = room >= valueWidth(value) + SEGMENT_PADDING;
-                return (
-                  <li key={project.project} style={{ flexGrow: Math.max(project.value, 0.0001), ['--i' as string]: i }}>
-                    {interactive ? (
-                      <button
-                        type="button"
-                        className="ribbon__seg"
-                        data-selected={selected || undefined}
-                        data-dim={dim || undefined}
-                        data-narrow={!showValue || undefined}
-                        aria-pressed={selected}
-                        title={`${project.project}: ${value}`}
-                        onClick={() => props.onToggleProject(project.project)}
-                      >
-                        {showName ? <span className="ribbon__name">{project.project}</span> : null}
-                        {showValue ? <span className="ribbon__value">{value}</span> : null}
-                        {!showName && !showValue ? (
-                          <span className="visually-hidden">{`${project.project}: ${value}`}</span>
-                        ) : null}
-                      </button>
-                    ) : (
-                      <span
-                        className="ribbon__seg ribbon__seg--static"
-                        data-selected={selected || undefined}
-                        data-dim={dim || undefined}
-                        data-narrow
-                        title={`${project.project}: ${value}`}
-                        role="img"
-                        aria-label={`${project.project}: ${value}`}
-                      />
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
+          <Ribbon
+            breakdown={breakdown}
+            selected={props.selectedProjects}
+            onToggle={props.onToggleProject}
+          />
         ) : null}
       </div>
     </header>
