@@ -13,7 +13,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # A pull request that only touches the dashboard or the documentation does not need the Python
       # checks, which take about a minute and make a few dozen GitHub API requests. This job always
@@ -29,9 +29,13 @@ jobs:
 
       - name: Set up Python
         if: steps.changes.outputs.python == 'true' || steps.changes.outputs.output == 'true'
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v7
         with:
           python-version: '3.x'
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
 
       - name: Install dependencies
         if: steps.changes.outputs.python == 'true' || steps.changes.outputs.output == 'true'
