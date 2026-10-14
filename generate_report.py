@@ -102,7 +102,7 @@ def get_all_pages(url, params, max_retries=10, backoff_factor=0.3, with_paginati
                     return results
 
                 if with_pagination:
-                    if url == f"{GITHUB_API_URL}/search/issues":
+                    if url.startswith(f"{GITHUB_API_URL}/search/"):
                         # For search API, check if there are more pages
                         total_count = data.get('total_count', 0)
                         items = data.get('items', [])
@@ -543,6 +543,58 @@ def get_user_search_activity(user, repos, start_date, end_date, want_items=True,
     return result
 
 
+# Below this many repositories a commit search costs more than the per-repository listing it saves.
+_COMMIT_PRUNING_MIN_REPOS = 4
+
+
+def get_user_commit_repos(user, repos, start_date, end_date):
+    """
+    Work out which repositories a user has any commits in, with a single owner-scoped commit search.
+
+    Listing a user's commits is one REST call per (user, repo) pair, so it grows with users times
+    repositories while most pairs have no commits at all. This lets the caller skip those pairs. It is
+    only a filter: exact counts still come from the list-commits API for the pairs that remain, so
+    commits too recent to be indexed by search are still counted in any repository that has older ones.
+
+    Returns None when the answer cannot be trusted (the search was truncated at the API's 1,000-result
+    cap, flagged incomplete, or failed) or is not worth a search, meaning "do not prune".
+
+    Args:
+        user (str): The GitHub username.
+        repos (list): Repositories in "owner/repo" form.
+        start_date (str): "YYYY-MM-DD".
+        end_date (str): "YYYY-MM-DD".
+
+    Returns:
+        set or None: Configured repositories that contain at least one commit by the user.
+    """
+    if len(repos) < _COMMIT_PRUNING_MIN_REPOS:
+        return None
+
+    by_lower = {r.lower(): r for r in repos}
+    owners = sorted({r.split('/')[0].lower() for r in repos})
+    found = set()
+    url = f"{GITHUB_API_URL}/search/commits"
+
+    try:
+        for i in range(0, len(owners), _OWNERS_PER_QUERY):
+            scope = ' '.join(f"user:{o}" for o in owners[i:i + _OWNERS_PER_QUERY])
+            query = f"author:{user} {scope} committer-date:{start_date}..{end_date}"
+            meta = {}
+            items = get_all_pages(url, {"q": query, "per_page": 100}, meta=meta)
+            if meta.get('incomplete_results', False) or meta.get('total_count', len(items)) > len(items):
+                return None
+            for item in items:
+                name = (item.get('repository') or {}).get('full_name', '').lower()
+                if name in by_lower:
+                    found.add(by_lower[name])
+    except Exception as e:
+        logger.warning(f"Could not search commits for '{user}', listing every repository instead: {e}")
+        return None
+
+    return found
+
+
 def get_pr_count_reviewed_by_user(user, repo, start_date, end_date=None, per_page=100):
     """
     Retrieve code review comments for a specific user in a repository using GitHub Search API.
@@ -761,6 +813,15 @@ def process_github_data(start_date, end_date, users, project_to_repo_dict, contr
                 logger.info(f"User '{user}': items {'complete' if user_activity[user]['items_complete'] else 'TRUNCATED, using per-repository queries'}, "
                             f"reviews {'complete' if user_activity[user]['reviews_complete'] else 'TRUNCATED, using per-repository queries'}")
 
+        # Which repos does each user have commits in? Lets the loop skip the listing for the rest.
+        user_commit_repos = {}
+        if commits_cfg['enabled'] or line_stats_cfg['enabled']:
+            for user in users:
+                user_commit_repos[user] = get_user_commit_repos(user, all_repos, start_date, end_date)
+                known = user_commit_repos[user]
+                if known is not None:
+                    logger.info(f"User '{user}' has commits in {len(known)}/{len(all_repos)} repositories")
+
         # Populate the data list with dictionaries
         logger.info("Fetching contribution data...")
         for project_key, repo_list in project_to_repo_dict.items():
@@ -778,7 +839,11 @@ def process_github_data(start_date, end_date, users, project_to_repo_dict, contr
 
                     # Commits — always fetch when line_stats needs the SHA list too
                     need_commits = commits_cfg['enabled'] or line_stats_cfg['enabled']
-                    if need_commits:
+                    has_commits = user_commit_repos.get(user)
+                    if need_commits and has_commits is not None and repo not in has_commits:
+                        commits = []
+                        commit_count = 0
+                    elif need_commits:
                         commits = get_commits(user, repo, formatted_start_date, formatted_end_date)
                         commit_count = len(commits) if commits_cfg['enabled'] else 0
                     else:

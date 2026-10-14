@@ -92,3 +92,47 @@ def test_query_count_depends_on_users_not_pairs(monkeypatch):
     run()
     # per user: one for PRs and issues, one for reviews (a single owner, so a single chunk each)
     assert len(calls.broad) == 4
+
+
+def commit(sha, repo):
+    return {"sha": sha, "repository": {"full_name": repo}}
+
+
+def test_commit_lookups_are_skipped_for_repos_without_commits(monkeypatch):
+    repos = {"P": [f"apache/r{i}" for i in range(5)]}
+    install(monkeypatch, [])
+    listed = []
+    monkeypatch.setattr(g, "get_commits", lambda user, repo, *a, **k: listed.append((user, repo)) or [])
+    base_pages = g.get_all_pages
+
+    def pages(url, params, *a, meta=None, **k):
+        if url.endswith("/search/commits"):
+            if meta is not None:
+                meta["total_count"] = 1
+                meta["incomplete_results"] = False
+            return [commit("s", "apache/r2")]
+        return base_pages(url, params, *a, meta=meta, **k)
+
+    monkeypatch.setattr(g, "get_all_pages", pages)
+    data, _ = g.process_github_data("2024-01-01", "2024-12-31", ["ada"], repos, CFG)
+    assert listed == [("ada", "apache/r2")]
+    assert len(data) == 5  # every pair still gets a row, as before
+
+
+def test_commits_are_listed_for_every_repo_when_pruning_is_not_possible(monkeypatch):
+    repos = {"P": [f"apache/r{i}" for i in range(5)]}
+    install(monkeypatch, [])
+    listed = []
+    monkeypatch.setattr(g, "get_commits", lambda user, repo, *a, **k: listed.append(repo) or [])
+    base_pages = g.get_all_pages
+
+    def pages(url, params, *a, meta=None, **k):
+        if url.endswith("/search/commits"):
+            if meta is not None:
+                meta["total_count"] = 9999   # truncated
+            return []
+        return base_pages(url, params, *a, meta=meta, **k)
+
+    monkeypatch.setattr(g, "get_all_pages", pages)
+    g.process_github_data("2024-01-01", "2024-12-31", ["ada"], repos, CFG)
+    assert sorted(listed) == sorted(repos["P"])
