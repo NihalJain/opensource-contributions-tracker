@@ -180,3 +180,6 @@ cython_debug/
 dashboard/app/node_modules/
 dashboard/app/dist/
 dashboard/worker/node_modules/
+# Created by `wrangler dev` / `wrangler deploy` when run from dashboard/
+dashboard/.wrangler/
+dashboard/node_modules/
