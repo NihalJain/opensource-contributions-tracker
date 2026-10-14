@@ -46,10 +46,12 @@ npm install
 npm run dev        # http://localhost:5173
 ```
 
-Create `dashboard/app/.env.local` to point at the local Worker during development:
+The dev server proxies `/activity.json` to the local Worker on port 8787, so start the Worker (below) first. No `.env` file is needed.
+
+To use a different API during development, create `dashboard/app/.env.local`:
 
 ```
-VITE_ACTIVITY_API_URL=http://localhost:8787/activity.json
+VITE_ACTIVITY_API_URL=https://<your-worker-url>/activity.json
 ```
 
 ### Cloudflare Worker
@@ -64,9 +66,31 @@ npx wrangler dev worker/src/index.ts --port 8787
 
 ## Environment variables
 
-| Variable | Default | Description |
-|---|---|---|
-| `VITE_ACTIVITY_API_URL` | `https://opensource-contribs-data.workers.dev/activity.json` | Worker endpoint used by the frontend |
+| Variable | Where | Default | Description |
+|---|---|---|---|
+| `VITE_ACTIVITY_API_URL` | Frontend build (`.env.local`) | `/activity.json` | API endpoint used by the frontend. The default is same-origin, which works on any `*.workers.dev` URL or custom domain. Set it only if the API is hosted on a different origin. |
+| `DATA_URL` | Worker (`[vars]` in `wrangler.toml`) | this repository's `output/github_activity_data.json` | Raw URL of the JSON feed the Worker proxies and caches. **Forks must change this.** The URL must be publicly readable. |
+
+Because `DATA_URL` is declared in `wrangler.toml`, edit it there rather than in the Cloudflare dashboard. A value changed in the dashboard is overwritten on the next `wrangler deploy`.
+
+---
+
+## Hosting your own copy (fork checklist)
+
+Nothing in this repository is tied to a specific domain or Cloudflare account, so anyone can fork it and host the same dashboard.
+
+1. **Fork the repository** and configure `input/github.json` (see the root README). Let the report workflow run so `output/github_activity_data.json` exists on your default branch.
+2. **Point the Worker at your data.** In `dashboard/wrangler.toml`, set `DATA_URL` to your fork's raw URL:
+
+   ```toml
+   [vars]
+   DATA_URL = "https://raw.githubusercontent.com/<owner>/<repo>/main/output/github_activity_data.json"
+   ```
+
+   Skipping this step means your dashboard shows the upstream repository's data.
+3. **(Optional) Rename the Worker** by changing `name` in `wrangler.toml`.
+4. **Deploy** with [Method A (CLI)](#method-a--cli-wrangler-deploy) or [Method B (GitHub Actions)](#method-b--github-actions-automated-deploy). Method B needs the `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` repository secrets.
+5. **(Optional) Add a custom domain** in the Cloudflare dashboard ([Method C](#method-c--cloudflare-dashboard-ui)). The domain lives in your Cloudflare account, not in the repository, so it never affects forks.
 
 ---
 

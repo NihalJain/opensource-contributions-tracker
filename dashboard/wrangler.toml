@@ -2,6 +2,11 @@ name = "opensource-contribs-data"
 main = "worker/src/index.ts"
 compatibility_date = "2024-01-01"
 
+[vars]
+# Raw URL of the JSON feed that the report workflow commits to your repository.
+# Forks: replace <owner>/<repo> (and the branch, if not `main`) with your own.
+DATA_URL = "https://raw.githubusercontent.com/NihalJain/opensource-contributions-tracker/main/output/github_activity_data.json"
+
 [build]
 command = "npm --prefix app install && npm --prefix app run build"
 

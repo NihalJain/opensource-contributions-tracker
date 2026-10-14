@@ -1,5 +1,3 @@
-const DATA_URL =
-  'https://raw.githubusercontent.com/NihalJain/opensource-contributions-tracker/main/output/github_activity_data.json';
 const CACHE_KEY = 'https://data.internal/activity.json';
 
 const CORS_HEADERS: Record<string, string> = {
@@ -10,6 +8,8 @@ const CORS_HEADERS: Record<string, string> = {
 
 interface Env {
   ASSETS: Fetcher;
+  /** Raw URL of the activity JSON feed; set under [vars] in wrangler.toml. */
+  DATA_URL: string;
 }
 
 export default {
@@ -21,6 +21,13 @@ export default {
     }
 
     if (request.method === 'GET' && url.pathname === '/activity.json') {
+      if (!env.DATA_URL) {
+        return new Response('DATA_URL is not configured. Set it under [vars] in dashboard/wrangler.toml.', {
+          status: 500,
+          headers: CORS_HEADERS,
+        });
+      }
+
       const bypassCache = url.searchParams.get('refresh') === '1';
       const cache = caches.default;
 
@@ -34,7 +41,7 @@ export default {
       }
 
       const fetchInit: RequestInit = bypassCache ? { cache: 'no-store' } : {};
-      const upstream = await fetch(DATA_URL, fetchInit);
+      const upstream = await fetch(env.DATA_URL, fetchInit);
       if (!upstream.ok) {
         return new Response(`Upstream error: ${upstream.status}`, {
           status: 502,
