@@ -162,22 +162,38 @@ def get_repositories_contributed_to(username: str, per_page: int = 100) -> list[
     return sorted(repositories, key=str.lower)
 
 
-def get_top_contributors(repo, per_page=100):
+def get_top_contributors(repo, per_page=100, wanted=None):
     """
-    Retrieve top 500 contributors for a repository.
+    Retrieve top 500 contributors for a repository, ordered by contribution count.
+
+    Contributors are only needed to read off the rank of the people being tracked, so when `wanted`
+    is given paging stops as soon as every one of them has been seen. Ranks of the people found are
+    unchanged; the list simply ends sooner.
 
     Args:
         repo (str): The repository name.
         per_page (int): The number of results per page.
+        wanted (iterable): Optional logins to look for, matched case-insensitively. When omitted the
+            whole list is fetched, as before.
 
     Returns:
         list: A list of contributors.
     """
-    params = {
-        "per_page": per_page
-    }
     contributors_url = f"{GITHUB_API_URL}/repos/{repo}/contributors"
-    return get_all_pages(contributors_url, params)
+    if wanted is None:
+        return get_all_pages(contributors_url, {"per_page": per_page})
+
+    remaining = {str(w).lower() for w in wanted}
+    results = []
+    for page in range(1, _CONTRIBUTOR_PAGES + 1):
+        data = get_all_pages(contributors_url, {"per_page": per_page, "page": page}, with_pagination=False)
+        if not data:
+            break
+        results.extend(data)
+        remaining -= {str(c.get("login", "")).lower() for c in data}
+        if not remaining or len(data) < per_page:
+            break
+    return results
 
 
 def get_commits(user, repo, since_date, until_date=None, per_page=100):
@@ -457,6 +473,9 @@ def get_user_issues_via_search(user, repo, start_date, end_date=None, per_page=1
         'open': open_issues,
         'closed': closed_issues
     }
+
+# GitHub only lists a repository's top 500 contributors: five pages of 100.
+_CONTRIBUTOR_PAGES = 5
 
 # Owners per search query: the Search API limits how many operators a query may contain.
 _OWNERS_PER_QUERY = 4
@@ -787,16 +806,18 @@ def process_github_data(start_date, end_date, users, project_to_repo_dict, contr
             user_info_dict[user] = {"name": user_info.get('name', user), "avatar_url": user_info.get('avatar_url'),
                                     "url": user_info.get('html_url')}
 
-        logger.info("Processing project data...")
+        # Repository details are only needed for repositories someone was active in, so they are
+        # fetched on first use inside the loop below.
         repo_info_dict = {}
-        for project_key, repo_list in project_to_repo_dict.items():
-            logger.info(f"Processing project: {project_key}")
-            for repo in repo_list:
-                logger.info(f"Processing repository: {repo}")
-                repo_info = get_repo_info(repo)
-                repo_info_dict[repo] = {"name": repo_info.get('full_name', user),
-                                        "description": repo_info.get('description'), "url": repo_info.get('html_url'),
-                                        "avatar_url": repo_info.get('owner', {}).get('avatar_url')}
+
+        def repo_details(repo):
+            if repo not in repo_info_dict:
+                logger.info(f"Fetching details for repository: {repo}")
+                info = get_repo_info(repo)
+                repo_info_dict[repo] = {"name": info.get('full_name', repo),
+                                        "description": info.get('description'), "url": info.get('html_url'),
+                                        "avatar_url": info.get('owner', {}).get('avatar_url')}
+            return repo_info_dict[repo]
 
         # One owner-scoped search per user replaces three searches per (user, repo) pair. A user whose
         # results were truncated by the Search API falls back to the per-repository queries below.
@@ -829,10 +850,8 @@ def process_github_data(start_date, end_date, users, project_to_repo_dict, contr
             for repo in repo_list:
                 logger.info(f"Processing repository: {repo}")
 
-                logger.info(f"Fetching top 500 contributors for: {repo}")
-                top_contributors = get_top_contributors(repo)
-                top_contributors_rank = {str(c["login"]).lower(): rank
-                                         for rank, c in enumerate(top_contributors, start=1)}
+                # Rows are completed after the users loop, once we know whether anyone was active here
+                repo_rows = []  # (github row, activity record, user was active in this repo)
 
                 for user in users:
                     logger.info(f"Processing user: {user}")
@@ -911,8 +930,8 @@ def process_github_data(start_date, end_date, users, project_to_repo_dict, contr
                     total_lines_removed = lines_removed_commits + lines_removed_prs
 
                     user_info = user_info_dict[user]
-                    repo_info = repo_info_dict[repo]
-                    contributor_rank = top_contributors_rank.get(user, -1)
+                    was_active = (commit_count + open_pr_count + closed_pr_count + open_issue_count
+                                  + closed_issue_count + code_review_count) > 0
 
                     # Overall contribution score — only enabled metrics with count_towards_score=true
                     overall_contribution = 0
@@ -929,13 +948,13 @@ def process_github_data(start_date, end_date, users, project_to_repo_dict, contr
                     if code_reviews_cfg['enabled'] and code_reviews_cfg['count_towards_score']:
                         overall_contribution += code_review_count
 
-                    github_data.append(
+                    row = (
                         {
                             "Project Key": project_key,
                             "Repository": repo,
-                            "Repository URL": repo_info['url'],
-                            "Repository Description": repo_info['description'],
-                            "Repository Avatar": repo_info['avatar_url'],
+                            "Repository URL": None,
+                            "Repository Description": None,
+                            "Repository Avatar": None,
                             "User": user_info['name'] if user_info['name'] else user,
                             "User Avatar": user_info['avatar_url'],
                             "User URL": user_info['url'],
@@ -951,24 +970,47 @@ def process_github_data(start_date, end_date, users, project_to_repo_dict, contr
                             "Lines Removed (Open PRs)": lines_removed_prs,
                             "Lines Added": total_lines_added,
                             "Lines Removed": total_lines_removed,
-                            "Rank": contributor_rank,
+                            "Rank": -1,
                             "Overall Contribution": overall_contribution
                         }
                     )
-                    activity_data.append(
+                    record = (
                         {
                             "user": user_info['name'] if user_info['name'] else user,
                             "user_url": user_info['url'],
                             "user_avatar": user_info['avatar_url'],
                             "project_key": project_key,
                             "repo": repo,
-                            "repo_url": repo_info['url'],
+                            "repo_url": None,
                             "open_prs": [_slim_pr(pr) for pr in user_prs['open']],
                             "closed_prs": [_slim_pr(pr) for pr in user_prs['closed']],
                             "open_issues": [_slim_issue(i) for i in user_issues['open']],
                             "closed_issues": [_slim_issue(i) for i in user_issues['closed']],
                         }
                     )
+                    repo_rows.append((row, record, was_active))
+
+                # Look the repository up only if someone was active in it. An idle repository keeps its
+                # zero rows (the report filters them) with a URL that needs no API call.
+                active_users = {user for (row, _, active), user in zip(repo_rows, users) if active}
+                if active_users:
+                    details = repo_details(repo)
+                    logger.info(f"Fetching top 500 contributors for: {repo}")
+                    ranks = {str(c["login"]).lower(): rank for rank, c in
+                             enumerate(get_top_contributors(repo, wanted=active_users), start=1)}
+                else:
+                    details = {"description": None, "avatar_url": None, "url": f"https://github.com/{repo}"}
+                    ranks = {}
+                    logger.info(f"No tracked activity in {repo}; skipping repository and contributor lookups")
+
+                for (row, record, active), user in zip(repo_rows, users):
+                    row["Repository URL"] = details["url"]
+                    row["Repository Description"] = details["description"]
+                    row["Repository Avatar"] = details["avatar_url"]
+                    row["Rank"] = ranks.get(user, -1)
+                    record["repo_url"] = details["url"]
+                    github_data.append(row)
+                    activity_data.append(record)
     except Exception as e:
         logger.error(f"An error occurred: {e}")
         raise

@@ -35,7 +35,7 @@ def install(monkeypatch, search_items, total_count=None):
     monkeypatch.setattr(g, "get_all_pages", fake_pages)
     monkeypatch.setattr(g, "get_user_info", lambda u: {"name": u, "avatar_url": "a", "html_url": "u"})
     monkeypatch.setattr(g, "get_repo_info", lambda r: {"full_name": r, "description": "", "html_url": "h", "owner": {"avatar_url": "x"}})
-    monkeypatch.setattr(g, "get_top_contributors", lambda r: [])
+    monkeypatch.setattr(g, "get_top_contributors", lambda r, *a, **k: [])
     monkeypatch.setattr(g, "get_commits", lambda *a, **k: [])
 
     def per_repo_prs(user, repo, *a, **k):
