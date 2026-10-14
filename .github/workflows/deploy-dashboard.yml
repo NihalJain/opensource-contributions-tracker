@@ -6,6 +6,10 @@ name: Deploy Dashboard
 #     CLOUDFLARE_ACCOUNT_ID secrets are set.
 # A target that is not configured is skipped with a notice in the run log. Pull requests only
 # build the dashboard as a check; they never publish.
+#
+# Only a run on `main` publishes. Running this workflow (or the nightly one that calls it) on any other
+# branch builds the dashboard as a check and stops there, so a branch carrying other data can never
+# replace the live site.
 
 on:
   pull_request:
@@ -60,7 +64,7 @@ jobs:
 
       - name: Check GitHub Pages
         id: pages
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -70,6 +74,10 @@ jobs:
             echo "::notice title=GitHub Pages deploy skipped::Set Settings > Pages > Source to GitHub Actions to publish the dashboard."
           fi
 
+      - name: Note that this run does not publish
+        if: github.event_name != 'pull_request' && github.ref != 'refs/heads/main'
+        run: echo "::notice title=Not published::Only runs on main publish the dashboard; this one built it as a check."
+
       - uses: actions/upload-pages-artifact@v5
         if: steps.pages.outputs.configured == 'true'
         with:
@@ -77,7 +85,7 @@ jobs:
 
   pages:
     needs: build
-    if: needs.build.outputs.publish == 'true'
+    if: needs.build.outputs.publish == 'true' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       pages: write
@@ -90,7 +98,7 @@ jobs:
         uses: actions/deploy-pages@v5
 
   cloudflare:
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: read
