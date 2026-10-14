@@ -111,6 +111,64 @@ def process_data_and_create_report(github_data_df, output_dir, report_filename, 
         raise
 
 
+_ITEM_TABLE_HEAD = ("| # | Title | Status | Created | Updated | Labels |\n"
+                    "|---|-------|--------|---------|---------|--------|\n")
+
+
+def _pr_status(pr):
+    if pr.get('state') == 'open':
+        return '🔄 Open'
+    if (pr.get('pull_request') or {}).get('merged_at'):
+        return '✅ Merged'
+    return '❌ Closed'
+
+
+def _issue_status(issue):
+    return '🔓 Open' if issue.get('state') == 'open' else '🔒 Closed'
+
+
+def _write_items(f, heading, items, status):
+    """A table of pull requests or issues, in number order."""
+    f.write(f"\n**{heading}**\n\n")
+    f.write(_ITEM_TABLE_HEAD)
+    for item in sorted(items, key=lambda x: x.get('number', 0)):
+        number = item.get('number', '')
+        title = item.get('title', '').replace('|', '\\|').replace('\r', '').replace('\n', ' ')
+        url = item.get('html_url', '')
+        created = item.get('created_at', '')[:10]
+        updated = item.get('updated_at', '')[:10]
+        labels = ', '.join(lbl['name'] for lbl in item.get('labels', []))
+        f.write(f"| [#{number}]({url}) | {title} | {status(item)} | {created} | {updated} | {labels} |\n")
+
+
+def _group(entries, key):
+    """{key value: [entries]} in first-seen order."""
+    groups = {}
+    for entry in entries:
+        groups.setdefault(entry[key], []).append(entry)
+    return groups
+
+
+def _write_project_activity(f, project_key, entries):
+    """One project's repositories with their pull requests and issues; nothing if there are none."""
+    repo_entries = [
+        (entry, entry['open_prs'] + entry['closed_prs'], entry['open_issues'] + entry['closed_issues'])
+        for entry in sorted(entries, key=lambda x: x['repo'])
+    ]
+    if not any(prs or issues for _, prs, issues in repo_entries):
+        return
+
+    f.write(f"\n#### {project_key}\n")
+    for entry, all_prs, all_issues in repo_entries:
+        if not all_prs and not all_issues:
+            continue
+        f.write(f"\n##### [{entry['repo']}]({entry['repo_url']})\n")
+        if all_prs:
+            _write_items(f, "Pull Requests", all_prs, _pr_status)
+        if all_issues:
+            _write_items(f, "Issues", all_issues, _issue_status)
+
+
 def _write_activity_details(f, activity_data):
     """
     Write the '## Activity Details' section listing every PR and issue per user / project / repo.
@@ -121,78 +179,12 @@ def _write_activity_details(f, activity_data):
                               PR and issue objects for one (user, project, repo) combination.
     """
     f.write("\n## Activity Details\n")
-
-    # Group entries by user display name, preserving first-seen metadata
-    users_map = {}
-    for entry in activity_data:
-        user = entry['user']
-        if user not in users_map:
-            users_map[user] = {'meta': entry, 'entries': []}
-        users_map[user]['entries'].append(entry)
-
-    for user, user_data in sorted(users_map.items()):
-        meta = user_data['meta']
+    for user, entries in sorted(_group(activity_data, 'user').items()):
+        meta = entries[0]
         f.write(f"\n### <img src='{meta['user_avatar']}' width='20' height='20'>"
                 f" [{user}]({meta['user_url']})\n")
-
-        # Group by project key
-        projects_map = {}
-        for entry in user_data['entries']:
-            pk = entry['project_key']
-            if pk not in projects_map:
-                projects_map[pk] = []
-            projects_map[pk].append(entry)
-
-        for project_key, proj_entries in sorted(projects_map.items()):
-            repo_entries = [
-                (entry, entry['open_prs'] + entry['closed_prs'], entry['open_issues'] + entry['closed_issues'])
-                for entry in sorted(proj_entries, key=lambda x: x['repo'])
-            ]
-            # Skip project entirely if no repo has any PRs or issues
-            if not any(prs or issues for _, prs, issues in repo_entries):
-                continue
-
-            f.write(f"\n#### {project_key}\n")
-
-            for entry, all_prs, all_issues in repo_entries:
-                if not all_prs and not all_issues:
-                    continue
-
-                f.write(f"\n##### [{entry['repo']}]({entry['repo_url']})\n")
-
-                if all_prs:
-                    f.write("\n**Pull Requests**\n\n")
-                    f.write("| # | Title | Status | Created | Updated | Labels |\n")
-                    f.write("|---|-------|--------|---------|---------|--------|\n")
-                    for pr in sorted(all_prs, key=lambda x: x.get('number', 0)):
-                        number = pr.get('number', '')
-                        title = pr.get('title', '').replace('|', '\\|').replace('\r', '').replace('\n', ' ')
-                        url = pr.get('html_url', '')
-                        created = pr.get('created_at', '')[:10]
-                        updated = pr.get('updated_at', '')[:10]
-                        labels = ', '.join(lbl['name'] for lbl in pr.get('labels', []))
-                        merged_at = (pr.get('pull_request') or {}).get('merged_at')
-                        if pr.get('state') == 'open':
-                            status = '🔄 Open'
-                        elif merged_at:
-                            status = '✅ Merged'
-                        else:
-                            status = '❌ Closed'
-                        f.write(f"| [#{number}]({url}) | {title} | {status} | {created} | {updated} | {labels} |\n")
-
-                if all_issues:
-                    f.write("\n**Issues**\n\n")
-                    f.write("| # | Title | Status | Created | Updated | Labels |\n")
-                    f.write("|---|-------|--------|---------|---------|--------|\n")
-                    for issue in sorted(all_issues, key=lambda x: x.get('number', 0)):
-                        number = issue.get('number', '')
-                        title = issue.get('title', '').replace('|', '\\|').replace('\r', '').replace('\n', ' ')
-                        url = issue.get('html_url', '')
-                        created = issue.get('created_at', '')[:10]
-                        updated = issue.get('updated_at', '')[:10]
-                        labels = ', '.join(lbl['name'] for lbl in issue.get('labels', []))
-                        status = '🔓 Open' if issue.get('state') == 'open' else '🔒 Closed'
-                        f.write(f"| [#{number}]({url}) | {title} | {status} | {created} | {updated} | {labels} |\n")
+        for project_key, project_entries in sorted(_group(entries, 'project_key').items()):
+            _write_project_activity(f, project_key, project_entries)
 
 
 def _repo_markdown(repo, url, avatar):
@@ -200,6 +192,127 @@ def _repo_markdown(repo, url, avatar):
     if not isinstance(url, str) or not url:
         return str(repo)
     return f"<img src='{avatar}' width='12' height='12'> [{repo}]({url})"
+
+
+def _user_markdown(user, url, avatar):
+    return f"<img src='{avatar}' width='12' height='12'> [{user}]({url})"
+
+
+# (metric, summary label, data column) for the counted metrics, in report order
+_SUMMARY_METRICS = [
+    ('commits', "Number of commits to master", 'Commits'),
+    ('open_prs', "Number of pull requests (Open)", 'Pull Requests (Open)'),
+    ('closed_prs', "Number of pull requests (Closed)", 'Pull Requests (Closed)'),
+    ('open_issues', "Number of issues (Open)", 'Issues (Open)'),
+    ('closed_issues', "Number of issues (Closed)", 'Issues (Closed)'),
+    ('code_reviews', "Total unique PRs reviewed", 'Code Reviews'),
+]
+_SUMMARY_LINE_STATS = [
+    ("Lines added (commits)", 'Lines Added (Merged)'),
+    ("Lines removed (commits)", 'Lines Removed (Merged)'),
+    ("Lines added (open PRs)", 'Lines Added (Open PRs)'),
+    ("Lines removed (open PRs)", 'Lines Removed (Open PRs)'),
+    ("Overall lines added", 'Lines Added'),
+    ("Overall lines removed", 'Lines Removed'),
+]
+# The count columns every summary table shows, in order
+_COUNT_CELLS = ['Commits', 'Pull Requests (Open)', 'Pull Requests (Closed)', 'Issues (Open)', 'Issues (Closed)',
+                'Code Reviews']
+_LINE_CELLS = ['Lines Added (Merged)', 'Lines Removed (Merged)', 'Lines Added (Open PRs)', 'Lines Removed (Open PRs)',
+               'Lines Added', 'Lines Removed']
+
+
+def _write_header(f, start_date, end_date):
+    f.write("# OpenSource Contributions Report\n\n")
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    f.write(f"*Report auto-generated on: {current_time} for period {start_date or 'N/A'} to {end_date or 'N/A'}*\n\n")
+
+
+def _write_summary(f, github_data_df, users_df, projects_df, contribution_config):
+    """The overall totals; a * marks the metrics that count towards the contribution total."""
+    metrics = {m: config._metric_cfg(contribution_config, m) for m in config.METRICS}
+    include_line_stats = config._line_stats_cfg(contribution_config)['enabled']
+
+    f.write("## Overall Summary\n\n")
+    f.write("| Metric | Value |\n")
+    f.write("|--------|-------|\n")
+    f.write(f"| Total number of projects | {len(projects_df)} |\n")
+    if len(users_df) > 1:
+        f.write(f"| Total number of contributors | {len(users_df)} |\n")
+    f.write(f"| Total number of repositories | {len(github_data_df['Repository'].unique())} |\n")
+    f.write(f"| Total number of contributions | {github_data_df['Overall Contribution'].sum()} |\n")
+    for metric, label, column in _SUMMARY_METRICS:
+        cfg = metrics[metric]
+        if cfg['enabled']:
+            marker = "*" if cfg['count_towards_score'] else ""
+            f.write(f"| {label}{marker} | {github_data_df[column].sum()} |\n")
+    if include_line_stats:
+        for label, column in _SUMMARY_LINE_STATS:
+            f.write(f"| {label} | {github_data_df[column].sum():,} |\n")
+
+    f.write("\n**Note:** Fields marked with * contribute to the total contribution count.\n")
+
+
+def _write_charts(f, output_dir, users_df, projects_df, percentage):
+    """Draw the project and user pie charts and show them side by side."""
+    project_wise_contribution_fname = "project_wise_contribution.png"
+    create_pie_chart("Project wise Contributions", projects_df, 'Project Key',
+                     os.path.join(output_dir, project_wise_contribution_fname))
+
+    user_wise_contribution_fname = "user_wise_contribution.png"
+    create_pie_chart("User wise Contributions", users_df, 'User',
+                     os.path.join(output_dir, user_wise_contribution_fname), percentage)
+
+    f.write(f'\n<div style="display: flex; justify-content: space-around;">\n'
+            f'  <img src="{project_wise_contribution_fname}" alt="Project wise Contributions" style="width:45%;">\n'
+            f'  <img src="{user_wise_contribution_fname}" alt="User wise Contributions" style="width:45%;">\n'
+            f'</div>\n')
+
+
+def _counts(row, columns):
+    return " | ".join(str(row[c]) for c in columns)
+
+
+def _write_project_table(f, projects_df):
+    """Projects, highest overall contribution first."""
+    f.write("\n## Summary of Contributions by each project\n\n")
+    f.write("| Project Key | Repositories | Users | Commits | Pull Requests (Open) | Pull Requests (Closed) | Issues (Open) | Issues (Closed) | Code Reviews | Overall Contribution |\n")
+    f.write("|--------------|--------------|-------|---------|----------------------|----------------------|----------------|----------------|--------------|----------------------|\n")
+    for _, row in projects_df.sort_values(by=['Overall Contribution'], ascending=False).iterrows():
+        repo_list = '<br>'.join(_repo_markdown(*repo) for repo in row['Repositories'])
+        user_list = '<br>'.join(_user_markdown(*user) for user in row['Users'])
+        f.write(f"| {row['Project Key']} | {repo_list} | {user_list} | {_counts(row, _COUNT_CELLS)} | {row['Overall Contribution']} |\n")
+
+
+def _write_user_table(f, users_df):
+    """Users, highest overall contribution first."""
+    f.write("\n## Summary of Contributions by each user\n\n")
+    f.write("| User | Repositories | Commits | Pull Requests (Open) | Pull Requests (Closed) | Issues (Open) | Issues (Closed) | Code Reviews | Overall Contribution |\n")
+    f.write("|------|--------------|---------|----------------------|----------------------|----------------|----------------|--------------|----------------------|\n")
+    for _, row in users_df.sort_values(by=['Overall Contribution'], ascending=False).iterrows():
+        user = _user_markdown(row['User'], row['User URL'], row['User Avatar'])
+        repo_list = '<br>'.join(_repo_markdown(*repo) for repo in row['Repositories'])
+        f.write(f"| {user} | {repo_list} | {_counts(row, _COUNT_CELLS)} | {row['Overall Contribution']} |\n")
+
+
+def _write_detailed_table(f, github_data_df, include_line_stats):
+    """One row per (project, repository, user), by user; line counts only when line stats are on."""
+    f.write("\n## Detailed Contributions\n\n")
+    if include_line_stats:
+        f.write("| Project Key | Repository | User | Rank | Commits | Pull Requests (Open) | Pull Requests (Closed) | Issues (Open) | Issues (Closed) | Code Reviews | Lines Added (Merged) | Lines Removed (Merged) | Lines Added (Open PRs) | Lines Removed (Open PRs) | Lines Added | Lines Removed | Overall Contribution |\n")
+        f.write("|--------------|------------|------|------|---------|----------------------|----------------------|----------------|----------------|--------------|---------------------|----------------------|----------------------|-------------------------|-------------|---------------|----------------------|\n")
+    else:
+        f.write("| Project Key | Repository | User | Rank | Commits | Pull Requests (Open) | Pull Requests (Closed) | Issues (Open) | Issues (Closed) | Code Reviews | Overall Contribution |\n")
+        f.write("|--------------|------------|------|------|---------|----------------------|----------------------|----------------|----------------|--------------|----------------------|\n")
+    for _, row in github_data_df.sort_values(by=['User'], ascending=[True]).iterrows():
+        rank_display = row['Rank'] if row['Rank'] != -1 else 'N/A'
+        cells = [row['Project Key'], _repo_markdown(row['Repository'], row['Repository URL'], row['Repository Avatar']),
+                 _user_markdown(row['User'], row['User URL'], row['User Avatar']), rank_display]
+        cells += [row[c] for c in _COUNT_CELLS]
+        if include_line_stats:
+            cells += [f"{row[c]:,}" for c in _LINE_CELLS]
+        cells.append(row['Overall Contribution'])
+        f.write("| " + " | ".join(str(c) for c in cells) + " |\n")
 
 
 def create_markdown_report(github_data_df, users_df, projects_df, output_dir, report_filename, percentage, start_date=None, end_date=None, contribution_config=None, activity_data=None):
@@ -215,155 +328,20 @@ def create_markdown_report(github_data_df, users_df, projects_df, output_dir, re
         percentage (int): The percentage threshold for grouping smaller values into 'Other'. This value represents the
             percentage of the maximum contribution. Defaults to -1 (no grouping).
     """
-    # Ensure the output directory exists
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
         logger.info(f"Created output directory: {output_dir}")
 
     with open(os.path.join(output_dir, report_filename), 'w') as f:
-        # Add title of the report
-        f.write("# OpenSource Contributions Report\n\n")
-
-        # Add current time and date range
-        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        f.write(f"*Report auto-generated on: {current_time} for period {start_date or 'N/A'} to {end_date or 'N/A'}*\n\n")
-
-        # Add Summary
-        number_of_users = len(users_df)
-        number_of_projects = len(projects_df)
-        number_of_repos = len(github_data_df['Repository'].unique())
-        total_overall_contributions = github_data_df['Overall Contribution'].sum()
-        total_number_of_commits = github_data_df['Commits'].sum()
-        total_number_of_open_prs = github_data_df['Pull Requests (Open)'].sum()
-        total_number_of_closed_prs = github_data_df['Pull Requests (Closed)'].sum()
-        total_number_of_open_issues = github_data_df['Issues (Open)'].sum()
-        total_number_of_closed_issues = github_data_df['Issues (Closed)'].sum()
-        total_number_of_code_reviews = github_data_df['Code Reviews'].sum()
-        total_lines_added = github_data_df['Lines Added'].sum()
-        total_lines_removed = github_data_df['Lines Removed'].sum()
-        total_lines_added_merged = github_data_df['Lines Added (Merged)'].sum()
-        total_lines_removed_merged = github_data_df['Lines Removed (Merged)'].sum()
-        total_lines_added_open_prs = github_data_df['Lines Added (Open PRs)'].sum()
-        total_lines_removed_open_prs = github_data_df['Lines Removed (Open PRs)'].sum()
-
-        # Resolve per-metric config for report rendering
-        commits_cfg = config._metric_cfg(contribution_config, 'commits')
-        open_prs_cfg = config._metric_cfg(contribution_config, 'open_prs')
-        closed_prs_cfg = config._metric_cfg(contribution_config, 'closed_prs')
-        open_issues_cfg = config._metric_cfg(contribution_config, 'open_issues')
-        closed_issues_cfg = config._metric_cfg(contribution_config, 'closed_issues')
-        code_reviews_cfg = config._metric_cfg(contribution_config, 'code_reviews')
-        include_line_stats = config._line_stats_cfg(contribution_config)['enabled']
-
-        def _marker(cfg):
-            return "*" if cfg['enabled'] and cfg['count_towards_score'] else ""
-
-        # Add summary table
-        f.write("## Overall Summary\n\n")
-        f.write("| Metric | Value |\n")
-        f.write("|--------|-------|\n")
-        f.write(f"| Total number of projects | {number_of_projects} |\n")
-        if number_of_users > 1:
-            f.write(f"| Total number of contributors | {number_of_users} |\n")
-        f.write(f"| Total number of repositories | {number_of_repos} |\n")
-        f.write(f"| Total number of contributions | {total_overall_contributions} |\n")
-        if commits_cfg['enabled']:
-            f.write(f"| Number of commits to master{_marker(commits_cfg)} | {total_number_of_commits} |\n")
-        if open_prs_cfg['enabled']:
-            f.write(f"| Number of pull requests (Open){_marker(open_prs_cfg)} | {total_number_of_open_prs} |\n")
-        if closed_prs_cfg['enabled']:
-            f.write(f"| Number of pull requests (Closed){_marker(closed_prs_cfg)} | {total_number_of_closed_prs} |\n")
-        if open_issues_cfg['enabled']:
-            f.write(f"| Number of issues (Open){_marker(open_issues_cfg)} | {total_number_of_open_issues} |\n")
-        if closed_issues_cfg['enabled']:
-            f.write(f"| Number of issues (Closed){_marker(closed_issues_cfg)} | {total_number_of_closed_issues} |\n")
-        if code_reviews_cfg['enabled']:
-            f.write(f"| Total unique PRs reviewed{_marker(code_reviews_cfg)} | {total_number_of_code_reviews} |\n")
-        if include_line_stats:
-            f.write(f"| Lines added (commits) | {total_lines_added_merged:,} |\n")
-            f.write(f"| Lines removed (commits) | {total_lines_removed_merged:,} |\n")
-            f.write(f"| Lines added (open PRs) | {total_lines_added_open_prs:,} |\n")
-            f.write(f"| Lines removed (open PRs) | {total_lines_removed_open_prs:,} |\n")
-            f.write(f"| Overall lines added | {total_lines_added:,} |\n")
-            f.write(f"| Overall lines removed | {total_lines_removed:,} |\n")
-
-        # Add note about asterisks
-        f.write(f"\n**Note:** Fields marked with * contribute to the total contribution count.\n")
-
-        # Add a pie chart image for project wise contributions
-        project_wise_contribution_fname = "project_wise_contribution.png"
-        create_pie_chart("Project wise Contributions", projects_df, 'Project Key',
-                         os.path.join(output_dir, project_wise_contribution_fname))
-
-        # Add pie chart image for user wise contributions
-        user_wise_contribution_fname = "user_wise_contribution.png"
-        create_pie_chart("User wise Contributions", users_df, 'User',
-                         os.path.join(output_dir, user_wise_contribution_fname), percentage)
-
-        f.write(f'\n<div style="display: flex; justify-content: space-around;">\n'
-                f'  <img src="{project_wise_contribution_fname}" alt="Project wise Contributions" style="width:45%;">\n'
-                f'  <img src="{user_wise_contribution_fname}" alt="User wise Contributions" style="width:45%;">\n'
-                f'</div>\n')
-
+        _write_header(f, start_date, end_date)
+        _write_summary(f, github_data_df, users_df, projects_df, contribution_config)
+        _write_charts(f, output_dir, users_df, projects_df, percentage)
         if users_df.empty:
             f.write("No contributions found for the given users.\n")
         else:
-            # Sort the project counts by 'Overall Contribution' in descending order and write to the markdown file
-            f.write("\n## Summary of Contributions by each project\n\n")
-            f.write(
-                "| Project Key | Repositories | Users | Commits | Pull Requests (Open) | Pull Requests (Closed) | Issues (Open) | Issues (Closed) | Code Reviews | Overall Contribution |\n")
-            f.write(
-                "|--------------|--------------|-------|---------|----------------------|----------------------|----------------|----------------|--------------|----------------------|\n")
-            for _, row in projects_df.sort_values(by=['Overall Contribution'], ascending=False).iterrows():
-                repo_list = '<br>'.join([_repo_markdown(repo, url, avatar) for repo, url, avatar in
-                                         row['Repositories']])
-                user_list = '<br>'.join(
-                    [f"<img src='{avatar}' width='12' height='12'> [{user}]({url})" for user, url, avatar in
-                     row['Users']])
-                f.write(
-                    f"| {row['Project Key']} | {repo_list} | {user_list} | {row['Commits']} " + f"| {row['Pull Requests (Open)']} | {row['Pull Requests (Closed)']} | {row['Issues (Open)']} | {row['Issues (Closed)']} | {row['Code Reviews']} | {row['Overall Contribution']} |\n")
-
-            # Sort the user counts by 'Overall Contribution' in descending order and write to the markdown file
-            f.write("\n## Summary of Contributions by each user\n\n")
-            f.write(
-                "| User | Repositories | Commits | Pull Requests (Open) | Pull Requests (Closed) | Issues (Open) | Issues (Closed) | Code Reviews | Overall Contribution |\n")
-            f.write(
-                "|------|--------------|---------|----------------------|----------------------|----------------|----------------|--------------|----------------------|\n")
-            for _, row in users_df.sort_values(by=['Overall Contribution'], ascending=False).iterrows():
-                user_avatar = f"<img src='{row['User Avatar']}' width='12' height='12'>"
-                repo_list = '<br>'.join([_repo_markdown(repo, url, avatar) for repo, url, avatar in
-                                         row['Repositories']])
-                f.write(
-                    f"| {user_avatar} [{row['User']}]({row['User URL']}) | {repo_list} | {row['Commits']} " + f"| {row['Pull Requests (Open)']} | {row['Pull Requests (Closed)']} | {row['Issues (Open)']} | {row['Issues (Closed)']} | {row['Code Reviews']} | {row['Overall Contribution']} |\n")
-
-            # Sort the detailed contributions by 'Overall Contribution' in descending order and 'User' in ascending order
-            # and write to the markdown file
-            f.write("\n## Detailed Contributions\n\n")
-            if include_line_stats:
-                f.write(
-                    "| Project Key | Repository | User | Rank | Commits | Pull Requests (Open) | Pull Requests (Closed) | Issues (Open) | Issues (Closed) | Code Reviews | Lines Added (Merged) | Lines Removed (Merged) | Lines Added (Open PRs) | Lines Removed (Open PRs) | Lines Added | Lines Removed | Overall Contribution |\n")
-                f.write(
-                    "|--------------|------------|------|------|---------|----------------------|----------------------|----------------|----------------|--------------|---------------------|----------------------|----------------------|-------------------------|-------------|---------------|----------------------|\n")
-            else:
-                f.write(
-                    "| Project Key | Repository | User | Rank | Commits | Pull Requests (Open) | Pull Requests (Closed) | Issues (Open) | Issues (Closed) | Code Reviews | Overall Contribution |\n")
-                f.write(
-                    "|--------------|------------|------|------|---------|----------------------|----------------------|----------------|----------------|--------------|----------------------|\n")
-            for _, row in github_data_df.sort_values(by=['User'], ascending=[True]).iterrows():
-                user_avatar = f"<img src='{row['User Avatar']}' width='12' height='12'>"
-                rank_display = row['Rank'] if row['Rank'] != -1 else 'N/A'
-                base = (
-                    f"| {row['Project Key']} | {_repo_markdown(row['Repository'], row['Repository URL'], row['Repository Avatar'])}"
-                    f" | {user_avatar} [{row['User']}]({row['User URL']}) | {rank_display} | {row['Commits']} |"
-                    f" {row['Pull Requests (Open)']} | {row['Pull Requests (Closed)']} | {row['Issues (Open)']} | {row['Issues (Closed)']} | {row['Code Reviews']} |"
-                )
-                if include_line_stats:
-                    base += (
-                        f" {row['Lines Added (Merged)']:,} | {row['Lines Removed (Merged)']:,} | {row['Lines Added (Open PRs)']:,} | {row['Lines Removed (Open PRs)']:,} |"
-                        f" {row['Lines Added']:,} | {row['Lines Removed']:,} |"
-                    )
-                base += f" {row['Overall Contribution']} |\n"
-                f.write(base)
+            _write_project_table(f, projects_df)
+            _write_user_table(f, users_df)
+            _write_detailed_table(f, github_data_df, config._line_stats_cfg(contribution_config)['enabled'])
         if activity_data:
             _write_activity_details(f, activity_data)
     logger.info(f"Markdown report created successfully: {report_filename}")

@@ -6,6 +6,10 @@ import json
 from .log import logger
 
 
+# The contribution_config metrics that are counted, in the order the report lists them.
+METRICS = ('commits', 'open_prs', 'closed_prs', 'open_issues', 'closed_issues', 'code_reviews')
+
+
 def read_github_input_file(file_path):
     """
     Read GitHub input data from a JSON file.
