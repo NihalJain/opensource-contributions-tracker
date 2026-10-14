@@ -23,7 +23,7 @@ It is a plain static site with no server and no runtime API. The data is publish
 - **Activity over time.** Pull requests and issues by month and outcome. Drag across months (or use the arrow keys, Enter and Escape) to filter everything on the page.
 - **Projects and repositories.** Ranked bars with drill-down to repositories and your rank among each repository's contributors.
 - **How quickly pull requests merge**, and **contributors** when the report covers more than one person.
-- **Every pull request and issue.** Search, sort, page, and download the filtered list as CSV.
+- **Every pull request and issue.** Search, sort, page, and download the filtered list as CSV. When the report covers more than one person, each row shows who authored it.
 
 Every chart has a **View as table** twin. The state of the page, including filters, sort and page, is kept in the address, so any view can be shared as a link. Light and dark themes follow the system setting and can be switched.
 

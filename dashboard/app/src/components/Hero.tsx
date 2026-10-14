@@ -44,6 +44,7 @@ function Identity({ people }: { people: Person[] }) {
         {people.slice(0, 5).map((person) => (
           <img key={person.name} className="hero__avatar" src={person.avatar} alt="" width="36" height="36" />
         ))}
+        {people.length > 5 ? <span className="hero__avatar hero__avatar--more">+{people.length - 5}</span> : null}
       </span>
       <span>{plural(people.length, 'contributor')}</span>
     </p>

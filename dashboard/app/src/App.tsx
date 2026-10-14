@@ -128,6 +128,8 @@ function Dashboard({ data, theme, onToggleTheme }: { data: Dataset; theme: 'ligh
         <div className="layout__block">
           <Explorer
             items={filtered}
+            people={data.people}
+            showContributor={multiUser}
             sort={view.sort}
             dir={view.dir}
             page={view.page}

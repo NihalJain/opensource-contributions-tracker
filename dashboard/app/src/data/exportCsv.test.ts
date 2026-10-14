@@ -6,8 +6,8 @@ describe('toCsv', () => {
   it('writes a header and one row per item', () => {
     const csv = toCsv([makeItem({ number: 7, title: 'Fix scanner', outcome: 'merged', labels: ['bug', 'backport'] })]);
     const [header, row] = csv.trimEnd().split('\r\n');
-    expect(header).toBe('Type,Status,Project,Repository,Number,Title,Labels,Opened,Merged,Days to merge,URL');
-    expect(row).toContain('Pull request,Merged,Apache HBase,apache/hbase,7,Fix scanner,bug; backport,2024-03-01');
+    expect(header).toBe('Type,Status,Contributor,Project,Repository,Number,Title,Labels,Opened,Merged,Days to merge,URL');
+    expect(row).toContain('Pull request,Merged,Ada Lovelace,Apache HBase,apache/hbase,7,Fix scanner,bug; backport,2024-03-01');
   });
 
   it('quotes fields containing commas, quotes and newlines', () => {
