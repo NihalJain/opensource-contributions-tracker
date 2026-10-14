@@ -124,7 +124,7 @@ There are three ways to deploy, depending on your preference:
 #### Prerequisites
 
 - A free [Cloudflare account](https://dash.cloudflare.com/sign-up).
-- Node.js 18+ and npm installed locally.
+- Node.js 22+ and npm installed locally (required by wrangler 4).
 - `wrangler` available – it is a dev-dependency of the worker package, so `npx wrangler` works without a global install.
 
 #### Step 1 – Install Worker dependencies
@@ -254,7 +254,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
           cache-dependency-path: dashboard/worker/package-lock.json
 
