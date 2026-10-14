@@ -305,7 +305,10 @@ To update the configuration, edit `input/github.json` and push — the next work
     pip install -r requirements-dev.txt
     pytest
     ```
-4. Commit, push, and open a pull request against `main`.
+4. Commit, push, and open a pull request against `main`. The Python checks (unit tests, a live run of the
+   generator, and the public-repositories check) run in CI only when the pull request touches the generator, its
+   tests, `input/`, `output/`, the requirements or a workflow. A change to the dashboard or the documentation
+   skips them.
 
 ## License
 
