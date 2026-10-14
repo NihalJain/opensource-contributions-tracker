@@ -318,3 +318,4 @@ This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE
 
 For questions or suggestions, please [open an issue](https://github.com/NihalJain/opensource-contributions-tracker/issues)
 or reach out to the repository owner [Nihal Jain](https://www.linkedin.com/in/nihaljain/).
+<!-- throwaway: exercises the docs-only path of the PR workflow -->
