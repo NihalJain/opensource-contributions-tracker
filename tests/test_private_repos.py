@@ -208,8 +208,9 @@ def everything_written(files, caplog):
 @pytest.mark.parametrize("config", [
     {"project_to_repo_dict": {"HBase": [PUBLIC], "Secret": [PRIVATE]}},          # listed explicitly
     {},                                                                          # discovered from activity
+    {"project_to_repo_dict": {}},                                                # empty dict, same as omitted
     {"private_repos": "exclude"},
-], ids=["listed", "discovered", "explicit-exclude"])
+], ids=["listed", "discovered", "empty-dict", "explicit-exclude"])
 def test_a_private_repository_appears_nowhere_in_the_files_or_the_logs(monkeypatch, tmp_path, caplog, config):
     with caplog.at_level(logging.DEBUG):
         files = run_report(monkeypatch, tmp_path, config)
