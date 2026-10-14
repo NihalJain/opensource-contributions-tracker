@@ -45,6 +45,7 @@ export function Ribbon({ breakdown, selected, onToggle }: Props) {
 
   const rows = projects.map((p) => ({
     project: p.project,
+    countsOnly: p.countsOnly,
     avatar: p.avatar,
     value: p.value,
     share: total > 0 ? p.value / total : 0,
@@ -75,8 +76,9 @@ export function Ribbon({ breakdown, selected, onToggle }: Props) {
                 data-dim={(anySelected && !selected.includes(row.project)) || undefined}
                 data-hover={hovered === row.project || undefined}
                 data-narrow={!showValue || undefined}
-                title={`${row.project}: ${row.text}`}
-                onClick={() => onToggle(row.project)}
+                title={row.countsOnly ? `${row.project}: ${row.text} (counted, not itemised)` : `${row.project}: ${row.text}`}
+                data-static={row.countsOnly || undefined}
+                onClick={row.countsOnly ? undefined : () => onToggle(row.project)}
                 onPointerEnter={() => setHovered(row.project)}
                 onPointerLeave={() => setHovered(null)}
               >
@@ -100,6 +102,19 @@ export function Ribbon({ breakdown, selected, onToggle }: Props) {
       <ul className="ribbon__index" aria-label={`Projects ${measure === 'score' ? 'by contribution score' : 'by pull requests and issues'}`}>
         {indexed.map((row) => {
           const isSelected = selected.includes(row.project);
+          if (row.countsOnly) {
+            // Nothing to filter to: there are no pull requests or issues behind it, only counts.
+            return (
+              <li key={row.project}>
+                <span className="ribbon__item ribbon__item--static" data-dim={(anySelected && !isSelected) || undefined}>
+                  <span className="ribbon__item-name">{row.project}</span>
+                  <span className="ribbon__item-value">{row.text}</span>
+                  <span className="ribbon__item-share">{percent(row.share)}</span>
+                  <span className="visually-hidden">counted, not itemised</span>
+                </span>
+              </li>
+            );
+          }
           return (
             <li key={row.project}>
               <button

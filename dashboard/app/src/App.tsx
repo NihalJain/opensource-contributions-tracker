@@ -9,7 +9,7 @@ import { Insights } from './components/Insights';
 import { Projects } from './components/Projects';
 import { LoadError, Loading, NoData } from './components/States';
 import { Speed } from './components/Speed';
-import { monthlyBuckets, projectRows, speedHistogram, totals } from './data/aggregate';
+import { isCountsOnly, monthlyBuckets, projectRows, speedHistogram, totals } from './data/aggregate';
 import { applyFilters, filterContributions, isFiltered } from './data/filters';
 import { formatDate } from './data/format';
 import { activeSpan } from './data/insights';
@@ -62,8 +62,11 @@ function Dashboard({ data, theme, onToggleTheme }: { data: Dataset; theme: 'ligh
     [data.contributions.length, scopedRows],
   );
 
-  const projects = new Set([...filtered.map((i) => i.project), ...scopedRows.map((r) => r.project)]);
-  const repos = new Set([...filtered.map((i) => i.repo), ...scopedRows.map((r) => r.repo)]);
+  // Counted-only work (redacted private repositories) is real work in the totals above, but it is not
+  // a project or a repository anyone can open, so it is left out of the "N projects and M repositories" line.
+  const itemisedRows = scopedRows.filter((r) => !isCountsOnly(r));
+  const projects = new Set([...filtered.map((i) => i.project), ...itemisedRows.map((r) => r.project)]);
+  const repos = new Set([...filtered.map((i) => i.repo), ...itemisedRows.map((r) => r.repo)]);
   const multiUser = data.people.length > 1;
   const visiblePeople = filters.users.length > 0 ? data.people.filter((p) => filters.users.includes(p.name)) : data.people;
   const reviewsPerMerge = metrics && sums.merged > 0 && metrics.reviews > 0 ? metrics.reviews / sums.merged : null;

@@ -129,6 +129,19 @@
   border-color: var(--ink);
 }
 
+/* Counted but not itemised: there is nothing to filter to, so it is drawn as a label, not a control. */
+.ribbon__item--static,
+.ribbon__item--static:hover {
+  background: transparent;
+  border-style: dashed;
+  border-color: var(--rule-strong);
+  cursor: default;
+}
+
+.ribbon__seg[data-static] {
+  cursor: default;
+}
+
 .ribbon__item[aria-pressed='true'] {
   background: var(--accent);
   border-color: var(--accent);
