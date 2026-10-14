@@ -106,9 +106,19 @@ export function speedHistogram(items: Item[]): SpeedBand[] {
   return bands;
 }
 
+/**
+ * Work the report counts but does not itemise: the row that `private_repos: "redact"` writes for a
+ * user's private repositories. It has no repository link and no `owner/repo` name, so there is
+ * nothing to open and no activity records to filter by.
+ */
+export const isCountsOnly = (row: { repo: string; repoUrl: string }): boolean =>
+  !row.repoUrl && !row.repo.includes('/');
+
 export interface RepoRow {
   repo: string;
   repoUrl: string;
+  /** No link and no activity records to follow; see `isCountsOnly`. */
+  countsOnly: boolean;
   description: string;
   repoAvatar: string;
   /** The ranking measure: contribution score, or number of items when the report has no score. */
@@ -123,6 +133,8 @@ export interface RepoRow {
 
 export interface ProjectRow {
   project: string;
+  /** Every repository in it is counts-only, so there is nothing in it to filter to. */
+  countsOnly: boolean;
   /** Avatar of the project's highest-ranked repository that has one; empty when none does. */
   avatar: string;
   value: number;
@@ -151,7 +163,9 @@ export function projectRows(items: Item[], contributions: Contribution[]): Proje
       row = {
         project,
         repo,
-        repoUrl: `https://github.com/${repo}`,
+        // Only an owner/repo name has a page to link to; "Private repositories" does not.
+        repoUrl: repo.includes('/') ? `https://github.com/${repo}` : '',
+        countsOnly: false,
         description: '',
         repoAvatar: '',
         value: 0,
@@ -187,9 +201,10 @@ export function projectRows(items: Item[], contributions: Contribution[]): Proje
   const projects = new Map<string, ProjectRow>();
   for (const row of repos.values()) {
     row.value = useScore ? row.score : row.items;
+    row.countsOnly = isCountsOnly(row);
     let project = projects.get(row.project);
     if (!project) {
-      project = { project: row.project, avatar: '', value: 0, score: 0, reviews: 0, commits: 0, merged: 0, items: 0, repos: [] };
+      project = { project: row.project, countsOnly: false, avatar: '', value: 0, score: 0, reviews: 0, commits: 0, merged: 0, items: 0, repos: [] };
       projects.set(row.project, project);
     }
     project.value += row.value;
@@ -205,6 +220,7 @@ export function projectRows(items: Item[], contributions: Contribution[]): Proje
   const byValue = <T extends { value: number }>(list: T[]) => list.sort((a, b) => b.value - a.value);
   const ranked = byValue([...projects.values()]).filter((p) => p.value > 0 || p.items > 0 || p.reviews > 0);
   for (const project of ranked) {
+    project.countsOnly = project.repos.length > 0 && project.repos.every((r) => r.countsOnly);
     byValue(project.repos);
     project.avatar = project.repos.find((r) => r.repoAvatar)?.repoAvatar ?? '';
   }

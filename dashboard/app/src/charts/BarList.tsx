@@ -13,6 +13,8 @@ export interface BarRow {
   nested?: boolean;
   /** The value as written next to the bar; defaults to the number. */
   display?: string;
+  /** Not a control even when the list is: there is nothing to select, such as work that is only counted. */
+  static?: boolean;
 }
 
 interface Props {
@@ -66,7 +68,7 @@ export function BarList({ rows, ariaLabel, selected = [], onSelect, color = 'var
 
         return (
           <li key={row.key} className={row.nested ? 'bars__row bars__row--nested' : 'bars__row'}>
-            {onSelect ? (
+            {onSelect && !row.static ? (
               <button
                 type="button"
                 className="bars__item"

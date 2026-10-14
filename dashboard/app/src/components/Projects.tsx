@@ -40,6 +40,7 @@ export function Projects({ breakdown, selectedProjects, selectedRepos, onToggleP
         project.reviews > 0 ? plural(project.reviews, 'review') : null,
         project.commits > 0 ? plural(project.commits, 'commit') : null,
         project.merged > 0 ? `${formatInt(project.merged)} merged` : null,
+        project.countsOnly ? 'counted, not itemised' : null,
       ].filter(Boolean);
       out.push({
         key: `p:${project.project}`,
@@ -48,6 +49,7 @@ export function Projects({ breakdown, selectedProjects, selectedRepos, onToggleP
         display: n(project.value, measure),
         detail: parts.join(', '),
         leading: <Avatar src={project.avatar} />,
+        static: project.countsOnly,
       });
       if (selectedProjects.includes(project.project) && project.repos.length > 1) {
         for (const repo of project.repos) {

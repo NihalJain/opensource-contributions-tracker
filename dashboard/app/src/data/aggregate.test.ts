@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { monthlyBuckets, projectRows, speedHistogram, totals } from './aggregate';
+import { isCountsOnly, monthlyBuckets, projectRows, speedHistogram, totals } from './aggregate';
 import { makeContribution, makeItem } from './fixtures';
 
 const at = (iso: string) => Date.parse(iso);
@@ -147,5 +147,54 @@ describe('projectRows', () => {
     ]);
     expect(withGap.projects.find((p) => p.project === 'Apache HBase')?.avatar).toBe('https://a/other');
     expect(projectRows(items, []).projects.every((p) => p.avatar === '')).toBe(true);
+  });
+});
+
+describe('counts-only work (redacted private repositories)', () => {
+  // What the generator writes for "private_repos": "redact": one row per user with no repository link.
+  const redacted = makeContribution({
+    project: 'Private work',
+    repo: 'Private repositories',
+    repoUrl: '',
+    score: 40,
+    commits: 30,
+    reviews: 2,
+  });
+  const items = [makeItem({ number: 1, project: 'Apache HBase', repo: 'apache/hbase', outcome: 'merged' })];
+  const open = makeContribution({ project: 'Apache HBase', repo: 'apache/hbase', score: 5 });
+
+  it('is recognised by having no repository link and no owner/repo name', () => {
+    expect(isCountsOnly(redacted)).toBe(true);
+    expect(isCountsOnly(open)).toBe(false);
+    expect(isCountsOnly(makeContribution({ repo: 'apache/hbase', repoUrl: '' }))).toBe(false);
+  });
+
+  it('does not invent a GitHub link for it', () => {
+    const rows = projectRows(items, [open, redacted]);
+    const row = rows.projects.find((p) => p.project === 'Private work')!.repos[0];
+    expect(row.repoUrl).toBe('');
+    expect(rows.projects.find((p) => p.project === 'Apache HBase')!.repos[0].repoUrl).toBe('https://github.com/apache/hbase');
+  });
+
+  it('marks its project counts-only, and only that project', () => {
+    const rows = projectRows(items, [open, redacted]);
+    expect(rows.projects.find((p) => p.project === 'Private work')?.countsOnly).toBe(true);
+    expect(rows.projects.find((p) => p.project === 'Apache HBase')?.countsOnly).toBe(false);
+  });
+
+  it('still counts towards the ranking, the score and the commits', () => {
+    const rows = projectRows(items, [open, redacted]);
+    expect(rows.projects.map((p) => [p.project, p.value])).toEqual([
+      ['Private work', 40],
+      ['Apache HBase', 5],
+    ]);
+    expect(rows.projects[0]).toMatchObject({ commits: 30, reviews: 2, items: 0, merged: 0 });
+  });
+
+  it('has no link to follow even if activity records happen to name it', () => {
+    const withItems = [makeItem({ number: 9, project: 'Private work', repo: 'Private repositories' })];
+    const rows = projectRows(withItems, [redacted]);
+    expect(rows.projects[0].items).toBe(1);
+    expect(rows.projects[0].countsOnly).toBe(true);   // still no link to follow, whatever else is known
   });
 });
