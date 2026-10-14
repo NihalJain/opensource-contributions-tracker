@@ -15,7 +15,7 @@ generate_report.py ──► output/github_activity_data.json
                           dashboard/app/dist/   ──►  any static host
 ```
 
-The data shown is whatever was in `output/` when the site was last built. The nightly workflow regenerates the report and, when Cloudflare credentials are set, rebuilds and redeploys the dashboard in the same run.
+The data shown is whatever was in `output/` when the site was last built. The nightly workflow regenerates the report and then redeploys the dashboard: to GitHub Pages by default, and to Cloudflare too when credentials are set. Pull requests that touch `dashboard/` build it as a check but never publish.
 
 ---
 
@@ -86,8 +86,9 @@ Nothing in this repository is tied to a specific domain or account.
 1. **Fork the repository** and configure `input/github.json` (see the root README).
 2. **Generate your data.** Run the **Open Source Contribution Tracker Job** workflow from the Actions tab (or `python generate_report.py` locally) so `output/` holds your feed.
 3. **Publish the site.**
+   - **GitHub Pages (default):** forks have workflows disabled until you enable them on the **Actions** tab. Then open **Settings → Pages → Build and deployment**, set **Source** to **GitHub Actions**, and run **Actions → Deploy Dashboard → Run workflow**. The site is served at `https://<your-user>.github.io/<repo>/` and is redeployed on every push that touches `dashboard/` and after each nightly report.
    - **Cloudflare:** follow [Deploying to Cloudflare](#deploying-to-cloudflare).
-   - **Any other static host** (GitHub Pages, Netlify, S3, ...): build and upload the `dist` folder.
+   - **Any other static host** (Netlify, S3, ...): build and upload the `dist` folder.
 
      ```bash
      cd dashboard/app
@@ -128,16 +129,16 @@ To publish new data, regenerate the report and run `npx wrangler@4 deploy` again
 
 ### Method B – GitHub Actions (automated deploy)
 
-`.github/workflows/main.yml` regenerates the report every night, commits `output/`, and then deploys the dashboard in the same job. The deploy step is skipped, with a notice in the run log, until both secrets exist.
+The **Deploy Dashboard** workflow (`.github/workflows/deploy-dashboard.yml`) also deploys to Cloudflare whenever both secrets exist. It runs on pushes that touch `dashboard/`, and the nightly report workflow calls it after committing fresh data. Without the secrets the Cloudflare job is skipped, with a notice in the run log.
 
 1. **Create an API token:** [dash.cloudflare.com](https://dash.cloudflare.com) → **My Profile → API Tokens → Create Token**, choose the **Edit Cloudflare Workers** template, select your account, and copy the token.
 2. **Find your Account ID:** **Workers & Pages** → copy **Account ID** from the right-hand sidebar.
 3. **Add repository secrets** under **Settings → Secrets and variables → Actions**:
    - `CLOUDFLARE_API_TOKEN`
    - `CLOUDFLARE_ACCOUNT_ID`
-4. **Run it once:** **Actions → Open Source Contribution Tracker Job → Run workflow**.
+4. **Run it once:** **Actions → Deploy Dashboard → Run workflow**.
 
-The deploy lives in the report job rather than a separate workflow because pushes made with `GITHUB_TOKEN` do not trigger other workflows.
+The nightly workflow calls the deploy workflow directly because pushes made with `GITHUB_TOKEN` do not trigger other workflows.
 
 ### Method C – Cloudflare dashboard UI
 
