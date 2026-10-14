@@ -67,7 +67,8 @@ export function useActivity(): UseActivityResult {
           // ignore cache errors
         }
       }
-      const url = bypassCache ? `${API_URL}?refresh=1` : API_URL;
+      // A unique query string makes a manual refresh skip browser and CDN caches of the feed.
+      const url = bypassCache ? `${API_URL}?t=${Date.now()}` : API_URL;
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data: RawRecord[] = await res.json();
