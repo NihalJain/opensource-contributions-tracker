@@ -1,6 +1,6 @@
 # OpenSource Contributions Report
 
-*Report auto-generated on: 2026-10-14 04:07:39 for period 1970-01-01 to 2026-10-15*
+*Report auto-generated on: 2026-10-14 18:24:10 for period 1970-01-01 to 2026-10-15*
 
 ## Overall Summary
 
@@ -9,9 +9,9 @@
 | Total number of projects | 7 |
 | Total number of repositories | 14 |
 | Total number of contributions | 561 |
-| Number of commits to master* | 175 |
-| Number of pull requests (Open)* | 11 |
-| Number of pull requests (Closed) | 254 |
+| Number of commits to master* | 176 |
+| Number of pull requests (Open)* | 10 |
+| Number of pull requests (Closed) | 255 |
 | Number of issues (Open)* | 3 |
 | Number of issues (Closed)* | 10 |
 | Total unique PRs reviewed* | 362 |
@@ -32,14 +32,14 @@
 | Apache Pinot | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/pinot](https://github.com/apache/pinot)<br><img src='https://avatars.githubusercontent.com/u/62676312?v=4' width='12' height='12'> [pinot-contrib/pinot-docs](https://github.com/pinot-contrib/pinot-docs) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 7 | 2 | 8 | 2 | 7 | 6 | 24 |
 | Codeburn | <img src='https://avatars.githubusercontent.com/u/277308000?v=4' width='12' height='12'> [getagentseal/codeburn](https://github.com/getagentseal/codeburn) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 8 | 0 | 6 | 0 | 3 | 0 | 11 |
 | Apache Hadoop | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hadoop](https://github.com/apache/hadoop) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 1 | 0 | 2 | 0 | 0 | 2 | 3 |
-| Apache Iceberg | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/iceberg-cpp](https://github.com/apache/iceberg-cpp) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 0 | 1 | 0 | 1 | 0 | 0 | 2 |
+| Apache Iceberg | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/iceberg-cpp](https://github.com/apache/iceberg-cpp) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 1 | 0 | 1 | 1 | 0 | 0 | 2 |
 | Apache Zookeeper | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/zookeeper](https://github.com/apache/zookeeper) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 2 | 0 | 2 | 0 | 0 | 0 | 2 |
 
 ## Summary of Contributions by each user
 
 | User | Repositories | Commits | Pull Requests (Open) | Pull Requests (Closed) | Issues (Open) | Issues (Closed) | Code Reviews | Overall Contribution |
 |------|--------------|---------|----------------------|----------------------|----------------|----------------|--------------|----------------------|
-| <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hadoop](https://github.com/apache/hadoop)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase](https://github.com/apache/hbase)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-connectors](https://github.com/apache/hbase-connectors)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-operator-tools](https://github.com/apache/hbase-operator-tools)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-thirdparty](https://github.com/apache/hbase-thirdparty)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/iceberg-cpp](https://github.com/apache/iceberg-cpp)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix](https://github.com/apache/phoenix)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-omid](https://github.com/apache/phoenix-omid)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-queryserver](https://github.com/apache/phoenix-queryserver)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-thirdparty](https://github.com/apache/phoenix-thirdparty)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/pinot](https://github.com/apache/pinot)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/zookeeper](https://github.com/apache/zookeeper)<br><img src='https://avatars.githubusercontent.com/u/277308000?v=4' width='12' height='12'> [getagentseal/codeburn](https://github.com/getagentseal/codeburn)<br><img src='https://avatars.githubusercontent.com/u/62676312?v=4' width='12' height='12'> [pinot-contrib/pinot-docs](https://github.com/pinot-contrib/pinot-docs) | 175 | 11 | 254 | 3 | 10 | 362 | 561 |
+| <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hadoop](https://github.com/apache/hadoop)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase](https://github.com/apache/hbase)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-connectors](https://github.com/apache/hbase-connectors)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-operator-tools](https://github.com/apache/hbase-operator-tools)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-thirdparty](https://github.com/apache/hbase-thirdparty)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/iceberg-cpp](https://github.com/apache/iceberg-cpp)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix](https://github.com/apache/phoenix)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-omid](https://github.com/apache/phoenix-omid)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-queryserver](https://github.com/apache/phoenix-queryserver)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-thirdparty](https://github.com/apache/phoenix-thirdparty)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/pinot](https://github.com/apache/pinot)<br><img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/zookeeper](https://github.com/apache/zookeeper)<br><img src='https://avatars.githubusercontent.com/u/277308000?v=4' width='12' height='12'> [getagentseal/codeburn](https://github.com/getagentseal/codeburn)<br><img src='https://avatars.githubusercontent.com/u/62676312?v=4' width='12' height='12'> [pinot-contrib/pinot-docs](https://github.com/pinot-contrib/pinot-docs) | 176 | 10 | 255 | 3 | 10 | 362 | 561 |
 
 ## Detailed Contributions
 
@@ -50,7 +50,7 @@
 | Apache HBase | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-thirdparty](https://github.com/apache/hbase-thirdparty) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 3 | 24 | 2 | 21 | 0 | 0 | 28 | 54 |
 | Apache HBase | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-operator-tools](https://github.com/apache/hbase-operator-tools) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 5 | 13 | 0 | 13 | 0 | 0 | 15 | 28 |
 | Apache Hadoop | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hadoop](https://github.com/apache/hadoop) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | N/A | 1 | 0 | 2 | 0 | 0 | 2 | 3 |
-| Apache Iceberg | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/iceberg-cpp](https://github.com/apache/iceberg-cpp) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | N/A | 0 | 1 | 0 | 1 | 0 | 0 | 2 |
+| Apache Iceberg | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/iceberg-cpp](https://github.com/apache/iceberg-cpp) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 54 | 1 | 0 | 1 | 1 | 0 | 0 | 2 |
 | Apache Phoenix | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix](https://github.com/apache/phoenix) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 40 | 12 | 0 | 27 | 0 | 0 | 30 | 42 |
 | Apache Phoenix | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-omid](https://github.com/apache/phoenix-omid) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 10 | 10 | 0 | 9 | 0 | 0 | 3 | 13 |
 | Apache Phoenix | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-queryserver](https://github.com/apache/phoenix-queryserver) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 4 | 5 | 0 | 5 | 0 | 0 | 5 | 10 |
@@ -315,7 +315,7 @@
 
 | # | Title | Status | Created | Updated | Labels |
 |---|-------|--------|---------|---------|--------|
-| [#960](https://github.com/apache/iceberg-cpp/pull/960) | feat: support catalog labels on tables loaded from REST catalogs | 🔄 Open | 2026-09-23 | 2026-10-12 |  |
+| [#960](https://github.com/apache/iceberg-cpp/pull/960) | feat: support catalog labels on tables loaded from REST catalogs | ✅ Merged | 2026-09-23 | 2026-10-14 |  |
 
 **Issues**
 
