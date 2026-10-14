@@ -40,7 +40,7 @@ HEADERS = {
 }
 
 def get_all_pages(url, params, max_retries=10, backoff_factor=0.3, with_pagination=True, meta=None,
-                  give_up_over=None):
+                  give_up_over=None, no_retry_on=()):
     """
     Retrieve all pages of results from a paginated GitHub API endpoint.
 
@@ -57,6 +57,9 @@ def get_all_pages(url, params, max_retries=10, backoff_factor=0.3, with_paginati
         give_up_over (int): Optional. For search endpoints: if the first page shows more than this many
             matching results, stop at once and return that first page. Paging to the API's cap only to
             discover the result set was truncated costs ten requests; `total_count` is on page one.
+        no_retry_on (tuple): Optional. HTTP status codes that are final answers, such as 404 for a
+            repository the token cannot see. The error is raised at once, without retries and without
+            being logged, because the logged URL would name the repository.
 
     Returns:
         list: A list of results from all pages.
@@ -132,6 +135,8 @@ def get_all_pages(url, params, max_retries=10, backoff_factor=0.3, with_paginati
                 # Exit retry loop on success
                 break
             except requests.exceptions.RequestException as e:
+                if getattr(getattr(e, 'response', None), 'status_code', None) in no_retry_on:
+                    raise
                 logger.error(f"Request failed: {e}, attempt {attempt + 1} of {max_retries}")
                 if attempt < max_retries - 1:
                     time.sleep(backoff_factor * (2 ** attempt))  # Exponential backoff
@@ -687,6 +692,88 @@ def get_repo_info(repo):
     return get_all_pages(user_url, params, with_pagination=False)
 
 
+# The generated report is normally committed to a public repository and published as a public site,
+# so private repositories are left out unless the configuration says `"private_repos": "include"`.
+PRIVATE_REPOS_MODES = ('exclude', 'include')
+
+# Answers that mean "this token cannot see that repository"; retrying them cannot change the result.
+REPO_NOT_VISIBLE_STATUSES = (403, 404, 451)
+
+
+def resolve_private_repos_mode(value):
+    """Validate the `private_repos` setting. Missing means 'exclude'; anything unrecognised is an error."""
+    if value is None:
+        return 'exclude'
+    mode = value.strip().lower() if isinstance(value, str) else value
+    if mode not in PRIVATE_REPOS_MODES:
+        raise ValueError(f"'private_repos' must be one of {', '.join(repr(m) for m in PRIVATE_REPOS_MODES)}, "
+                         f"got {value!r}")
+    return mode
+
+
+def is_public_repo(info):
+    """True only when GitHub explicitly says the repository is public; anything else is not trusted."""
+    return isinstance(info, dict) and info.get('private') is False and info.get('visibility', 'public') == 'public'
+
+
+def get_repo_info_if_visible(repo):
+    """
+    Retrieve repository information, or None when GitHub says this token cannot see the repository.
+
+    Any other failure (network, rate limit, server error) is raised, so a run stops instead of
+    quietly dropping repositories.
+    """
+    try:
+        return get_all_pages(f"{GITHUB_API_URL}/repos/{repo}", {}, with_pagination=False,
+                             no_retry_on=REPO_NOT_VISIBLE_STATUSES)
+    except requests.exceptions.HTTPError as e:
+        if getattr(e.response, 'status_code', None) in REPO_NOT_VISIBLE_STATUSES:
+            return None
+        raise
+
+
+def exclude_non_public_repositories(project_to_repo_dict):
+    """
+    Remove every repository that is not known to be public, before anything is searched or logged.
+
+    A repository the token cannot see, or whose visibility is missing from the answer, is treated as
+    private. Projects left without repositories are dropped. Names of removed repositories are never
+    logged: CI logs of a public repository are public too.
+
+    Args:
+        project_to_repo_dict (dict): Maps project names to lists of `owner/repo` strings.
+
+    Returns:
+        tuple: (the filtered dictionary, {repo: API info} for the repositories kept,
+                number of private repositories removed, number removed because they were not visible).
+    """
+    verdicts = {}  # repo name (lower case) -> (info or None, kept?, reason)
+    filtered = {}
+    infos = {}
+    private = unavailable = 0
+    for project_key, repos in project_to_repo_dict.items():
+        kept = []
+        for repo in repos:
+            key = repo.lower()
+            if key not in verdicts:
+                info = get_repo_info_if_visible(repo)
+                if info is None:
+                    verdicts[key] = (None, False, 'unavailable')
+                    unavailable += 1
+                elif is_public_repo(info):
+                    verdicts[key] = (info, True, 'public')
+                else:
+                    verdicts[key] = (None, False, 'private')
+                    private += 1
+            info, keep, _ = verdicts[key]
+            if keep:
+                kept.append(repo)
+                infos[repo] = info
+        if kept:
+            filtered[project_key] = kept
+    return filtered, infos, private, unavailable
+
+
 def read_github_input_file(file_path):
     """
     Read GitHub input data from a JSON file.
@@ -763,9 +850,13 @@ def _slim_issue(issue):
     }
 
 
-def process_github_data(start_date, end_date, users, project_to_repo_dict, contribution_config=None):
+def process_github_data(start_date, end_date, users, project_to_repo_dict, contribution_config=None,
+                        repo_infos=None):
     """
     Process GitHub data to retrieve commits and pull requests for users and projects.
+
+    Every repository in `project_to_repo_dict` ends up in the output, so a caller that must not publish
+    private repositories filters them first with `exclude_non_public_repositories`.
 
     Args:
         start_date (str): The start date for retrieving data in "YYYY-MM-DD" format.
@@ -773,6 +864,8 @@ def process_github_data(start_date, end_date, users, project_to_repo_dict, contr
         users (list): A list of GitHub usernames.
         project_to_repo_dict (dict): A dictionary mapping project keys to repository lists.
         refactor_threshold (float): Minimum ratio of net change to total change to consider meaningful.
+        repo_infos (dict): Optional. Repository information already fetched, keyed by `owner/repo`, so
+            it is not requested a second time.
 
     Returns:
         list: A list of dictionaries containing GitHub data.
@@ -815,11 +908,14 @@ def process_github_data(start_date, end_date, users, project_to_repo_dict, contr
         # Repository details are only needed for repositories someone was active in, so they are
         # fetched on first use inside the loop below.
         repo_info_dict = {}
+        fetched_repo_infos = repo_infos or {}
 
         def repo_details(repo):
             if repo not in repo_info_dict:
-                logger.info(f"Fetching details for repository: {repo}")
-                info = get_repo_info(repo)
+                info = fetched_repo_infos.get(repo)
+                if info is None:
+                    logger.info(f"Fetching details for repository: {repo}")
+                    info = get_repo_info(repo)
                 repo_info_dict[repo] = {"name": info.get('full_name', repo),
                                         "description": info.get('description'), "url": info.get('html_url'),
                                         "avatar_url": info.get('owner', {}).get('avatar_url')}
@@ -1192,6 +1288,7 @@ def print_input_json_format():
             "code_reviews":  {"enabled": True, "count_towards_score": True},
             "line_stats":    {"enabled": False, "refactor_threshold": 0.1}
         },
+        "private_repos": "exclude",
         "users": ["user1", "user2"],
         "project_to_repo_dict": {
             "Project 1": ["owner1/repo1", "owner1/repo2"],
@@ -1202,6 +1299,8 @@ def print_input_json_format():
     logger.info(json.dumps(input_json, indent=4))
     logger.info("NOTE: The 'project_to_repo_dict' key is optional."
                 "If not provided, the script will use the 'users' key to get the repositories.")
+    logger.info("NOTE: The 'private_repos' key is optional and defaults to 'exclude', which leaves private "
+                "repositories out of the report. Use 'include' only when the report is not published publicly.")
 
 
 def process_data(github_data_df):
@@ -1540,7 +1639,9 @@ def generate_report(github_conf_path="input/github.json", output_dir="output/",
         contribution_config = github_conf_data.get('contribution_config', {})
         users = github_conf_data.get('users', [])
         project_to_repo_dict = github_conf_data.get('project_to_repo_dict', {})
-        
+        # Checked first so a typo fails before any API call is made
+        private_repos = resolve_private_repos_mode(github_conf_data.get('private_repos'))
+
         # Set default end_date to tomorrow if not provided
         if not end_date:
             tomorrow = datetime.now() + timedelta(days=1)
@@ -1572,6 +1673,25 @@ def generate_report(github_conf_path="input/github.json", output_dir="output/",
         # Lower case all the users
         users = [str(user).lower().strip() for user in users]
 
+        # Reports are normally published publicly, so keep private repositories out of everything
+        # that follows (searches, logs, files) unless the configuration asks for them.
+        repo_infos = {}
+        if private_repos == 'exclude':
+            project_to_repo_dict, repo_infos, private_count, unavailable_count = \
+                exclude_non_public_repositories(project_to_repo_dict)
+            if private_count:
+                logger.info(f"Excluded {private_count} private repositories "
+                            f"(set \"private_repos\": \"include\" to keep them; do not publish such a report publicly).")
+            if unavailable_count:
+                logger.warning(f"Excluded {unavailable_count} repositories this token cannot see "
+                               f"(misspelt, renamed or not accessible); check the names in project_to_repo_dict.")
+            if not project_to_repo_dict:
+                raise ValueError("No public repositories are left to report on after excluding "
+                                 f"{private_count} private and {unavailable_count} inaccessible repositories.")
+        else:
+            logger.warning("private_repos is 'include': private repositories will appear in the report, the "
+                           "data files and these logs. Do not publish them publicly.")
+
         # Log the variables to verify
         logger.info(f"Start Date: {start_date}")
         logger.info(f"End Date: {end_date}")
@@ -1579,7 +1699,8 @@ def generate_report(github_conf_path="input/github.json", output_dir="output/",
         logger.info(f"Project to Repo Dictionary: {project_to_repo_dict}")
 
         # Create markdown report
-        github_data = process_github_data(start_date, end_date, users, project_to_repo_dict, contribution_config)
+        github_data = process_github_data(start_date, end_date, users, project_to_repo_dict, contribution_config,
+                                          repo_infos=repo_infos)
         github_data_df = convert_to_dataframe(github_data[0])
         process_data_and_create_report(github_data_df, output_dir, report_fname, percentage, True, start_date, end_date, contribution_config, github_data[1])
 

@@ -1,5 +1,6 @@
 {
   "start_date": "1970-01-01",
+  "private_repos": "exclude",
   "contribution_config": {
     "commits": {
       "enabled": true,

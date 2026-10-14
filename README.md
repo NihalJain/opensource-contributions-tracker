@@ -62,8 +62,9 @@ publishes it to GitHub Pages by default, with an optional Cloudflare deploy. See
 ### Prerequisites
 
 - Python 3.10+
-- A GitHub personal access token with at least `public_repo` scope (add `repo` scope for private repositories).
-  Set it as the `GITHUB_TOKEN` environment variable.
+- A GitHub personal access token that can read public repositories (a fine-grained token with no extra
+  permissions, or the classic `public_repo` scope). Set it as the `GITHUB_TOKEN` environment variable.
+  Do not give it access to private repositories unless you need them: see [Private repositories](#private-repositories).
 
 ### Installation
 
@@ -112,6 +113,7 @@ The input file is `input/github.json`. The only required fields are `start_date`
         "code_reviews":  { "enabled": true,  "count_towards_score": true  },
         "line_stats":    { "enabled": false, "refactor_threshold": 0.1   }
     },
+    "private_repos": "exclude",
     "users": ["user1", "user2"],
     "project_to_repo_dict": {
         "Project1": ["owner/repo1", "owner/repo2"],
@@ -128,6 +130,7 @@ The input file is `input/github.json`. The only required fields are `start_date`
 | `end_date` | No | Tomorrow | End of the reporting period (`YYYY-MM-DD`, inclusive) |
 | `users` | Yes | — | List of GitHub usernames to track |
 | `project_to_repo_dict` | No | Auto-detected | Maps project display names to lists of `owner/repo` strings. If omitted, repositories are discovered from each user's PR history (capped at 1 000 results by the GitHub Search API) |
+| `private_repos` | No | `exclude` | `exclude` leaves private repositories out of every output and log; `include` keeps them. See [Private repositories](#private-repositories) |
 | `contribution_config` | No | All enabled | Per-metric configuration object. Omitting it or any key within it uses the defaults shown below |
 | &nbsp;&nbsp;`commits` | No | — | Config for merged commits |
 | &nbsp;&nbsp;&nbsp;&nbsp;`enabled` | No | `true` | Collect and display this metric |
@@ -150,6 +153,25 @@ The input file is `input/github.json`. The only required fields are `start_date`
 | &nbsp;&nbsp;`line_stats` | No | — | Config for lines added/removed. Expensive: one extra API call per commit and per open PR |
 | &nbsp;&nbsp;&nbsp;&nbsp;`enabled` | No | `false` | Fetch and display line stats. Set to `false` to skip (recommended for large datasets) |
 | &nbsp;&nbsp;&nbsp;&nbsp;`refactor_threshold` | No | Disabled | Float (0–1). Commits/PRs where net-change ratio is below this are excluded from line counts |
+
+### Private repositories
+
+The report, the data files and the dashboard are normally committed to a public repository and published as a
+public site, so **private repositories are excluded by default** (`"private_repos": "exclude"`):
+
+- A repository is kept only when GitHub reports it as public. One the token cannot see, or whose visibility is
+  missing from the answer, is excluded too.
+- Excluded repositories are not searched, counted, ranked or named anywhere: not in the report, the CSV, the
+  activity JSON, the charts, the dashboard or the logs (CI logs of a public repository are public). The log
+  only says how many were excluded.
+- This applies to repositories listed in `project_to_repo_dict` as well as to auto-detected ones.
+- Excluded work does not count towards anyone's totals or rank.
+
+Set `"private_repos": "include"` only when the output stays private, for example a private repository with
+private hosting. A value other than `exclude` or `include` stops the run before any API call.
+
+Running with a token that can see private repositories is safe with the default, but a token without that
+access is better still: the GitHub Actions workflow's built-in `GITHUB_TOKEN` already sees only public data.
 
 **Output files** written to `output/`:
 
