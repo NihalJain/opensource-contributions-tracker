@@ -43,6 +43,52 @@ HEADERS = {
 # requests, so the TCP and TLS handshake is paid once per run instead of once per request.
 SESSION = requests.Session()
 
+# GitHub's guidance when a request is refused for going too fast and the response says nothing about
+# how long to wait (no Retry-After, and the rate limit is not exhausted): wait at least a minute, and
+# wait longer each time it continues.
+SECONDARY_LIMIT_FIRST_WAIT = 60
+SECONDARY_LIMIT_MAX_WAIT = 300
+
+
+def _says_secondary_limit(response):
+    try:
+        message = str(response.json().get('message', '')).lower()
+    except Exception:
+        return False
+    return 'secondary rate limit' in message or 'abuse detection' in message
+
+
+def rate_limit_wait(response, secondary_waits=0):
+    """
+    Work out whether a response is a rate limit and how long to wait before asking again.
+
+    Returns (seconds, reason) or None when the response is not a rate limit. In order of preference:
+    the `Retry-After` header; the primary limit's reset time, when none of the allowance is left;
+    otherwise a secondary limit, for which GitHub says to wait at least a minute and then longer.
+    Retrying a secondary limit quickly is harmful: every retry spends from the same allowance
+    (a search 403 was seen to cost one of the 30 searches a minute each time) while GitHub is
+    asking for less traffic.
+    """
+    if response.status_code not in (403, 429):
+        return None
+    headers = response.headers
+    remaining, reset_ts = headers.get('X-RateLimit-Remaining'), headers.get('X-RateLimit-Reset')
+
+    retry_after = headers.get('Retry-After')
+    if retry_after:
+        try:
+            return int(retry_after) + 1, 'retry-after'
+        except ValueError:
+            pass
+    if remaining == '0' and reset_ts:
+        return max(int(reset_ts) - int(time.time()) + 1, 1), 'primary'
+    if response.status_code == 429 or _says_secondary_limit(response):
+        return min(SECONDARY_LIMIT_FIRST_WAIT * 2 ** secondary_waits, SECONDARY_LIMIT_MAX_WAIT), 'secondary'
+    if remaining == '0':
+        return SECONDARY_LIMIT_FIRST_WAIT, 'primary'
+    return None  # an ordinary 403: forbidden, not a rate limit
+
+
 def get_all_pages(url, params, max_retries=10, backoff_factor=0.3, with_pagination=True, meta=None,
                   give_up_over=None, no_retry_on=(), redact_url=False):
     """
@@ -74,6 +120,7 @@ def get_all_pages(url, params, max_retries=10, backoff_factor=0.3, with_paginati
     params = dict(params)  # avoid mutating the caller's dict
     results = []
     page = 1
+    secondary_waits = 0
     while True:
         if with_pagination:
             params['page'] = page
@@ -82,24 +129,16 @@ def get_all_pages(url, params, max_retries=10, backoff_factor=0.3, with_paginati
                 response = SESSION.get(url, headers=HEADERS, params=params, proxies=proxies, verify=False)
 
                 # Handle rate-limit responses before raise_for_status so we can inspect headers.
-                # 429 = secondary rate limit; 403 with X-RateLimit-Remaining=0 = primary rate limit.
-                if response.status_code in (429, 403):
-                    rl_remaining = response.headers.get('X-RateLimit-Remaining')
-                    is_rate_limited = response.status_code == 429 or rl_remaining == '0'
-                    if is_rate_limited:
-                        retry_after = response.headers.get('Retry-After')
-                        reset_ts = response.headers.get('X-RateLimit-Reset')
-                        if retry_after:
-                            wait = int(retry_after) + 1
-                        elif reset_ts:
-                            wait = max(int(reset_ts) - int(time.time()) + 1, 1)
-                        else:
-                            wait = backoff_factor * (2 ** attempt)
-                        logger.warning(f"Rate limited (HTTP {response.status_code}). "
-                                       f"Sleeping {wait}s (attempt {attempt + 1}/{max_retries}).")
-                        time.sleep(wait)
-                        continue  # retry this attempt
-                    # Real 403 (auth/forbidden) — fall through to raise_for_status
+                limited = rate_limit_wait(response, secondary_waits)
+                if limited is not None:
+                    wait, reason = limited
+                    if reason == 'secondary':
+                        secondary_waits += 1
+                    logger.warning(f"Rate limited (HTTP {response.status_code}, {reason}). "
+                                   f"Sleeping {wait}s (attempt {attempt + 1}/{max_retries}).")
+                    time.sleep(wait)
+                    continue  # retry this attempt
+                # Anything else, including a real 403 (auth/forbidden), goes to raise_for_status
                 response.raise_for_status()
                 data = response.json()
 
