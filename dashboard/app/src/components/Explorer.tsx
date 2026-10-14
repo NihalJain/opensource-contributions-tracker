@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { formatDate, formatDays, formatInt } from '../data/format';
 import { toCsv } from '../data/exportCsv';
-import type { Item } from '../data/types';
+import type { Item, Person } from '../data/types';
 import type { SortDir, SortKey } from '../data/urlState';
 import './Explorer.css';
 
@@ -9,6 +9,10 @@ const PAGE_SIZE = 25;
 
 interface Props {
   items: Item[];
+  /** Everyone in the report, for avatars. */
+  people: Person[];
+  /** Show who authored each item; only useful when there is more than one person. */
+  showContributor: boolean;
   sort: SortKey;
   dir: SortDir;
   page: number;
@@ -76,7 +80,8 @@ function download(items: Item[]) {
   URL.revokeObjectURL(url);
 }
 
-export function Explorer({ items, sort, dir, page, now, onSort, onPage, onClear, filtered }: Props) {
+export function Explorer({ items, people, showContributor, sort, dir, page, now, onSort, onPage, onClear, filtered }: Props) {
+  const avatars = useMemo(() => new Map(people.map((p) => [p.name, p.avatar])), [people]);
   const sorted = useMemo(() => {
     const direction = dir === 'asc' ? 1 : -1;
     return [...items].sort((a, b) => compare(sort, a, b) * direction || a.id.localeCompare(b.id));
@@ -121,6 +126,7 @@ export function Explorer({ items, sort, dir, page, now, onSort, onPage, onClear,
               <thead>
                 <tr>
                   <SortHeader label="Title" field="title" sort={sort} dir={dir} onSort={onSort} />
+                  {showContributor ? <th scope="col">Contributor</th> : null}
                   <th scope="col">Type</th>
                   <th scope="col">Status</th>
                   <SortHeader label="Opened" field="created" sort={sort} dir={dir} onSort={onSort} />
@@ -144,6 +150,16 @@ export function Explorer({ items, sort, dir, page, now, onSort, onPage, onClear,
                         {item.labels.length > 3 ? <span className="grid__more">+{item.labels.length - 3}</span> : null}
                       </span>
                     </td>
+                    {showContributor ? (
+                      <td data-label="Contributor" className="grid__who">
+                        <span className="grid__who-inner" title={item.user}>
+                          {avatars.get(item.user) ? (
+                            <img src={avatars.get(item.user)} alt="" width="20" height="20" loading="lazy" />
+                          ) : null}
+                          <span>{item.user}</span>
+                        </span>
+                      </td>
+                    ) : null}
                     <td data-label="Type">{item.kind === 'pr' ? 'Pull request' : 'Issue'}</td>
                     <td data-label="Status">
                       <span className="status" data-outcome={item.outcome} data-kind={item.kind}>

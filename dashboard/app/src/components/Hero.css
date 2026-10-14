@@ -67,6 +67,16 @@ a.hero__who:hover span {
   display: inline-flex;
 }
 
+.hero__avatar--more {
+  display: grid;
+  place-items: center;
+  background: var(--sunken);
+  color: var(--ink-2);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
 .hero__stack .hero__avatar + .hero__avatar {
   margin-left: -0.6rem;
   box-shadow: -2px 0 0 var(--paper);

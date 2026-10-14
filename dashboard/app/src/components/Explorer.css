@@ -143,6 +143,28 @@
   color: var(--ink-3);
 }
 
+.grid__who-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  max-width: 11rem;
+}
+
+.grid__who-inner img {
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  background: var(--sunken);
+  object-fit: cover;
+}
+
+.grid__who-inner span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .grid__num {
   white-space: nowrap;
   font-variant-numeric: tabular-nums;

@@ -1,6 +1,6 @@
 import type { Item } from './types';
 
-const HEADER = ['Type', 'Status', 'Project', 'Repository', 'Number', 'Title', 'Labels', 'Opened', 'Merged', 'Days to merge', 'URL'];
+const HEADER = ['Type', 'Status', 'Contributor', 'Project', 'Repository', 'Number', 'Title', 'Labels', 'Opened', 'Merged', 'Days to merge', 'URL'];
 
 const day = (ms: number | null) => (ms === null ? '' : new Date(ms).toISOString().slice(0, 10));
 
@@ -19,6 +19,7 @@ export function toCsv(items: Item[]): string {
     [
       item.kind === 'pr' ? 'Pull request' : 'Issue',
       STATUS[item.outcome],
+      item.user,
       item.project,
       item.repo,
       item.number,
