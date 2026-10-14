@@ -2,8 +2,9 @@ import { useState, useEffect, useMemo } from 'react';
 import type { RawRecord, ActivityEvent, Filters } from '../types';
 import { normalizeData, applyFilters } from '../utils/normalize';
 
-// The Worker serves both the app and the API, so a same-origin path works on any host or custom domain.
-const API_URL = import.meta.env.VITE_ACTIVITY_API_URL ?? '/activity.json';
+// The feed is a static file published next to index.html (see scripts/copy-data.mjs), so a
+// relative URL works on any host, sub-path or custom domain.
+const API_URL = import.meta.env.VITE_ACTIVITY_API_URL ?? `${import.meta.env.BASE_URL}activity.json`;
 const CACHE_KEY = 'oss_activity_cache';
 const CACHE_TTL = 86400_000; // 24h in ms
 

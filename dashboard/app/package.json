@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "predev": "node scripts/copy-data.mjs",
     "dev": "vite",
+    "prebuild": "node scripts/copy-data.mjs",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },

@@ -3,10 +3,6 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  server: {
-    // Forward the data API to `wrangler dev` (port 8787) so `npm run dev` needs no .env file.
-    proxy: {
-      '/activity.json': 'http://localhost:8787',
-    },
-  },
+  // Relative asset URLs let the built site work from any host or sub-path (e.g. GitHub Pages).
+  base: './',
 })
