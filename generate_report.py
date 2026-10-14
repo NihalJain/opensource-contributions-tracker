@@ -554,10 +554,15 @@ def _metric_cfg(contribution_config, key):
 
 
 def _line_stats_cfg(contribution_config):
-    """Return resolved {enabled, refactor_threshold} for the line_stats metric."""
+    """
+    Return resolved {enabled, refactor_threshold} for the line_stats metric.
+
+    Unlike the other metrics this one is off unless asked for, as the README documents: it costs
+    one extra API call per commit and per open PR, which dominates the run time.
+    """
     cfg = (contribution_config or {}).get('line_stats', {})
     return {
-        'enabled': cfg.get('enabled', True),
+        'enabled': cfg.get('enabled', False),
         'refactor_threshold': cfg.get('refactor_threshold', None),
     }
 
