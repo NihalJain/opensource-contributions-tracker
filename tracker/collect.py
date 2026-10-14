@@ -34,14 +34,11 @@ def _slim_issue(issue):
     }
 
 
-METRICS = ('commits', 'open_prs', 'closed_prs', 'open_issues', 'closed_issues', 'code_reviews')
-
-
 class _Settings:
     """The contribution_config, resolved once: it is the same for every user and repository."""
 
     def __init__(self, contribution_config):
-        self.metric = {m: config._metric_cfg(contribution_config, m) for m in METRICS}
+        self.metric = {m: config._metric_cfg(contribution_config, m) for m in config.METRICS}
         line_stats = config._line_stats_cfg(contribution_config)
         self.line_stats = line_stats['enabled']
         self.refactor_threshold = line_stats['refactor_threshold']
@@ -67,7 +64,7 @@ class _Settings:
 
     def score(self, counts):
         """Overall contribution: only enabled metrics with count_towards_score=true."""
-        return sum(counts[m] for m in METRICS
+        return sum(counts[m] for m in config.METRICS
                    if self.metric[m]['enabled'] and self.metric[m]['count_towards_score'])
 
 
