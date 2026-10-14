@@ -159,7 +159,7 @@
   width: 0.5rem;
   height: 0.5rem;
   border-radius: 50%;
-  background: var(--c-closed);
+  background: var(--c-issue);
 }
 
 .status[data-outcome='merged'] .status__dot {
@@ -168,6 +168,11 @@
 
 .status[data-outcome='open'] .status__dot {
   background: var(--c-open);
+}
+
+/* A closed pull request was turned down; a closed issue was resolved, so it stays gray. */
+.status[data-outcome='closed'][data-kind='pr'] .status__dot {
+  background: var(--c-closed);
 }
 
 .pager {
