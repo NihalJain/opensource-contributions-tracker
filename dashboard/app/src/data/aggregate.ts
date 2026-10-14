@@ -123,6 +123,8 @@ export interface RepoRow {
 
 export interface ProjectRow {
   project: string;
+  /** Avatar of the project's highest-ranked repository that has one; empty when none does. */
+  avatar: string;
   value: number;
   score: number;
   reviews: number;
@@ -187,7 +189,7 @@ export function projectRows(items: Item[], contributions: Contribution[]): Proje
     row.value = useScore ? row.score : row.items;
     let project = projects.get(row.project);
     if (!project) {
-      project = { project: row.project, value: 0, score: 0, reviews: 0, commits: 0, merged: 0, items: 0, repos: [] };
+      project = { project: row.project, avatar: '', value: 0, score: 0, reviews: 0, commits: 0, merged: 0, items: 0, repos: [] };
       projects.set(row.project, project);
     }
     project.value += row.value;
@@ -202,7 +204,10 @@ export function projectRows(items: Item[], contributions: Contribution[]): Proje
 
   const byValue = <T extends { value: number }>(list: T[]) => list.sort((a, b) => b.value - a.value);
   const ranked = byValue([...projects.values()]).filter((p) => p.value > 0 || p.items > 0 || p.reviews > 0);
-  for (const project of ranked) byValue(project.repos);
+  for (const project of ranked) {
+    byValue(project.repos);
+    project.avatar = project.repos.find((r) => r.repoAvatar)?.repoAvatar ?? '';
+  }
 
   return { measure: useScore ? 'score' : 'activity', projects: ranked };
 }

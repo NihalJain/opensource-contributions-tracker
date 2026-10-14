@@ -45,6 +45,7 @@ export function Ribbon({ breakdown, selected, onToggle }: Props) {
 
   const rows = projects.map((p) => ({
     project: p.project,
+    avatar: p.avatar,
     value: p.value,
     share: total > 0 ? p.value / total : 0,
     text: fmt(p.value),
@@ -113,6 +114,9 @@ export function Ribbon({ breakdown, selected, onToggle }: Props) {
                 onFocus={() => setHovered(row.project)}
                 onBlur={() => setHovered(null)}
               >
+                {row.avatar ? (
+                  <img className="ribbon__item-avatar" src={row.avatar} alt="" width="16" height="16" loading="lazy" />
+                ) : null}
                 <span className="ribbon__item-name">{row.project}</span>
                 <span className="ribbon__item-value">{row.text}</span>
                 <span className="ribbon__item-share">{percent(row.share)}</span>
