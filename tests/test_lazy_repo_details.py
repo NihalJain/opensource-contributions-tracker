@@ -1,5 +1,5 @@
 """Repo details and contributor ranks are only fetched for repositories someone was active in."""
-import generate_report as g
+from tracker import api, collect, github
 
 API = "https://api.github.com"
 
@@ -30,16 +30,16 @@ class Pages:
 
 def test_without_a_wanted_set_behaviour_is_unchanged(monkeypatch):
     pages = Pages([f"u{i}" for i in range(250)])
-    monkeypatch.setattr(g, "get_all_pages", pages)
-    assert len(g.get_top_contributors("o/r")) == 250
+    monkeypatch.setattr(api, "get_all_pages", pages)
+    assert len(github.get_top_contributors("o/r")) == 250
     assert pages.requested == ["all"]
 
 
 def test_stops_as_soon_as_everyone_wanted_is_found(monkeypatch):
     logins = [f"u{i}" for i in range(450)]
     pages = Pages(logins)
-    monkeypatch.setattr(g, "get_all_pages", pages)
-    result = g.get_top_contributors("o/r", wanted={"U5", "u150"})  # case-insensitive
+    monkeypatch.setattr(api, "get_all_pages", pages)
+    result = github.get_top_contributors("o/r", wanted={"U5", "u150"})  # case-insensitive
     assert pages.requested == [1, 2]          # u150 is on page 2; pages 3 to 5 are never asked for
     assert [c["login"] for c in result][:3] == ["u0", "u1", "u2"]
     assert len(result) == 200
@@ -47,24 +47,24 @@ def test_stops_as_soon_as_everyone_wanted_is_found(monkeypatch):
 
 def test_scans_every_page_when_someone_is_not_in_the_list(monkeypatch):
     pages = Pages([f"u{i}" for i in range(450)])
-    monkeypatch.setattr(g, "get_all_pages", pages)
-    result = g.get_top_contributors("o/r", wanted={"u1", "nobody"})
+    monkeypatch.setattr(api, "get_all_pages", pages)
+    result = github.get_top_contributors("o/r", wanted={"u1", "nobody"})
     assert pages.requested == [1, 2, 3, 4, 5]
     assert len(result) == 450
 
 
 def test_a_short_page_ends_the_listing(monkeypatch):
     pages = Pages([f"u{i}" for i in range(30)])
-    monkeypatch.setattr(g, "get_all_pages", pages)
-    g.get_top_contributors("o/r", wanted={"nobody"})
+    monkeypatch.setattr(api, "get_all_pages", pages)
+    github.get_top_contributors("o/r", wanted={"nobody"})
     assert pages.requested == [1]
 
 
 def test_ranks_match_the_full_listing(monkeypatch):
     logins = [f"u{i}" for i in range(300)]
-    monkeypatch.setattr(g, "get_all_pages", Pages(logins))
-    partial = g.get_top_contributors("o/r", wanted={"u120"})
-    full = g.get_top_contributors("o/r")
+    monkeypatch.setattr(api, "get_all_pages", Pages(logins))
+    partial = github.get_top_contributors("o/r", wanted={"u120"})
+    full = github.get_top_contributors("o/r")
     rank = lambda lst, who: [str(c["login"]).lower() for c in lst].index(who) + 1
     assert rank(partial, "u120") == rank(full, "u120") == 121
 
@@ -99,8 +99,8 @@ def build(monkeypatch, active_repo_by_user):
             return []
         return []
 
-    monkeypatch.setattr(g, "get_all_pages", pages)
-    monkeypatch.setattr(g, "get_user_info", lambda u: {"name": u, "avatar_url": "a", "html_url": f"https://github.com/{u}"})
+    monkeypatch.setattr(api, "get_all_pages", pages)
+    monkeypatch.setattr(github, "get_user_info", lambda u: {"name": u, "avatar_url": "a", "html_url": f"https://github.com/{u}"})
 
     def info(repo):
         world.info_calls.append(repo)
@@ -111,9 +111,9 @@ def build(monkeypatch, active_repo_by_user):
         world.contributor_calls.append((repo, sorted(wanted) if wanted is not None else None))
         return [{"login": "bob"}, {"login": "ada"}]
 
-    monkeypatch.setattr(g, "get_repo_info", info)
-    monkeypatch.setattr(g, "get_top_contributors", contributors)
-    monkeypatch.setattr(g, "get_commits", lambda *a, **k: [])
+    monkeypatch.setattr(github, "get_repo_info", info)
+    monkeypatch.setattr(github, "get_top_contributors", contributors)
+    monkeypatch.setattr(github, "get_commits", lambda *a, **k: [])
     return world
 
 
@@ -122,7 +122,7 @@ REPOS = {"P": ["apache/a", "apache/b", "apache/c", "apache/d"]}
 
 
 def run():
-    return g.process_github_data("2024-01-01", "2024-12-31", ["ada", "bob"], REPOS, CFG)
+    return collect.process_github_data("2024-01-01", "2024-12-31", ["ada", "bob"], REPOS, CFG)
 
 
 def test_only_repos_with_activity_are_looked_up(monkeypatch):

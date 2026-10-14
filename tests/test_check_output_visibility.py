@@ -3,7 +3,7 @@ import json
 import pytest
 
 import check_output_visibility as check
-import generate_report as g
+from tracker import privacy
 
 PUBLIC = "apache/hbase"
 PRIVATE = "acme/top-secret-project"
@@ -23,7 +23,7 @@ def github(monkeypatch):
         looked_up.append(repo)
         return ANSWERS[repo.lower()] if repo.lower() in ANSWERS else {"private": False, "visibility": "public"}
 
-    monkeypatch.setattr(g, "get_repo_info_if_visible", lookup)
+    monkeypatch.setattr(privacy, "get_repo_info_if_visible", lookup)
     return looked_up
 
 
@@ -108,7 +108,7 @@ def test_a_failed_lookup_is_an_error_not_a_verdict(tmp_path, monkeypatch, capsys
     def boom(repo):
         raise RuntimeError("Could not check whether a repository is public (HTTP 502)")
 
-    monkeypatch.setattr(g, "get_repo_info_if_visible", boom)
+    monkeypatch.setattr(privacy, "get_repo_info_if_visible", boom)
     out = write_output(tmp_path, PRIVATE)
     assert check.main([str(out)]) == 2
     printed = capsys.readouterr().out

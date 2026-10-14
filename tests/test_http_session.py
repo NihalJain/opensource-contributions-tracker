@@ -1,4 +1,4 @@
-import generate_report as g
+from tracker import api, github
 
 
 class Reply:
@@ -22,11 +22,11 @@ def test_every_request_goes_through_the_one_shared_session(monkeypatch):
     def module_level_get(*args, **kwargs):
         raise AssertionError("requests.get opens a new connection for every call")
 
-    monkeypatch.setattr(g.SESSION, "get", session_get)
-    monkeypatch.setattr(g.requests, "get", module_level_get)
+    monkeypatch.setattr(api.SESSION, "get", session_get)
+    monkeypatch.setattr(api.requests, "get", module_level_get)
 
-    g.get_repo_info("apache/hbase")
-    g.get_repo_info("apache/hadoop")
+    github.get_repo_info("apache/hbase")
+    github.get_repo_info("apache/hadoop")
 
     assert len(through_session) == 2
-    assert isinstance(g.SESSION, g.requests.Session)
+    assert isinstance(api.SESSION, api.requests.Session)

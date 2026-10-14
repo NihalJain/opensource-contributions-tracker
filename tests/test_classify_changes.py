@@ -22,7 +22,7 @@ def test_dashboard_and_documentation_changes_need_no_python_checks(files):
 
 @pytest.mark.parametrize("path", [
     "generate_report.py", "check_output_visibility.py", "requirements.txt", "requirements-dev.txt",
-    "tests/test_private_repos.py", "input/github.json",
+    "tracker/api.py", "tests/test_private_repos.py", "input/github.json",
     ".github/workflows/pr.yml", ".github/workflows/main.yml", ".github/workflows/deploy-dashboard.yml",
     ".github/scripts/classify_changes.py",
 ])

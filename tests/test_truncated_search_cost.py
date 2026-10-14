@@ -1,5 +1,5 @@
 """A search that is over the Search API's cap must cost one request, not ten."""
-import generate_report as g
+from tracker import api, github
 
 
 class FakeResponse:
@@ -34,18 +34,18 @@ class SearchServer:
 
 def test_without_a_limit_it_pages_up_to_the_cap(monkeypatch):
     server = SearchServer(total=5000)
-    monkeypatch.setattr(g.SESSION, "get", server)
+    monkeypatch.setattr(api.SESSION, "get", server)
     meta = {}
-    results = g.get_all_pages("https://api.github.com/search/issues", {"q": "x", "per_page": 100}, meta=meta)
+    results = api.get_all_pages("https://api.github.com/search/issues", {"q": "x", "per_page": 100}, meta=meta)
     assert len(results) == 1000 and server.pages == list(range(1, 11))   # today's behaviour, unchanged
     assert meta["total_count"] == 5000
 
 
 def test_over_the_limit_it_stops_after_the_first_page(monkeypatch):
     server = SearchServer(total=5000)
-    monkeypatch.setattr(g.SESSION, "get", server)
+    monkeypatch.setattr(api.SESSION, "get", server)
     meta = {}
-    results = g.get_all_pages("https://api.github.com/search/issues", {"q": "x", "per_page": 100},
+    results = api.get_all_pages("https://api.github.com/search/issues", {"q": "x", "per_page": 100},
                               meta=meta, give_up_over=1000)
     assert server.pages == [1]
     assert meta["total_count"] == 5000          # the caller can still see why it gave up
@@ -54,9 +54,9 @@ def test_over_the_limit_it_stops_after_the_first_page(monkeypatch):
 
 def test_under_the_limit_it_still_fetches_everything(monkeypatch):
     server = SearchServer(total=250)
-    monkeypatch.setattr(g.SESSION, "get", server)
+    monkeypatch.setattr(api.SESSION, "get", server)
     meta = {}
-    results = g.get_all_pages("https://api.github.com/search/issues", {"q": "x", "per_page": 100},
+    results = api.get_all_pages("https://api.github.com/search/issues", {"q": "x", "per_page": 100},
                               meta=meta, give_up_over=1000)
     assert len(results) == 250 and server.pages == [1, 2, 3]
     assert meta["total_count"] == 250
@@ -64,8 +64,8 @@ def test_under_the_limit_it_still_fetches_everything(monkeypatch):
 
 def test_exactly_at_the_limit_is_still_complete(monkeypatch):
     server = SearchServer(total=1000)
-    monkeypatch.setattr(g.SESSION, "get", server)
-    results = g.get_all_pages("https://api.github.com/search/issues", {"q": "x", "per_page": 100}, give_up_over=1000)
+    monkeypatch.setattr(api.SESSION, "get", server)
+    results = api.get_all_pages("https://api.github.com/search/issues", {"q": "x", "per_page": 100}, give_up_over=1000)
     assert len(results) == 1000
 
 
@@ -78,7 +78,7 @@ def test_the_broad_user_queries_ask_to_give_up_early(monkeypatch):
             meta["total_count"] = 0
         return []
 
-    monkeypatch.setattr(g, "get_all_pages", spy)
-    g.get_user_search_activity("ada", ["apache/a", "apache/b"], "2024-01-01", "2024-12-31", True, True)
-    g.get_user_commit_repos("ada", [f"apache/r{i}" for i in range(5)], "2024-01-01", "2024-12-31")
-    assert seen and all(v == g.MAX_SEARCH_RESULT_SIZE for v in seen)
+    monkeypatch.setattr(api, "get_all_pages", spy)
+    github.get_user_search_activity("ada", ["apache/a", "apache/b"], "2024-01-01", "2024-12-31", True, True)
+    github.get_user_commit_repos("ada", [f"apache/r{i}" for i in range(5)], "2024-01-01", "2024-12-31")
+    assert seen and all(v == api.MAX_SEARCH_RESULT_SIZE for v in seen)

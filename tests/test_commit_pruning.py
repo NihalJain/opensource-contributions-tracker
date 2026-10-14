@@ -1,5 +1,5 @@
 """An owner-scoped commit search tells us which repos a user committed to at all."""
-import generate_report as g
+from tracker import api, github
 
 API = "https://api.github.com"
 
@@ -24,8 +24,8 @@ class FakeSearch:
 
 
 def repos_for(monkeypatch, fake, repos):
-    monkeypatch.setattr(g, "get_all_pages", fake)
-    return g.get_user_commit_repos("ada", repos, "2024-01-01", "2024-12-31")
+    monkeypatch.setattr(api, "get_all_pages", fake)
+    return github.get_user_commit_repos("ada", repos, "2024-01-01", "2024-12-31")
 
 
 REPOS = ["apache/hbase", "apache/phoenix", "apache/pinot", "apache/kafka"]

@@ -5,7 +5,7 @@ import pathlib
 import pytest
 import requests
 
-import generate_report as g
+from tracker import api, cli, github, privacy
 
 API = "https://api.github.com"
 PUBLIC = "apache/hbase"
@@ -33,28 +33,28 @@ API_ANSWERS = {
 # ---------------------------------------------------------------- the setting
 
 def test_missing_setting_means_exclude():
-    assert g.resolve_private_repos_mode(None) == "exclude"
+    assert privacy.resolve_private_repos_mode(None) == "exclude"
 
 
 @pytest.mark.parametrize("value", ["exclude", "include", " Include ", "EXCLUDE"])
 def test_accepts_both_modes_case_insensitively(value):
-    assert g.resolve_private_repos_mode(value) == value.strip().lower()
+    assert privacy.resolve_private_repos_mode(value) == value.strip().lower()
 
 
 @pytest.mark.parametrize("value", ["exclufde", "", True, False, 0, ["exclude"]])
 def test_anything_else_is_an_error_not_a_silent_default(value):
     with pytest.raises(ValueError, match="private_repos"):
-        g.resolve_private_repos_mode(value)
+        privacy.resolve_private_repos_mode(value)
 
 
 def test_only_an_explicit_public_answer_counts_as_public():
-    assert g.is_public_repo(info(PUBLIC))
-    assert g.is_public_repo({"private": False})                       # visibility absent, private says public
-    assert not g.is_public_repo(info(PRIVATE, private=True, visibility="private"))
-    assert not g.is_public_repo(info("x/y", private=False, visibility="internal"))
-    assert not g.is_public_repo({})
-    assert not g.is_public_repo({"visibility": "public"})              # no `private` flag at all
-    assert not g.is_public_repo(None)
+    assert privacy.is_public_repo(info(PUBLIC))
+    assert privacy.is_public_repo({"private": False})                       # visibility absent, private says public
+    assert not privacy.is_public_repo(info(PRIVATE, private=True, visibility="private"))
+    assert not privacy.is_public_repo(info("x/y", private=False, visibility="internal"))
+    assert not privacy.is_public_repo({})
+    assert not privacy.is_public_repo({"visibility": "public"})              # no `private` flag at all
+    assert not privacy.is_public_repo(None)
 
 
 # ---------------------------------------------------------------- looking a repository up
@@ -78,8 +78,8 @@ def fake_requests(monkeypatch, status, body=None):
         calls.append(url)
         return Response(status, body, url)
 
-    monkeypatch.setattr(g.SESSION, "get", get)
-    monkeypatch.setattr(g.time, "sleep", lambda s: None)
+    monkeypatch.setattr(api.SESSION, "get", get)
+    monkeypatch.setattr(api.time, "sleep", lambda s: None)
     return calls
 
 
@@ -87,7 +87,7 @@ def fake_requests(monkeypatch, status, body=None):
 def test_a_repository_the_token_cannot_see_is_none_after_one_request_and_is_not_logged(monkeypatch, caplog, status):
     calls = fake_requests(monkeypatch, status)
     with caplog.at_level(logging.DEBUG):
-        assert g.get_repo_info_if_visible(PRIVATE) is None
+        assert privacy.get_repo_info_if_visible(PRIVATE) is None
     assert len(calls) == 1
     assert PRIVATE not in caplog.text and "Request failed" not in caplog.text
 
@@ -95,7 +95,7 @@ def test_a_repository_the_token_cannot_see_is_none_after_one_request_and_is_not_
 def test_a_server_error_is_raised_so_a_run_never_drops_repositories_quietly(monkeypatch):
     calls = fake_requests(monkeypatch, 500)
     with pytest.raises(RuntimeError, match="500"):
-        g.get_repo_info_if_visible(PUBLIC)
+        privacy.get_repo_info_if_visible(PUBLIC)
     assert len(calls) == 10        # ordinary retries still apply
 
 
@@ -104,7 +104,7 @@ def test_a_failed_lookup_never_logs_or_raises_the_repository_name(monkeypatch, c
     fake_requests(monkeypatch, 502)
     with caplog.at_level(logging.DEBUG):
         with pytest.raises(RuntimeError) as error:
-            g.get_repo_info_if_visible(PRIVATE)
+            privacy.get_repo_info_if_visible(PRIVATE)
     assert PRIVATE not in caplog.text and PRIVATE not in str(error.value)
     assert "top-secret" not in caplog.text and "top-secret" not in str(error.value)
 
@@ -113,11 +113,11 @@ def test_a_dropped_connection_never_logs_or_raises_the_repository_name(monkeypat
     def get(url, **kwargs):
         raise requests.exceptions.ConnectionError(f"HTTPSConnectionPool: Max retries exceeded with url: /repos/{PRIVATE}")
 
-    monkeypatch.setattr(g.SESSION, "get", get)
-    monkeypatch.setattr(g.time, "sleep", lambda s: None)
+    monkeypatch.setattr(api.SESSION, "get", get)
+    monkeypatch.setattr(api.time, "sleep", lambda s: None)
     with caplog.at_level(logging.DEBUG):
         with pytest.raises(RuntimeError) as error:
-            g.get_repo_info_if_visible(PRIVATE)
+            privacy.get_repo_info_if_visible(PRIVATE)
     assert "top-secret" not in caplog.text and "top-secret" not in str(error.value)
 
 
@@ -125,13 +125,13 @@ def test_other_lookups_still_log_their_url_for_diagnosis(monkeypatch, caplog):
     fake_requests(monkeypatch, 500)
     with caplog.at_level(logging.ERROR):
         with pytest.raises(requests.exceptions.HTTPError):
-            g.get_all_pages(f"{API}/repos/{PUBLIC}/commits", {}, with_pagination=False)
+            api.get_all_pages(f"{API}/repos/{PUBLIC}/commits", {}, with_pagination=False)
     assert PUBLIC in caplog.text
 
 
 def test_a_visible_repository_returns_its_information(monkeypatch):
     fake_requests(monkeypatch, 200, info(PUBLIC))
-    assert g.get_repo_info_if_visible(PUBLIC)["full_name"] == PUBLIC
+    assert privacy.get_repo_info_if_visible(PUBLIC)["full_name"] == PUBLIC
 
 
 # ---------------------------------------------------------------- filtering a configuration
@@ -143,14 +143,14 @@ def stub_visibility(monkeypatch):
         seen.append(repo)
         return API_ANSWERS[repo]
 
-    monkeypatch.setattr(g, "get_repo_info_if_visible", lookup)
+    monkeypatch.setattr(privacy, "get_repo_info_if_visible", lookup)
     return seen
 
 
 def test_filter_keeps_only_public_repositories_and_counts_the_rest(monkeypatch):
     stub_visibility(monkeypatch)
     config = {"Mine": [PUBLIC, PRIVATE], "Hidden": [HIDDEN], "Corp": ["acme/internal", "acme/no-visibility"]}
-    kept, infos, private, unavailable = g.exclude_non_public_repositories(config)
+    kept, infos, private, unavailable = privacy.exclude_non_public_repositories(config)
     assert kept == {"Mine": [PUBLIC]}               # projects left empty are dropped
     assert list(infos) == [PUBLIC]
     assert (private, unavailable) == (3, 1)         # private + internal + no visibility field; one 404
@@ -159,7 +159,7 @@ def test_filter_keeps_only_public_repositories_and_counts_the_rest(monkeypatch):
 def test_filter_looks_each_repository_up_once_whatever_the_case(monkeypatch):
     seen = stub_visibility(monkeypatch)
     monkeypatch.setitem(API_ANSWERS, "APACHE/HBASE", info(PUBLIC))
-    g.exclude_non_public_repositories({"A": [PUBLIC], "B": [PUBLIC, "APACHE/HBASE"]})
+    privacy.exclude_non_public_repositories({"A": [PUBLIC], "B": [PUBLIC, "APACHE/HBASE"]})
     assert [r.lower() for r in seen] == [PUBLIC]
 
 
@@ -185,18 +185,18 @@ def run_report(monkeypatch, tmp_path, config):
             meta["total_count"] = 0
         return []
 
-    monkeypatch.setattr(g, "get_all_pages", pages)
-    monkeypatch.setattr(g, "get_user_info", lambda u: {"name": u, "avatar_url": "a", "html_url": f"https://github.com/{u}"})
-    monkeypatch.setattr(g, "get_repo_info_if_visible", lambda repo: API_ANSWERS[repo])
-    monkeypatch.setattr(g, "get_repo_info", lambda repo: API_ANSWERS[repo])
-    monkeypatch.setattr(g, "get_top_contributors", lambda *a, **k: [{"login": "ada"}])
-    monkeypatch.setattr(g, "get_commits", lambda *a, **k: [])
+    monkeypatch.setattr(api, "get_all_pages", pages)
+    monkeypatch.setattr(github, "get_user_info", lambda u: {"name": u, "avatar_url": "a", "html_url": f"https://github.com/{u}"})
+    monkeypatch.setattr(privacy, "get_repo_info_if_visible", lambda repo: API_ANSWERS[repo])
+    monkeypatch.setattr(github, "get_repo_info", lambda repo: API_ANSWERS[repo])
+    monkeypatch.setattr(github, "get_top_contributors", lambda *a, **k: [{"login": "ada"}])
+    monkeypatch.setattr(github, "get_commits", lambda *a, **k: [])
 
     conf = tmp_path / "github.json"
     conf.write_text(json.dumps({"start_date": "2024-01-01", "users": ["ada"],
                                 "contribution_config": {"line_stats": {"enabled": False}}, **config}))
     out = tmp_path / "out"
-    g.generate_report(github_conf_path=str(conf), output_dir=f"{out}/")
+    cli.generate_report(github_conf_path=str(conf), output_dir=f"{out}/")
     return {p.name: p.read_bytes() for p in pathlib.Path(out).iterdir()}
 
 
@@ -242,12 +242,12 @@ def test_include_keeps_the_private_repository_and_warns(monkeypatch, tmp_path, c
 
 def test_a_typo_in_the_setting_stops_the_run_before_any_request(monkeypatch, tmp_path):
     calls = []
-    monkeypatch.setattr(g, "get_all_pages", lambda *a, **k: calls.append(a) or [])
+    monkeypatch.setattr(api, "get_all_pages", lambda *a, **k: calls.append(a) or [])
     conf = tmp_path / "github.json"
     conf.write_text(json.dumps({"start_date": "2024-01-01", "users": ["ada"], "private_repos": "exclufde",
                                 "project_to_repo_dict": {"P": [PUBLIC]}}))
     with pytest.raises(ValueError, match="private_repos"):
-        g.generate_report(github_conf_path=str(conf), output_dir=f"{tmp_path}/out/")
+        cli.generate_report(github_conf_path=str(conf), output_dir=f"{tmp_path}/out/")
     assert calls == []
 
 

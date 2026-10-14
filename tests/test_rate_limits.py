@@ -3,9 +3,9 @@ import time
 import pytest
 import requests
 
-import generate_report as g
+from tracker import api
 
-URL = f"{g.GITHUB_API_URL}/repos/apache/hbase"
+URL = f"{api.GITHUB_API_URL}/repos/apache/hbase"
 SECONDARY = {"message": "You have exceeded a secondary rate limit. Please wait a few minutes before you try again."}
 
 
@@ -29,13 +29,13 @@ def serve(monkeypatch, *replies):
         made.append(url)
         return queue.pop(0) if queue else Reply()
 
-    monkeypatch.setattr(g.SESSION, "get", get)
-    monkeypatch.setattr(g.time, "sleep", slept.append)
+    monkeypatch.setattr(api.SESSION, "get", get)
+    monkeypatch.setattr(api.time, "sleep", slept.append)
     return made, slept
 
 
 def fetch():
-    return g.get_all_pages(URL, {}, with_pagination=False)
+    return api.get_all_pages(URL, {}, with_pagination=False)
 
 
 # ---------------------------------------------------------------- what the wait is, and why

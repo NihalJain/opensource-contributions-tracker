@@ -1,5 +1,5 @@
 """process_github_data must use the per-user index, and fall back to per-repo queries when truncated."""
-import generate_report as g
+from tracker import api, collect, github
 
 API = "https://api.github.com"
 
@@ -32,11 +32,11 @@ def install(monkeypatch, search_items, total_count=None):
             return list(search_items)
         return []
 
-    monkeypatch.setattr(g, "get_all_pages", fake_pages)
-    monkeypatch.setattr(g, "get_user_info", lambda u: {"name": u, "avatar_url": "a", "html_url": "u"})
-    monkeypatch.setattr(g, "get_repo_info", lambda r: {"full_name": r, "description": "", "html_url": "h", "owner": {"avatar_url": "x"}})
-    monkeypatch.setattr(g, "get_top_contributors", lambda r, *a, **k: [])
-    monkeypatch.setattr(g, "get_commits", lambda *a, **k: [])
+    monkeypatch.setattr(api, "get_all_pages", fake_pages)
+    monkeypatch.setattr(github, "get_user_info", lambda u: {"name": u, "avatar_url": "a", "html_url": "u"})
+    monkeypatch.setattr(github, "get_repo_info", lambda r: {"full_name": r, "description": "", "html_url": "h", "owner": {"avatar_url": "x"}})
+    monkeypatch.setattr(github, "get_top_contributors", lambda r, *a, **k: [])
+    monkeypatch.setattr(github, "get_commits", lambda *a, **k: [])
 
     def per_repo_prs(user, repo, *a, **k):
         calls.per_repo["prs"] += 1
@@ -50,9 +50,9 @@ def install(monkeypatch, search_items, total_count=None):
         calls.per_repo["reviews"] += 1
         return 0
 
-    monkeypatch.setattr(g, "get_user_prs_via_search", per_repo_prs)
-    monkeypatch.setattr(g, "get_user_issues_via_search", per_repo_issues)
-    monkeypatch.setattr(g, "get_pr_count_reviewed_by_user", per_repo_reviews)
+    monkeypatch.setattr(github, "get_user_prs_via_search", per_repo_prs)
+    monkeypatch.setattr(github, "get_user_issues_via_search", per_repo_issues)
+    monkeypatch.setattr(github, "get_pr_count_reviewed_by_user", per_repo_reviews)
     return calls
 
 
@@ -61,7 +61,7 @@ PROJECTS = {"P": ["apache/hbase", "apache/phoenix"]}
 
 
 def run():
-    return g.process_github_data("2024-01-01", "2024-12-31", ["ada", "bob"], PROJECTS, CFG)
+    return collect.process_github_data("2024-01-01", "2024-12-31", ["ada", "bob"], PROJECTS, CFG)
 
 
 def test_complete_results_avoid_every_per_repo_search(monkeypatch):
@@ -102,8 +102,8 @@ def test_commit_lookups_are_skipped_for_repos_without_commits(monkeypatch):
     repos = {"P": [f"apache/r{i}" for i in range(5)]}
     install(monkeypatch, [])
     listed = []
-    monkeypatch.setattr(g, "get_commits", lambda user, repo, *a, **k: listed.append((user, repo)) or [])
-    base_pages = g.get_all_pages
+    monkeypatch.setattr(github, "get_commits", lambda user, repo, *a, **k: listed.append((user, repo)) or [])
+    base_pages = api.get_all_pages
 
     def pages(url, params, *a, meta=None, **k):
         if url.endswith("/search/commits"):
@@ -113,8 +113,8 @@ def test_commit_lookups_are_skipped_for_repos_without_commits(monkeypatch):
             return [commit("s", "apache/r2")]
         return base_pages(url, params, *a, meta=meta, **k)
 
-    monkeypatch.setattr(g, "get_all_pages", pages)
-    data, _ = g.process_github_data("2024-01-01", "2024-12-31", ["ada"], repos, CFG)
+    monkeypatch.setattr(api, "get_all_pages", pages)
+    data, _ = collect.process_github_data("2024-01-01", "2024-12-31", ["ada"], repos, CFG)
     assert listed == [("ada", "apache/r2")]
     assert len(data) == 5  # every pair still gets a row, as before
 
@@ -123,8 +123,8 @@ def test_commits_are_listed_for_every_repo_when_pruning_is_not_possible(monkeypa
     repos = {"P": [f"apache/r{i}" for i in range(5)]}
     install(monkeypatch, [])
     listed = []
-    monkeypatch.setattr(g, "get_commits", lambda user, repo, *a, **k: listed.append(repo) or [])
-    base_pages = g.get_all_pages
+    monkeypatch.setattr(github, "get_commits", lambda user, repo, *a, **k: listed.append(repo) or [])
+    base_pages = api.get_all_pages
 
     def pages(url, params, *a, meta=None, **k):
         if url.endswith("/search/commits"):
@@ -133,6 +133,6 @@ def test_commits_are_listed_for_every_repo_when_pruning_is_not_possible(monkeypa
             return []
         return base_pages(url, params, *a, meta=meta, **k)
 
-    monkeypatch.setattr(g, "get_all_pages", pages)
-    g.process_github_data("2024-01-01", "2024-12-31", ["ada"], repos, CFG)
+    monkeypatch.setattr(api, "get_all_pages", pages)
+    collect.process_github_data("2024-01-01", "2024-12-31", ["ada"], repos, CFG)
     assert sorted(listed) == sorted(repos["P"])

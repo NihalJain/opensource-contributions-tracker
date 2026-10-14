@@ -285,8 +285,7 @@ removed from the output.
 
 **Re-generate the report from cached data** (no API calls) — both output files must exist:
 ```sh
-# In generate_report.py, comment out generate_report() and uncomment:
-generate_report_with_local_data()
+python -c "from tracker.cli import generate_report_with_local_data; generate_report_with_local_data()"
 ```
 
 ## GitHub Actions (Automated workflow)
@@ -305,6 +304,20 @@ To update the configuration, edit `input/github.json` and push — the next work
 4. Once the run completes, the updated report is committed to the `output/` directory.
 
 ## Contributing
+
+The generator is the `tracker` package; `generate_report.py` is its entry point.
+
+| Module | What it does |
+|--------|--------------|
+| `tracker/cli.py` | Builds a report from the API (`generate_report`) or from earlier data files (`generate_report_with_local_data`) |
+| `tracker/config.py` | Reads `input/github.json` and its per-metric settings |
+| `tracker/privacy.py` | Keeps private repositories out of the report (`private_repos`) |
+| `tracker/collect.py` | Collects every user's contributions to every repository |
+| `tracker/github.py` | The GitHub queries: commits, pull requests, issues, reviews, line stats, repository details |
+| `tracker/api.py` | HTTP session, pagination, retries and rate limits |
+| `tracker/aggregate.py` | Per-project and per-user totals |
+| `tracker/report.py` | The markdown report, pie charts and data files |
+| `tracker/log.py` | The shared logger and the filter that hides private names |
 
 1. Fork the repository and create a feature branch:
     ```sh
