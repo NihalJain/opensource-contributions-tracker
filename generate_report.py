@@ -1,9 +1,11 @@
 import json
 import logging
 import os
+import re
 import time
 import traceback
 from datetime import datetime, timedelta
+from urllib.parse import quote, quote_plus
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -17,6 +19,41 @@ MAX_SEARCH_RESULT_SIZE = 1000
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+class NameScrubber(logging.Filter):
+    """
+    Replaces given names in every log message with `<private>`.
+
+    Used when private work is redacted: the repositories are processed in memory so their numbers can be
+    counted, and a log line (a progress message, a failed request's URL, an exception) must not name them,
+    because CI logs of a public repository are public. Names are matched case-insensitively and also in
+    their URL-encoded forms, as they appear in search queries.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self._pattern = None
+
+    def hide(self, names):
+        forms = set()
+        for name in names:
+            if name and len(name) >= 3:
+                forms.update({name, quote(name, safe=""), quote_plus(name)})
+        ordered = sorted(forms, key=len, reverse=True)
+        self._pattern = re.compile("|".join(re.escape(f) for f in ordered), re.IGNORECASE) if ordered else None
+
+    def clear(self):
+        self._pattern = None
+
+    def filter(self, record):
+        if self._pattern is not None:
+            record.msg, record.args = self._pattern.sub("<private>", record.getMessage()), None
+        return True
+
+
+_scrubber = NameScrubber()
+logger.addFilter(_scrubber)
 
 # Suppress the insecure warning from urllib3.
 urllib3.disable_warnings(category=urllib3.exceptions.InsecureRequestWarning)
@@ -745,8 +782,9 @@ def get_repo_info(repo):
 
 
 # The generated report is normally committed to a public repository and published as a public site,
-# so private repositories are left out unless the configuration says `"private_repos": "include"`.
-PRIVATE_REPOS_MODES = ('exclude', 'include')
+# so private repositories are left out unless the configuration says `"private_repos": "include"`, or
+# `"redact"`, which counts their work without naming anything.
+PRIVATE_REPOS_MODES = ('exclude', 'include', 'redact')
 
 # Answers that mean "this token cannot see that repository"; retrying them cannot change the result.
 REPO_NOT_VISIBLE_STATUSES = (403, 404, 451)
@@ -787,46 +825,133 @@ def get_repo_info_if_visible(repo):
         raise RuntimeError(f"Could not check whether a repository is public ({what})") from None
 
 
+def classify_repositories(project_to_repo_dict):
+    """
+    Look every repository up once and sort it as public, private or unavailable (not visible to the token).
+
+    A repository the token cannot see, or whose visibility is missing from the answer, is treated as
+    private rather than public: nothing is assumed public without GitHub saying so. Names are never
+    logged here: CI logs of a public repository are public too.
+
+    Returns a dict:
+        public:      {project: [repos]} the public repositories, projects left empty dropped
+        visible:     {project: [repos]} public and private ones, for work that counts private repos
+        infos:       {repo: API info} for every repository the token can see
+        private:     [repos] visible to the token but not public, once each
+        unavailable: number of repositories the token cannot see
+    """
+    verdicts = {}  # repo name (lower case) -> (info or None, 'public' | 'private' | 'unavailable')
+    for repos in project_to_repo_dict.values():
+        for repo in repos:
+            key = repo.lower()
+            if key in verdicts:
+                continue
+            info = get_repo_info_if_visible(repo)
+            if info is None:
+                verdicts[key] = (None, 'unavailable')
+            elif is_public_repo(info):
+                verdicts[key] = (info, 'public')
+            else:
+                verdicts[key] = (info, 'private')
+
+    public, visible, infos, private = {}, {}, {}, []
+    seen_private = set()
+    for project_key, repos in project_to_repo_dict.items():
+        keep_public, keep_visible = [], []
+        for repo in repos:
+            info, kind = verdicts[repo.lower()]
+            if kind == 'unavailable':
+                continue
+            infos[repo] = info
+            keep_visible.append(repo)
+            if kind == 'public':
+                keep_public.append(repo)
+            elif repo.lower() not in seen_private:
+                seen_private.add(repo.lower())
+                private.append(repo)
+        if keep_public:
+            public[project_key] = keep_public
+        if keep_visible:
+            visible[project_key] = keep_visible
+    unavailable = sum(1 for _, kind in verdicts.values() if kind == 'unavailable')
+    return {"public": public, "visible": visible, "infos": infos, "private": private, "unavailable": unavailable}
+
+
 def exclude_non_public_repositories(project_to_repo_dict):
     """
     Remove every repository that is not known to be public, before anything is searched or logged.
 
-    A repository the token cannot see, or whose visibility is missing from the answer, is treated as
-    private. Projects left without repositories are dropped. Names of removed repositories are never
-    logged: CI logs of a public repository are public too.
-
-    Args:
-        project_to_repo_dict (dict): Maps project names to lists of `owner/repo` strings.
+    Projects left without repositories are dropped.
 
     Returns:
         tuple: (the filtered dictionary, {repo: API info} for the repositories kept,
                 number of private repositories removed, number removed because they were not visible).
     """
-    verdicts = {}  # repo name (lower case) -> (info or None, kept?, reason)
-    filtered = {}
-    infos = {}
-    private = unavailable = 0
+    found = classify_repositories(project_to_repo_dict)
+    kept = {repo for repos in found["public"].values() for repo in repos}
+    infos = {repo: info for repo, info in found["infos"].items() if repo in kept}
+    return found["public"], infos, len(found["private"]), found["unavailable"]
+
+
+def names_to_hide(found, project_to_repo_dict, users):
+    """
+    Every name a log line must not carry once private work is being redacted: the private repositories,
+    the owners that appear only through them (an owner shows up in search queries), and projects made
+    only of private repositories. The tracked users and anything that is also public are not hidden.
+    """
+    private = found["private"]
+    public_repos = {r.lower() for repos in found["public"].values() for r in repos}
+    public_owners = {r.split('/')[0].lower() for r in public_repos}
+    private_keys = {r.lower() for r in private}
+
+    hide = set(private)
+    hide |= {r.split('/')[0] for r in private
+             if r.split('/')[0].lower() not in public_owners and r.split('/')[0].lower() not in users}
     for project_key, repos in project_to_repo_dict.items():
-        kept = []
-        for repo in repos:
-            key = repo.lower()
-            if key not in verdicts:
-                info = get_repo_info_if_visible(repo)
-                if info is None:
-                    verdicts[key] = (None, False, 'unavailable')
-                    unavailable += 1
-                elif is_public_repo(info):
-                    verdicts[key] = (info, True, 'public')
-                else:
-                    verdicts[key] = (None, False, 'private')
-                    private += 1
-            info, keep, _ = verdicts[key]
-            if keep:
-                kept.append(repo)
-                infos[repo] = info
-        if kept:
-            filtered[project_key] = kept
-    return filtered, infos, private, unavailable
+        lowered = {r.lower() for r in repos}
+        if lowered & private_keys and not lowered & public_repos:
+            hide.add(project_key)
+    return hide
+
+
+# What private work becomes under "private_repos": "redact". Nothing in these names identifies a
+# repository, and "Private repositories" has no owner/repo shape, so check_output_visibility.py does
+# not read it as one.
+REDACTED_PROJECT = "Private work"
+REDACTED_REPOSITORY = "Private repositories"
+_COUNT_COLUMNS = ["Commits", "Pull Requests (Open)", "Pull Requests (Closed)", "Issues (Open)",
+                  "Issues (Closed)", "Code Reviews", "Lines Added (Merged)", "Lines Removed (Merged)",
+                  "Lines Added (Open PRs)", "Lines Removed (Open PRs)", "Lines Added", "Lines Removed",
+                  "Overall Contribution"]
+
+
+def redact_private_rows(github_data, activity_data, private_repos):
+    """
+    Replace each user's rows in private repositories with one row that identifies nothing.
+
+    The counts are summed per user, so they still count towards that user's totals and score. The rows
+    carry no repository name, URL, description, avatar or rank, and the activity records of private
+    repositories (titles, links, labels) are dropped altogether: private work is counts only.
+
+    Returns:
+        tuple: (rows, activity records), with the private repositories' own removed.
+    """
+    private = {repo.lower() for repo in private_repos}
+    rows = [row for row in github_data if row["Repository"].lower() not in private]
+    merged = {}
+    for row in github_data:
+        if row["Repository"].lower() not in private:
+            continue
+        key = (row["User"], row["User URL"])
+        if key not in merged:
+            merged[key] = {"Project Key": REDACTED_PROJECT, "Repository": REDACTED_REPOSITORY,
+                           "Repository URL": "", "Repository Description": "", "Repository Avatar": "",
+                           "User": row["User"], "User Avatar": row["User Avatar"], "User URL": row["User URL"],
+                           **{column: 0 for column in _COUNT_COLUMNS}, "Rank": -1}
+        for column in _COUNT_COLUMNS:
+            merged[key][column] += row.get(column) or 0
+    activity = [record for record in activity_data if record["repo"].lower() not in private]
+    return rows + list(merged.values()), activity
 
 
 def read_github_input_file(file_path):
@@ -906,7 +1031,7 @@ def _slim_issue(issue):
 
 
 def process_github_data(start_date, end_date, users, project_to_repo_dict, contribution_config=None,
-                        repo_infos=None):
+                        repo_infos=None, skip_ranking=None):
     """
     Process GitHub data to retrieve commits and pull requests for users and projects.
 
@@ -921,6 +1046,8 @@ def process_github_data(start_date, end_date, users, project_to_repo_dict, contr
         refactor_threshold (float): Minimum ratio of net change to total change to consider meaningful.
         repo_infos (dict): Optional. Repository information already fetched, keyed by `owner/repo`, so
             it is not requested a second time.
+        skip_ranking (set): Optional. Lower-case `owner/repo` names whose details and contributor ranking
+            are not looked up, because nothing about those repositories will be written (redacted work).
 
     Returns:
         list: A list of dictionaries containing GitHub data.
@@ -964,6 +1091,7 @@ def process_github_data(start_date, end_date, users, project_to_repo_dict, contr
         # fetched on first use inside the loop below.
         repo_info_dict = {}
         fetched_repo_infos = repo_infos or {}
+        no_details = skip_ranking or set()
 
         def repo_details(repo):
             if repo not in repo_info_dict:
@@ -1150,7 +1278,10 @@ def process_github_data(start_date, end_date, users, project_to_repo_dict, contr
                 # Look the repository up only if someone was active in it. An idle repository keeps its
                 # zero rows (the report filters them) with a URL that needs no API call.
                 active_users = {user for (row, _, active), user in zip(repo_rows, users) if active}
-                if active_users:
+                if repo.lower() in no_details:
+                    details = {"description": None, "avatar_url": None, "url": None}
+                    ranks = {}
+                elif active_users:
                     details = repo_details(repo)
                     logger.info(f"Fetching top 500 contributors for: {repo}")
                     ranks = {str(c["login"]).lower(): rank for rank, c in
@@ -1493,6 +1624,13 @@ def _write_activity_details(f, activity_data):
                         f.write(f"| [#{number}]({url}) | {title} | {status} | {created} | {updated} | {labels} |\n")
 
 
+def _repo_markdown(repo, url, avatar):
+    """A repository as an avatar and a link; plain text when it has no URL, as for redacted private work."""
+    if not isinstance(url, str) or not url:
+        return str(repo)
+    return f"<img src='{avatar}' width='12' height='12'> [{repo}]({url})"
+
+
 def create_markdown_report(github_data_df, users_df, projects_df, output_dir, report_filename, percentage, start_date=None, end_date=None, contribution_config=None, activity_data=None):
     """
     Create a markdown report of GitHub contributions and save it as a file.
@@ -1606,9 +1744,8 @@ def create_markdown_report(github_data_df, users_df, projects_df, output_dir, re
             f.write(
                 "|--------------|--------------|-------|---------|----------------------|----------------------|----------------|----------------|--------------|----------------------|\n")
             for _, row in projects_df.sort_values(by=['Overall Contribution'], ascending=False).iterrows():
-                repo_list = '<br>'.join(
-                    [f"<img src='{avatar}' width='12' height='12'> [{repo}]({url})" for repo, url, avatar in
-                     row['Repositories']])
+                repo_list = '<br>'.join([_repo_markdown(repo, url, avatar) for repo, url, avatar in
+                                         row['Repositories']])
                 user_list = '<br>'.join(
                     [f"<img src='{avatar}' width='12' height='12'> [{user}]({url})" for user, url, avatar in
                      row['Users']])
@@ -1623,9 +1760,8 @@ def create_markdown_report(github_data_df, users_df, projects_df, output_dir, re
                 "|------|--------------|---------|----------------------|----------------------|----------------|----------------|--------------|----------------------|\n")
             for _, row in users_df.sort_values(by=['Overall Contribution'], ascending=False).iterrows():
                 user_avatar = f"<img src='{row['User Avatar']}' width='12' height='12'>"
-                repo_list = '<br>'.join(
-                    [f"<img src='{avatar}' width='12' height='12'> [{repo}]({url})" for repo, url, avatar in
-                     row['Repositories']])
+                repo_list = '<br>'.join([_repo_markdown(repo, url, avatar) for repo, url, avatar in
+                                         row['Repositories']])
                 f.write(
                     f"| {user_avatar} [{row['User']}]({row['User URL']}) | {repo_list} | {row['Commits']} " + f"| {row['Pull Requests (Open)']} | {row['Pull Requests (Closed)']} | {row['Issues (Open)']} | {row['Issues (Closed)']} | {row['Code Reviews']} | {row['Overall Contribution']} |\n")
 
@@ -1643,11 +1779,10 @@ def create_markdown_report(github_data_df, users_df, projects_df, output_dir, re
                 f.write(
                     "|--------------|------------|------|------|---------|----------------------|----------------------|----------------|----------------|--------------|----------------------|\n")
             for _, row in github_data_df.sort_values(by=['User'], ascending=[True]).iterrows():
-                repo_avatar = f"<img src='{row['Repository Avatar']}' width='12' height='12'>"
                 user_avatar = f"<img src='{row['User Avatar']}' width='12' height='12'>"
                 rank_display = row['Rank'] if row['Rank'] != -1 else 'N/A'
                 base = (
-                    f"| {row['Project Key']} | {repo_avatar} [{row['Repository']}]({row['Repository URL']})"
+                    f"| {row['Project Key']} | {_repo_markdown(row['Repository'], row['Repository URL'], row['Repository Avatar'])}"
                     f" | {user_avatar} [{row['User']}]({row['User URL']}) | {rank_display} | {row['Commits']} |"
                     f" {row['Pull Requests (Open)']} | {row['Pull Requests (Closed)']} | {row['Issues (Open)']} | {row['Issues (Closed)']} | {row['Code Reviews']} |"
                 )
@@ -1731,7 +1866,23 @@ def generate_report(github_conf_path="input/github.json", output_dir="output/",
         # Reports are normally published publicly, so keep private repositories out of everything
         # that follows (searches, logs, files) unless the configuration asks for them.
         repo_infos = {}
-        if private_repos == 'exclude':
+        private_to_redact, skip_ranking = [], None
+        _scrubber.clear()
+        if private_repos == 'redact':
+            found = classify_repositories(project_to_repo_dict)
+            private_to_redact = found["private"]
+            private_keys = {r.lower() for r in private_to_redact}
+            _scrubber.hide(names_to_hide(found, project_to_repo_dict, users))
+            project_to_repo_dict, repo_infos = found["visible"], found["infos"]
+            skip_ranking = private_keys
+            if private_to_redact:
+                logger.info(f"Redacting {len(private_to_redact)} private repositories into one unnamed row per user.")
+            if found["unavailable"]:
+                logger.warning(f"Excluded {found['unavailable']} repositories this token cannot see "
+                               f"(misspelt, renamed or not accessible); check the names in project_to_repo_dict.")
+            if not project_to_repo_dict:
+                raise ValueError("No repositories are left to report on: none of them is visible to this token.")
+        elif private_repos == 'exclude':
             project_to_repo_dict, repo_infos, private_count, unavailable_count = \
                 exclude_non_public_repositories(project_to_repo_dict)
             if private_count:
@@ -1755,9 +1906,12 @@ def generate_report(github_conf_path="input/github.json", output_dir="output/",
 
         # Create markdown report
         github_data = process_github_data(start_date, end_date, users, project_to_repo_dict, contribution_config,
-                                          repo_infos=repo_infos)
-        github_data_df = convert_to_dataframe(github_data[0])
-        process_data_and_create_report(github_data_df, output_dir, report_fname, percentage, True, start_date, end_date, contribution_config, github_data[1])
+                                          repo_infos=repo_infos, skip_ranking=skip_ranking)
+        rows, activity = github_data
+        if private_to_redact:
+            rows, activity = redact_private_rows(rows, activity, private_to_redact)
+        github_data_df = convert_to_dataframe(rows)
+        process_data_and_create_report(github_data_df, output_dir, report_fname, percentage, True, start_date, end_date, contribution_config, activity)
 
     except Exception as e:
         logger.error(f"An error occurred: {e}")
@@ -1827,5 +1981,5 @@ if __name__ == "__main__":
         exit(0)
     except Exception as e:
         logger.error(f"Failed to complete job: {e}")
-        traceback.print_exc()
+        logger.error(traceback.format_exc())
         exit(-1)
