@@ -165,6 +165,18 @@ full structure below.
 }
 ```
 
+This block lists every key the generator reads. Only `start_date` and `users` are required; everything else
+can be left out. Where the block differs from the defaults:
+
+- `end_date` is optional and defaults to tomorrow.
+- `private_repos` defaults to `"exclude"`; the other value is `"include"`. See
+  [Private repositories](#private-repositories).
+- `project_to_repo_dict` can be left out, or set to `{}`, to
+  [auto-detect repositories](#auto-detected-repositories-empty-project_to_repo_dict).
+- In `contribution_config` every metric defaults to `enabled: true` and `count_towards_score: true`. The block
+  shows `closed_prs` with `count_towards_score: false`, which is a choice, not the default.
+- `line_stats` defaults to `enabled: false` and has no `refactor_threshold`; `0.1` is an example value.
+
 **Field reference:**
 
 | Field | Required | Default | Description |
