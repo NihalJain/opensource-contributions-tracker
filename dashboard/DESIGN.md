@@ -44,11 +44,18 @@ One family, [Archivo](https://fonts.google.com/specimen/Archivo), self-hosted as
 - Gridlines are solid hairlines. Values are labelled at the tip, and only the peak of the timeline is labelled directly.
 - The timeline, project bars and speed bands all work from the same filtered data, and each part ignores the filters that would hide its own choices (the timeline keeps every month so a range can be changed; the project list keeps every project so one can be switched off).
 
+## The project bar
+
+Real contribution data is skewed: one project is often 80% of the score. A proportional bar is the right form for that story, but it can only name a segment wide enough to hold its name, so on skewed data most segments are unlabelled slivers. Two decisions follow:
+
+- **Name everything beneath it.** An index lists every project with its value and share, ten at first with "Show all" for longer tails, and the bar and index highlight together.
+- **Never widen slivers.** Forcing every thin segment to a minimum width lets a long tail take space from the projects that matter, so the bar misstates the concentration (measured: a project holding 52% of the score was drawn at 8% before this rule). Segments under 6px are folded into one outlined "smaller projects" segment of their true combined width.
+
 ## Accessibility
 
 - Keyboard: every control is reachable and operable; the timeline supports arrow keys, Home, End, Enter and Escape.
 - Screen readers: landmarks, a skip link, `aria-pressed` on toggles, `aria-sort` on the table, and a live region for result counts.
-- Targets: interactive targets are at least 24 by 24 pixels. Ribbon segments narrower than that are drawn for proportion but not clickable; the project list offers the same control at full size.
+- Targets: interactive targets are at least 24 by 24 pixels. The proportional bar in the hero is a visual summary, hidden from assistive technology and not focusable; the project index beneath it carries every project as a full-size control.
 - Motion: one entrance animation on the ribbon, removed under `prefers-reduced-motion`.
 - Lighthouse (mobile): accessibility, best practices, SEO and agentic browsing all 100.
 

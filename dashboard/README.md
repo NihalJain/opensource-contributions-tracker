@@ -18,7 +18,7 @@ It is a plain static site with no server and no runtime API. The data is publish
 ## What it shows
 
 - **The headline.** Merged pull requests, with code reviews, commits, contribution score, issues and open pull requests beside it. With more than one contributor it describes the team instead of a person.
-- **Where the work went.** A ribbon sized by contribution score. Select a project to scope the whole page to it.
+- **Where the work went.** A bar sized by contribution score shows at a glance how concentrated the work is, and an index beneath it names every project with its value and share. Select a project to scope the whole page to it.
 - **Highlights.** Typical time to merge, merge rate, reviews per merged pull request, the longest-open pull request, and the busiest month.
 - **Activity over time.** Pull requests and issues by month and outcome. Drag across months (or use the arrow keys, Enter and Escape) to filter everything on the page.
 - **Projects and repositories.** Ranked bars with drill-down to repositories and your rank among each repository's contributors.
