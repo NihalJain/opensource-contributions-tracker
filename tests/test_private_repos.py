@@ -78,7 +78,7 @@ def fake_requests(monkeypatch, status, body=None):
         calls.append(url)
         return Response(status, body, url)
 
-    monkeypatch.setattr(g.requests, "get", get)
+    monkeypatch.setattr(g.SESSION, "get", get)
     monkeypatch.setattr(g.time, "sleep", lambda s: None)
     return calls
 
@@ -113,7 +113,7 @@ def test_a_dropped_connection_never_logs_or_raises_the_repository_name(monkeypat
     def get(url, **kwargs):
         raise requests.exceptions.ConnectionError(f"HTTPSConnectionPool: Max retries exceeded with url: /repos/{PRIVATE}")
 
-    monkeypatch.setattr(g.requests, "get", get)
+    monkeypatch.setattr(g.SESSION, "get", get)
     monkeypatch.setattr(g.time, "sleep", lambda s: None)
     with caplog.at_level(logging.DEBUG):
         with pytest.raises(RuntimeError) as error:
