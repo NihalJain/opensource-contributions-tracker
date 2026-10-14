@@ -45,6 +45,13 @@ A live sample report is available at [output/github_contributions_report.md](out
 It shows the full report structure: summary table, pie charts, per-project and per-user breakdowns, and the activity
 detail section with individual PRs and issues.
 
+## Dashboard
+
+An interactive web dashboard for the same data lives in [`dashboard/`](dashboard/README.md). It is a static site built
+from `output/github_activity_data.json`, so it can be hosted on any static host, and the repository includes an
+optional Cloudflare deploy. See the [dashboard README](dashboard/README.md) for local development and hosting your own
+copy.
+
 ## Local Setup
 
 ### Prerequisites
