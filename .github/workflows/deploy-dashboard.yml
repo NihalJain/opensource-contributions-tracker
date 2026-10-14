@@ -1,0 +1,128 @@
+name: Deploy Dashboard
+
+# Builds the dashboard from the committed report data and publishes it:
+#   - GitHub Pages is the default target. One-time setup: Settings > Pages > Source: GitHub Actions.
+#   - Cloudflare is optional and runs only when the CLOUDFLARE_API_TOKEN and
+#     CLOUDFLARE_ACCOUNT_ID secrets are set.
+# A target that is not configured is skipped with a notice in the run log. Pull requests only
+# build the dashboard as a check; they never publish.
+
+on:
+  pull_request:
+    paths:
+      - "dashboard/**"
+      - ".github/workflows/deploy-dashboard.yml"
+  push:
+    branches: [main]
+    paths:
+      - "dashboard/**"
+      - ".github/workflows/deploy-dashboard.yml"
+  workflow_dispatch:
+  # Called by the nightly report workflow once fresh data has been committed.
+  workflow_call:
+    secrets:
+      CLOUDFLARE_API_TOKEN:
+        required: false
+      CLOUDFLARE_ACCOUNT_ID:
+        required: false
+
+concurrency:
+  group: deploy-dashboard-${{ github.event_name == 'pull_request' && github.ref || 'publish' }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: read
+    outputs:
+      publish: ${{ steps.pages.outputs.configured }}
+    steps:
+      # Pushes made with GITHUB_TOKEN do not trigger workflows, so a nightly run must check out the
+      # branch tip (which includes the report commit) rather than the SHA that started the run.
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.ref }}
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: dashboard/app/package-lock.json
+
+      - name: Build dashboard
+        run: |
+          npm ci
+          npm run build
+        working-directory: dashboard/app
+
+      - name: Check GitHub Pages
+        id: pages
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "$(gh api "repos/${GITHUB_REPOSITORY}/pages" --jq .build_type 2>/dev/null)" = "workflow" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice title=GitHub Pages deploy skipped::Set Settings > Pages > Source to GitHub Actions to publish the dashboard."
+          fi
+
+      - uses: actions/upload-pages-artifact@v5
+        if: steps.pages.outputs.configured == 'true'
+        with:
+          path: dashboard/app/dist
+
+  pages:
+    needs: build
+    if: needs.build.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
+
+  cloudflare:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      # Secrets cannot be used in `if:` directly, so a step reports whether they are set.
+      - name: Check Cloudflare credentials
+        id: cloudflare
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -n "$CLOUDFLARE_API_TOKEN" ] && [ -n "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice title=Cloudflare deploy skipped::Set the CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID repository secrets to also deploy to Cloudflare."
+          fi
+
+      - uses: actions/checkout@v7
+        if: steps.cloudflare.outputs.configured == 'true'
+        with:
+          ref: ${{ github.ref }}
+
+      - uses: actions/setup-node@v7
+        if: steps.cloudflare.outputs.configured == 'true'
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: dashboard/app/package-lock.json
+
+      - name: Deploy to Cloudflare
+        if: steps.cloudflare.outputs.configured == 'true'
+        run: npx --yes wrangler@4 deploy
+        working-directory: dashboard
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

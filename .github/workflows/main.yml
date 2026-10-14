@@ -49,37 +49,19 @@ jobs:
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # Optional: publish the dashboard to Cloudflare as static assets. It runs in this job, right
-      # after the report, because pushes made with GITHUB_TOKEN do not trigger other workflows.
-      # Secrets cannot be used in `if:` directly, so a step reports whether they are set.
-      - name: Check Cloudflare credentials
-        id: cloudflare
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: |
-          if [ -n "$CLOUDFLARE_API_TOKEN" ] && [ -n "$CLOUDFLARE_ACCOUNT_ID" ]; then
-            echo "configured=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "::notice title=Dashboard deploy skipped::Set the CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID repository secrets to deploy the dashboard from this workflow."
-          fi
-
-      - name: Set up Node.js
-        if: steps.cloudflare.outputs.configured == 'true'
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: dashboard/app/package-lock.json
-
-      - name: Deploy dashboard
-        if: steps.cloudflare.outputs.configured == 'true'
-        run: npx --yes wrangler@4 deploy
-        working-directory: dashboard
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     permissions:
       # See https://stackoverflow.com/questions/72851548/permission-denied-to-github-actionsbot
       contents: write
+
+  # Publish the dashboard from the data committed above. This is a separate workflow call because
+  # pushes made with GITHUB_TOKEN do not trigger other workflows.
+  deploy:
+    needs: nightly-job
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy-dashboard.yml
+    secrets:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
