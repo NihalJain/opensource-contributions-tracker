@@ -262,10 +262,13 @@ jobs:
         run: npm ci
         working-directory: dashboard/worker
 
+      # DATA_URL is derived from the repository running this workflow, so a fork serves
+      # its own data without editing dashboard/wrangler.toml.
       - name: Deploy
-        run: npx wrangler deploy
+        run: npx wrangler deploy --var "DATA_URL:https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${DEFAULT_BRANCH}/output/github_activity_data.json"
         working-directory: dashboard
         env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 ```
