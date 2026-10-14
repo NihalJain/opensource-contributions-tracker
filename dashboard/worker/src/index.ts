@@ -40,8 +40,16 @@ export default {
         }
       }
 
-      const fetchInit: RequestInit = bypassCache ? { cache: 'no-store' } : {};
-      const upstream = await fetch(env.DATA_URL, fetchInit);
+      // The `cache` fetch option throws at this compatibility date, so a unique query string
+      // is used instead to skip the upstream CDN's cached copy on a forced refresh.
+      let upstreamUrl = env.DATA_URL;
+      if (bypassCache) {
+        const bust = new URL(env.DATA_URL);
+        bust.searchParams.set('_', Date.now().toString());
+        upstreamUrl = bust.toString();
+      }
+
+      const upstream = await fetch(upstreamUrl);
       if (!upstream.ok) {
         return new Response(`Upstream error: ${upstream.status}`, {
           status: 502,
