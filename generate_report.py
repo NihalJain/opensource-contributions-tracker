@@ -39,7 +39,7 @@ HEADERS = {
     "Accept": "application/vnd.github.v3+json"
 }
 
-def get_all_pages(url, params, max_retries=10, backoff_factor=0.3, with_pagination=True):
+def get_all_pages(url, params, max_retries=10, backoff_factor=0.3, with_pagination=True, meta=None):
     """
     Retrieve all pages of results from a paginated GitHub API endpoint.
 
@@ -49,6 +49,10 @@ def get_all_pages(url, params, max_retries=10, backoff_factor=0.3, with_paginati
         max_retries (int): The maximum number of retries for failed requests.
         backoff_factor (float): The factor for exponential backoff between retries.
         with_pagination (bool): Whether to handle pagination. Defaults to True.
+        meta (dict): Optional. For search endpoints it receives `total_count` (how many results exist,
+            which can exceed what the API will return) and `incomplete_results`. The Search API stops
+            at MAX_SEARCH_RESULT_SIZE results without saying so, so a caller that needs every result
+            must compare `total_count` with what it received.
 
     Returns:
         list: A list of results from all pages.
@@ -103,6 +107,9 @@ def get_all_pages(url, params, max_retries=10, backoff_factor=0.3, with_paginati
                         total_count = data.get('total_count', 0)
                         items = data.get('items', [])
                         results.extend(items)
+                        if meta is not None and page == 1:
+                            meta['total_count'] = total_count
+                            meta['incomplete_results'] = bool(data.get('incomplete_results', False))
                         # Check if there are more pages based on the total_count and current page
                         # NOTE: In search "Only the first 1000 search results are available"
                         total_until_now = page * params.get('per_page', 100)
@@ -451,6 +458,91 @@ def get_user_issues_via_search(user, repo, start_date, end_date=None, per_page=1
         'closed': closed_issues
     }
 
+# Owners per search query: the Search API limits how many operators a query may contain.
+_OWNERS_PER_QUERY = 4
+
+
+def _repo_from_url(repository_url):
+    """'https://api.github.com/repos/owner/repo' -> 'owner/repo' (empty string if not a repo URL)."""
+    prefix = f"{GITHUB_API_URL}/repos/"
+    return repository_url[len(prefix):].rstrip('/') if repository_url.startswith(prefix) else ""
+
+
+def get_user_search_activity(user, repos, start_date, end_date, want_items=True, want_reviews=True):
+    """
+    Find a user's pull requests, issues and reviewed pull requests across many repositories at once.
+
+    The per-repository searches (`repo:R author:U`) cost three Search API calls for every (user, repo)
+    pair, and the Search API is limited to 30 requests a minute. The same results come back from one
+    owner-scoped query per user (`author:U user:owner1 user:owner2`), which is then split by repository.
+
+    A result set is only trusted when the API returned all of it. The Search API returns at most 1,000
+    results per query without raising an error, so when `total_count` exceeds what came back (or the
+    API flags `incomplete_results`) the matching `*_complete` flag is False and the caller must fall
+    back to per-repository queries for that user.
+
+    Args:
+        user (str): The GitHub username.
+        repos (list): Repositories in "owner/repo" form.
+        start_date (str): "YYYY-MM-DD".
+        end_date (str): "YYYY-MM-DD".
+        want_items (bool): Look up pull requests and issues.
+        want_reviews (bool): Look up reviewed pull requests.
+
+    Returns:
+        dict: `prs` and `issues` ({repo: {'open': [...], 'closed': [...]}}), `reviews` ({repo: count of
+        unique pull requests reviewed}), and the booleans `items_complete` and `reviews_complete`.
+    """
+    by_lower = {r.lower(): r for r in repos}
+    result = {
+        'prs': {r: {'open': [], 'closed': []} for r in repos},
+        'issues': {r: {'open': [], 'closed': []} for r in repos},
+        'reviews': {r: 0 for r in repos},
+        'items_complete': True,
+        'reviews_complete': True,
+    }
+    if not repos or not (want_items or want_reviews):
+        return result
+
+    owners = sorted({r.split('/')[0].lower() for r in repos})
+    chunks = [owners[i:i + _OWNERS_PER_QUERY] for i in range(0, len(owners), _OWNERS_PER_QUERY)]
+    date_query = f"created:{start_date}..{end_date}"
+    url = f"{GITHUB_API_URL}/search/issues"
+
+    def search(query):
+        meta = {}
+        items = get_all_pages(url, {"q": query, "per_page": 100}, meta=meta)
+        complete = (not meta.get('incomplete_results', False)
+                    and meta.get('total_count', len(items)) <= len(items))
+        return items, complete
+
+    if want_items:
+        for chunk in chunks:
+            scope = ' '.join(f"user:{o}" for o in chunk)
+            items, complete = search(f"author:{user} {scope} {date_query}")
+            result['items_complete'] = result['items_complete'] and complete
+            for item in items:
+                repo = by_lower.get(_repo_from_url(item.get('repository_url', '')).lower())
+                if repo is None:
+                    continue
+                group = result['prs'] if item.get('pull_request') else result['issues']
+                group[repo]['open' if item.get('state') == 'open' else 'closed'].append(item)
+
+    if want_reviews:
+        reviewed = {r: set() for r in repos}
+        for chunk in chunks:
+            scope = ' '.join(f"user:{o}" for o in chunk)
+            items, complete = search(f"type:pr reviewed-by:{user} {scope} {date_query}")
+            result['reviews_complete'] = result['reviews_complete'] and complete
+            for item in items:
+                repo = by_lower.get(_repo_from_url(item.get('repository_url', '')).lower())
+                if repo is not None and item.get('number'):
+                    reviewed[repo].add(item['number'])
+        result['reviews'] = {r: len(numbers) for r, numbers in reviewed.items()}
+
+    return result
+
+
 def get_pr_count_reviewed_by_user(user, repo, start_date, end_date=None, per_page=100):
     """
     Retrieve code review comments for a specific user in a repository using GitHub Search API.
@@ -654,6 +746,21 @@ def process_github_data(start_date, end_date, users, project_to_repo_dict, contr
                                         "description": repo_info.get('description'), "url": repo_info.get('html_url'),
                                         "avatar_url": repo_info.get('owner', {}).get('avatar_url')}
 
+        # One owner-scoped search per user replaces three searches per (user, repo) pair. A user whose
+        # results were truncated by the Search API falls back to the per-repository queries below.
+        need_items = (open_prs_cfg['enabled'] or closed_prs_cfg['enabled'] or line_stats_cfg['enabled']
+                      or open_issues_cfg['enabled'] or closed_issues_cfg['enabled'])
+        need_reviews = code_reviews_cfg['enabled']
+        all_repos = [repo for repo_list in project_to_repo_dict.values() for repo in repo_list]
+        user_activity = {}
+        if need_items or need_reviews:
+            logger.info("Searching each user's pull requests, issues and reviews...")
+            for user in users:
+                user_activity[user] = get_user_search_activity(
+                    user, all_repos, start_date, end_date, want_items=need_items, want_reviews=need_reviews)
+                logger.info(f"User '{user}': items {'complete' if user_activity[user]['items_complete'] else 'TRUNCATED, using per-repository queries'}, "
+                            f"reviews {'complete' if user_activity[user]['reviews_complete'] else 'TRUNCATED, using per-repository queries'}")
+
         # Populate the data list with dictionaries
         logger.info("Fetching contribution data...")
         for project_key, repo_list in project_to_repo_dict.items():
@@ -679,10 +786,15 @@ def process_github_data(start_date, end_date, users, project_to_repo_dict, contr
                         commit_count = 0
 
                     # Pull requests
+                    activity = user_activity.get(user)
+                    items_known = activity is not None and activity['items_complete']
                     need_prs = open_prs_cfg['enabled'] or closed_prs_cfg['enabled'] or line_stats_cfg['enabled']
                     if need_prs:
-                        logger.info(f"Fetching pull requests for user: {user} in repository: {repo}")
-                        user_prs = get_user_prs_via_search(user, repo, start_date, end_date)
+                        if items_known:
+                            user_prs = activity['prs'][repo]
+                        else:
+                            logger.info(f"Fetching pull requests for user: {user} in repository: {repo}")
+                            user_prs = get_user_prs_via_search(user, repo, start_date, end_date)
                         open_pr_count = len(user_prs['open']) if open_prs_cfg['enabled'] else 0
                         closed_pr_count = len(user_prs['closed']) if closed_prs_cfg['enabled'] else 0
                     else:
@@ -692,8 +804,11 @@ def process_github_data(start_date, end_date, users, project_to_repo_dict, contr
                     # Issues
                     need_issues = open_issues_cfg['enabled'] or closed_issues_cfg['enabled']
                     if need_issues:
-                        logger.info(f"Fetching issues for user: {user} in repository: {repo}")
-                        user_issues = get_user_issues_via_search(user, repo, start_date, end_date)
+                        if items_known:
+                            user_issues = activity['issues'][repo]
+                        else:
+                            logger.info(f"Fetching issues for user: {user} in repository: {repo}")
+                            user_issues = get_user_issues_via_search(user, repo, start_date, end_date)
                         open_issue_count = len(user_issues['open']) if open_issues_cfg['enabled'] else 0
                         closed_issue_count = len(user_issues['closed']) if closed_issues_cfg['enabled'] else 0
                     else:
@@ -702,8 +817,11 @@ def process_github_data(start_date, end_date, users, project_to_repo_dict, contr
 
                     # Code reviews
                     if code_reviews_cfg['enabled']:
-                        logger.info(f"Fetching count of pull requests reviewed by user: {user} in repository: {repo}")
-                        code_review_count = get_pr_count_reviewed_by_user(user, repo, start_date, end_date)
+                        if activity is not None and activity['reviews_complete']:
+                            code_review_count = activity['reviews'][repo]
+                        else:
+                            logger.info(f"Fetching count of pull requests reviewed by user: {user} in repository: {repo}")
+                            code_review_count = get_pr_count_reviewed_by_user(user, repo, start_date, end_date)
                     else:
                         code_review_count = 0
 
