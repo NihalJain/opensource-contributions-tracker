@@ -39,7 +39,8 @@ HEADERS = {
     "Accept": "application/vnd.github.v3+json"
 }
 
-def get_all_pages(url, params, max_retries=10, backoff_factor=0.3, with_pagination=True, meta=None):
+def get_all_pages(url, params, max_retries=10, backoff_factor=0.3, with_pagination=True, meta=None,
+                  give_up_over=None):
     """
     Retrieve all pages of results from a paginated GitHub API endpoint.
 
@@ -53,6 +54,9 @@ def get_all_pages(url, params, max_retries=10, backoff_factor=0.3, with_paginati
             which can exceed what the API will return) and `incomplete_results`. The Search API stops
             at MAX_SEARCH_RESULT_SIZE results without saying so, so a caller that needs every result
             must compare `total_count` with what it received.
+        give_up_over (int): Optional. For search endpoints: if the first page shows more than this many
+            matching results, stop at once and return that first page. Paging to the API's cap only to
+            discover the result set was truncated costs ten requests; `total_count` is on page one.
 
     Returns:
         list: A list of results from all pages.
@@ -110,6 +114,8 @@ def get_all_pages(url, params, max_retries=10, backoff_factor=0.3, with_paginati
                         if meta is not None and page == 1:
                             meta['total_count'] = total_count
                             meta['incomplete_results'] = bool(data.get('incomplete_results', False))
+                        if give_up_over is not None and page == 1 and total_count > give_up_over:
+                            return results
                         # Check if there are more pages based on the total_count and current page
                         # NOTE: In search "Only the first 1000 search results are available"
                         total_until_now = page * params.get('per_page', 100)
@@ -530,7 +536,7 @@ def get_user_search_activity(user, repos, start_date, end_date, want_items=True,
 
     def search(query):
         meta = {}
-        items = get_all_pages(url, {"q": query, "per_page": 100}, meta=meta)
+        items = get_all_pages(url, {"q": query, "per_page": 100}, meta=meta, give_up_over=MAX_SEARCH_RESULT_SIZE)
         complete = (not meta.get('incomplete_results', False)
                     and meta.get('total_count', len(items)) <= len(items))
         return items, complete
@@ -600,7 +606,7 @@ def get_user_commit_repos(user, repos, start_date, end_date):
             scope = ' '.join(f"user:{o}" for o in owners[i:i + _OWNERS_PER_QUERY])
             query = f"author:{user} {scope} committer-date:{start_date}..{end_date}"
             meta = {}
-            items = get_all_pages(url, {"q": query, "per_page": 100}, meta=meta)
+            items = get_all_pages(url, {"q": query, "per_page": 100}, meta=meta, give_up_over=MAX_SEARCH_RESULT_SIZE)
             if meta.get('incomplete_results', False) or meta.get('total_count', len(items)) > len(items):
                 return None
             for item in items:
