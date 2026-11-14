@@ -1,6 +1,6 @@
 # OpenSource Contributions Report
 
-*Report auto-generated on: 2026-11-13 05:44:01 for period 1970-01-01 to 2026-11-14*
+*Report auto-generated on: 2026-11-14 05:33:20 for period 1970-01-01 to 2026-11-15*
 
 ## Overall Summary
 
@@ -58,7 +58,7 @@
 | Apache Pinot | <img src='https://avatars.githubusercontent.com/u/62676312?v=4' width='12' height='12'> [pinot-contrib/pinot-docs](https://github.com/pinot-contrib/pinot-docs) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 71 | 2 | 0 | 2 | 0 | 0 | 2 | 4 |
 | Apache Pinot | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/pinot](https://github.com/apache/pinot) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 146 | 5 | 2 | 6 | 2 | 7 | 4 | 20 |
 | Apache Zookeeper | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/zookeeper](https://github.com/apache/zookeeper) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 82 | 2 | 0 | 2 | 0 | 0 | 0 | 2 |
-| Codeburn | <img src='https://avatars.githubusercontent.com/u/277308000?v=4' width='12' height='12'> [getagentseal/codeburn](https://github.com/getagentseal/codeburn) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 10 | 8 | 0 | 6 | 0 | 3 | 0 | 11 |
+| Codeburn | <img src='https://avatars.githubusercontent.com/u/277308000?v=4' width='12' height='12'> [getagentseal/codeburn](https://github.com/getagentseal/codeburn) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 11 | 8 | 0 | 6 | 0 | 3 | 0 | 11 |
 
 ## Activity Details
 
