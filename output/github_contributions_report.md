@@ -1,6 +1,6 @@
 # OpenSource Contributions Report
 
-*Report auto-generated on: 2026-11-24 09:01:49 for period 1970-01-01 to 2026-11-25*
+*Report auto-generated on: 2026-11-25 07:40:01 for period 1970-01-01 to 2026-11-26*
 
 ## Overall Summary
 
@@ -46,7 +46,7 @@
 | Project Key | Repository | User | Rank | Commits | Pull Requests (Open) | Pull Requests (Closed) | Issues (Open) | Issues (Closed) | Code Reviews | Overall Contribution |
 |--------------|------------|------|------|---------|----------------------|----------------------|----------------|----------------|--------------|----------------------|
 | Apache HBase | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase](https://github.com/apache/hbase) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 28 | 84 | 6 | 150 | 0 | 0 | 253 | 343 |
-| Apache HBase | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-connectors](https://github.com/apache/hbase-connectors) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 7 | 8 | 0 | 10 | 0 | 0 | 19 | 27 |
+| Apache HBase | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-connectors](https://github.com/apache/hbase-connectors) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 8 | 8 | 0 | 10 | 0 | 0 | 19 | 27 |
 | Apache HBase | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-thirdparty](https://github.com/apache/hbase-thirdparty) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 3 | 24 | 2 | 21 | 0 | 0 | 28 | 54 |
 | Apache HBase | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-operator-tools](https://github.com/apache/hbase-operator-tools) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 5 | 13 | 0 | 13 | 0 | 0 | 15 | 28 |
 | Apache Hadoop | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hadoop](https://github.com/apache/hadoop) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | N/A | 1 | 0 | 2 | 0 | 0 | 2 | 3 |
@@ -57,7 +57,7 @@
 | Apache Phoenix | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-thirdparty](https://github.com/apache/phoenix-thirdparty) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 4 | 1 | 0 | 1 | 0 | 0 | 1 | 2 |
 | Apache Pinot | <img src='https://avatars.githubusercontent.com/u/62676312?v=4' width='12' height='12'> [pinot-contrib/pinot-docs](https://github.com/pinot-contrib/pinot-docs) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 71 | 2 | 0 | 2 | 0 | 0 | 2 | 4 |
 | Apache Pinot | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/pinot](https://github.com/apache/pinot) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 146 | 5 | 2 | 6 | 2 | 7 | 4 | 20 |
-| Apache Zookeeper | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/zookeeper](https://github.com/apache/zookeeper) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 83 | 2 | 0 | 2 | 0 | 0 | 0 | 2 |
+| Apache Zookeeper | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/zookeeper](https://github.com/apache/zookeeper) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 84 | 2 | 0 | 2 | 0 | 0 | 0 | 2 |
 | Codeburn | <img src='https://avatars.githubusercontent.com/u/277308000?v=4' width='12' height='12'> [getagentseal/codeburn](https://github.com/getagentseal/codeburn) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 11 | 8 | 0 | 6 | 0 | 3 | 0 | 11 |
 
 ## Activity Details
