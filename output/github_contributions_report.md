@@ -1,6 +1,6 @@
 # OpenSource Contributions Report
 
-*Report auto-generated on: 2026-11-26 07:28:25 for period 1970-01-01 to 2026-11-27*
+*Report auto-generated on: 2026-11-27 07:26:15 for period 1970-01-01 to 2026-11-28*
 
 ## Overall Summary
 
@@ -50,7 +50,7 @@
 | Apache HBase | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-thirdparty](https://github.com/apache/hbase-thirdparty) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 3 | 24 | 2 | 21 | 0 | 0 | 28 | 54 |
 | Apache HBase | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hbase-operator-tools](https://github.com/apache/hbase-operator-tools) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 5 | 13 | 0 | 13 | 0 | 0 | 15 | 28 |
 | Apache Hadoop | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/hadoop](https://github.com/apache/hadoop) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | N/A | 1 | 0 | 2 | 0 | 0 | 2 | 3 |
-| Apache Iceberg | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/iceberg-cpp](https://github.com/apache/iceberg-cpp) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 60 | 1 | 0 | 1 | 1 | 0 | 0 | 2 |
+| Apache Iceberg | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/iceberg-cpp](https://github.com/apache/iceberg-cpp) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 61 | 1 | 0 | 1 | 1 | 0 | 0 | 2 |
 | Apache Phoenix | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix](https://github.com/apache/phoenix) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 41 | 12 | 0 | 27 | 0 | 0 | 30 | 42 |
 | Apache Phoenix | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-omid](https://github.com/apache/phoenix-omid) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 10 | 10 | 0 | 9 | 0 | 0 | 3 | 13 |
 | Apache Phoenix | <img src='https://avatars.githubusercontent.com/u/47359?v=4' width='12' height='12'> [apache/phoenix-queryserver](https://github.com/apache/phoenix-queryserver) | <img src='https://avatars.githubusercontent.com/u/3429351?v=4' width='12' height='12'> [Nihal Jain](https://github.com/NihalJain) | 4 | 5 | 0 | 5 | 0 | 0 | 5 | 10 |
@@ -292,7 +292,7 @@
 | [#142](https://github.com/apache/hbase-thirdparty/pull/142) | HBASE-29225 [hbase-thirdparty] Add module for Jetty 12 with EE8 and add support for toolchain based JDK selection | ✅ Merged | 2025-07-10 | 2025-08-02 |  |
 | [#143](https://github.com/apache/hbase-thirdparty/pull/143) | [DO NOT MERGE] PR just to test build | ❌ Closed | 2025-07-25 | 2025-07-31 |  |
 | [#144](https://github.com/apache/hbase-thirdparty/pull/144) | HBASE-29465 [hbase-thirdparty] Update yetus to a newer version | ✅ Merged | 2025-07-25 | 2025-07-28 |  |
-| [#145](https://github.com/apache/hbase-thirdparty/pull/145) | HBASE-29475 [hbase-thirdparty] Add spotless in pre commit check | 🔄 Open | 2025-07-28 | 2026-03-03 |  |
+| [#145](https://github.com/apache/hbase-thirdparty/pull/145) | HBASE-29475 [hbase-thirdparty] Add spotless in pre commit check | 🔄 Open | 2025-07-28 | 2026-11-26 |  |
 | [#146](https://github.com/apache/hbase-thirdparty/pull/146) | HBASE-29488 [hbase-thirdparty] Bump dependency versions before releasing | ✅ Merged | 2025-08-02 | 2025-08-04 |  |
 | [#147](https://github.com/apache/hbase-thirdparty/pull/147) | HBASE-29489 [hbase-thirdparty] Bump protobuf java to 4.31.1 | ✅ Merged | 2025-08-02 | 2025-08-04 |  |
 
